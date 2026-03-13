@@ -29,7 +29,7 @@ async function main() {
   // Create admin user via Better Auth sign-up endpoint
   const signUpRes = await fetch(`${BASE_URL}/api/auth/sign-up/email`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Origin: BASE_URL },
     body: JSON.stringify({
       name: ADMIN_NAME,
       email: ADMIN_EMAIL,
