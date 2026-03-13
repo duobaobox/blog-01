@@ -5,6 +5,30 @@ import { db } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 import slugify from "slugify";
 import readingTime from "reading-time";
+import { pinyin } from "pinyin-pro";
+
+function generateSlug(title: string, customSlug?: string): string {
+  // If custom slug is provided, use it
+  if (customSlug) {
+    return slugify(customSlug, { lower: true, strict: true });
+  }
+
+  // First try to slugify the title directly
+  let slug = slugify(title, { lower: true, strict: true });
+
+  // If slug is empty (pure Chinese), convert to pinyin first
+  if (!slug) {
+    const pinyinText = pinyin(title, { toneType: "none", separator: "-" });
+    slug = slugify(pinyinText, { lower: true, strict: true });
+  }
+
+  // If still empty, use a timestamp
+  if (!slug) {
+    slug = `post-${Date.now()}`;
+  }
+
+  return slug;
+}
 
 export async function getPosts(options?: {
   status?: string;
@@ -70,16 +94,16 @@ export async function createPost(formData: FormData) {
   const isFeatured = formData.get("isFeatured") === "true";
   const tagIds = formData.getAll("tagIds") as string[];
 
-  const slug =
-    (formData.get("slug") as string) ||
-    slugify(title, { lower: true, strict: true });
+  const slug = generateSlug(
+    title,
+    (formData.get("slug") as string) || undefined,
+  );
 
   const stats = readingTime(contentMarkdown);
   const wordCount = contentMarkdown.length;
   const readingTimeMinutes = Math.ceil(stats.minutes);
 
-  const publishedAt =
-    status === "published" ? new Date() : null;
+  const publishedAt = status === "published" ? new Date() : null;
 
   const post = await db.post.create({
     data: {

@@ -37,17 +37,21 @@ export default async function BlogPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
         {/* Post list */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {posts.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground">暂无文章</p>
           ) : (
             posts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardHeader>
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="block"
+              >
+                <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
+                  <CardHeader className="space-y-3">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       {post.category && (
-                        <span className="font-medium text-foreground/80">
+                        <span className="font-medium text-primary">
                           {post.category.name}
                         </span>
                       )}
@@ -72,22 +76,26 @@ export default async function BlogPage() {
                         </>
                       )}
                     </div>
-                    <CardTitle className="text-xl">{post.title}</CardTitle>
-                    <CardDescription className="text-sm">
+                    <CardTitle className="text-xl leading-tight">
+                      {post.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm leading-relaxed line-clamp-2">
                       {post.excerpt ??
                         post.contentMarkdown.slice(0, 120) + "..."}
                     </CardDescription>
-                    <div className="flex items-center gap-2 pt-1">
-                      {post.tags.map((pt) => (
-                        <Badge
-                          key={pt.tag.id}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {pt.tag.name}
-                        </Badge>
-                      ))}
-                    </div>
+                    {post.tags.length > 0 && (
+                      <div className="flex items-center gap-2 pt-2">
+                        {post.tags.map((pt) => (
+                          <Badge
+                            key={pt.tag.id}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {pt.tag.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </CardHeader>
                 </Card>
               </Link>

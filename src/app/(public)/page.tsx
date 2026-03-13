@@ -79,24 +79,32 @@ export default async function HomePage() {
             暂无文章，快去后台发布第一篇吧。
           </p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {recentPosts.map((post) => (
-              <Link key={post.slug} href={`/blog/${post.slug}`}>
-                <Card className="h-full transition-colors hover:bg-muted/50">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      {post.tags.map((pt) => (
-                        <Badge
-                          key={pt.tag.id}
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {pt.tag.name}
-                        </Badge>
-                      ))}
-                    </div>
-                    <CardTitle className="text-lg">{post.title}</CardTitle>
-                    <CardDescription>
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="block"
+              >
+                <Card className="h-full transition-all duration-200 hover:shadow-md hover:border-primary/20">
+                  <CardHeader className="space-y-3">
+                    {post.tags.length > 0 && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {post.tags.slice(0, 2).map((pt) => (
+                          <Badge
+                            key={pt.tag.id}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {pt.tag.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <CardTitle className="text-lg leading-tight line-clamp-2">
+                      {post.title}
+                    </CardTitle>
+                    <CardDescription className="leading-relaxed line-clamp-3">
                       {post.excerpt ??
                         post.contentMarkdown.slice(0, 100) + "..."}
                     </CardDescription>
