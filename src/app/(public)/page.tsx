@@ -9,11 +9,14 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { siteConfig } from "@/site.config";
 import { getPosts } from "@/actions/posts";
+import { getResolvedSiteConfig } from "@/lib/site";
 
 export default async function HomePage() {
-  const recentPosts = await getPosts({ status: "published", take: 3 });
+  const [recentPosts, site] = await Promise.all([
+    getPosts({ status: "published", take: 3 }),
+    getResolvedSiteConfig(),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -41,9 +44,9 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-6 flex items-center gap-4">
-          {siteConfig.social.github && (
+          {site.social.github && (
             <Link
-              href={siteConfig.social.github}
+              href={site.social.github}
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground transition-colors hover:text-foreground"
@@ -51,9 +54,9 @@ export default async function HomePage() {
               <Github className="h-5 w-5" />
             </Link>
           )}
-          {siteConfig.social.email && (
+          {site.social.email && (
             <Link
-              href={`mailto:${siteConfig.social.email}`}
+              href={`mailto:${site.social.email}`}
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
               <Mail className="h-5 w-5" />

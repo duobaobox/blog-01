@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { requireAdminSession } from "@/lib/auth";
 import path from "path";
 import fs from "fs/promises";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
+const ALLOWED_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    await requireAdminSession();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unauthorized";
+    const status = message === "Forbidden" ? 403 : 401;
+    return NextResponse.json({ error: message }, { status });
   }
 
   const formData = await request.formData();
@@ -21,7 +28,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  const ext = ALLOWED_TYPES[file.type];
+
+  if (!ext) {
     return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
   }
 
@@ -31,7 +40,6 @@ export async function POST(request: NextRequest) {
 
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
 
-  const ext = file.name.split(".").pop() || "png";
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const filepath = path.join(UPLOAD_DIR, filename);
 

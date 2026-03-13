@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/site.config";
+import { getResolvedSiteConfig } from "@/lib/site";
 
 interface SeoProps {
   title?: string;
@@ -10,17 +10,18 @@ interface SeoProps {
   publishedTime?: string;
 }
 
-export function generateSeo({
+export async function generateSeo({
   title,
   description,
   image,
   url,
   type = "website",
   publishedTime,
-}: SeoProps = {}): Metadata {
-  const siteTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.name;
-  const siteDescription = description || siteConfig.description;
-  const siteUrl = url || siteConfig.url;
+}: SeoProps = {}): Promise<Metadata> {
+  const site = await getResolvedSiteConfig();
+  const siteTitle = title ? `${title} | ${site.name}` : site.name;
+  const siteDescription = description || site.description;
+  const siteUrl = url || site.url;
 
   return {
     title: siteTitle,
@@ -29,7 +30,7 @@ export function generateSeo({
       title: siteTitle,
       description: siteDescription,
       url: siteUrl,
-      siteName: siteConfig.name,
+      siteName: site.name,
       type,
       ...(image && { images: [{ url: image }] }),
       ...(publishedTime && { publishedTime }),

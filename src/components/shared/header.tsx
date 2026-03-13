@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import { siteConfig } from "@/site.config";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,19 +13,27 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-export function Header() {
+interface HeaderProps {
+  siteName: string;
+  nav: ReadonlyArray<{
+    label: string;
+    href: string;
+  }>;
+}
+
+export function Header({ siteName, nav }: HeaderProps) {
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-5xl items-center px-4 sm:px-6">
         <Link href="/" className="mr-6 font-bold">
-          {siteConfig.name}
+          {siteName}
         </Link>
 
         {/* Desktop nav */}
         <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {siteConfig.nav.map((item) => (
+          {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -58,7 +65,7 @@ export function Header() {
             <SheetContent side="right" className="w-[240px]">
               <SheetTitle className="sr-only">导航菜单</SheetTitle>
               <nav className="mt-6 flex flex-col gap-2">
-                {siteConfig.nav.map((item) => (
+                {nav.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}

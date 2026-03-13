@@ -17,6 +17,10 @@ export default async function AdminLayout({
     redirect("/admin/login");
   }
 
+  if (session.user.role !== "admin") {
+    redirect("/");
+  }
+
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />

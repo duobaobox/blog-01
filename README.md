@@ -52,6 +52,7 @@ DATABASE_URL="postgresql://user:password@localhost:5432/blog?schema=public"
 # Better Auth 认证配置
 BETTER_AUTH_SECRET="your-secret-key-here"
 BETTER_AUTH_URL="http://localhost:3000"
+ADMIN_SETUP_TOKEN=""
 
 # 站点 URL
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
@@ -72,6 +73,11 @@ npm run db:push
 # （可选）填充示例数据
 npm run db:seed
 ```
+
+说明：
+
+- 首次初始化管理员账号后，公开注册会被自动关闭。
+- 生产环境建议配置 `ADMIN_SETUP_TOKEN`，并在执行 `npm run db:seed` 时使用同一个值完成首次管理员创建。
 
 ### 4. 启动开发服务器
 
@@ -194,6 +200,7 @@ npm run db:generate  # 生成Prisma客户端
 - `DATABASE_URL` - PostgreSQL 连接字符串
 - `BETTER_AUTH_SECRET` - 认证密钥
 - `BETTER_AUTH_URL` - 生产环境认证 URL
+- `ADMIN_SETUP_TOKEN` - 首次初始化管理员时使用的受控注册令牌
 - `NEXT_PUBLIC_SITE_URL` - 生产环境站点 URL
 
 ## SEO 配置

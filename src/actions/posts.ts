@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import slugify from "slugify";
 import readingTime from "reading-time";
 import { pinyin } from "pinyin-pro";
@@ -81,7 +81,7 @@ export async function getPostCount(status?: string) {
 }
 
 export async function createPost(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireAdminSession();
   const title = formData.get("title") as string;
   const contentMarkdown = formData.get("contentMarkdown") as string;
   const excerpt = (formData.get("excerpt") as string) || null;
@@ -134,9 +134,12 @@ export async function createPost(formData: FormData) {
 }
 
 export async function updatePost(id: string, formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
   const title = formData.get("title") as string;
-  const slug = formData.get("slug") as string;
+  const slug = generateSlug(
+    title,
+    (formData.get("slug") as string) || undefined,
+  );
   const contentMarkdown = formData.get("contentMarkdown") as string;
   const excerpt = (formData.get("excerpt") as string) || null;
   const coverImageUrl = (formData.get("coverImageUrl") as string) || null;
@@ -158,9 +161,6 @@ export async function updatePost(id: string, formData: FormData) {
       ? new Date()
       : existing?.publishedAt;
 
-  // Delete existing tag relations and recreate
-  await db.postTag.deleteMany({ where: { postId: id } });
-
   const post = await db.post.update({
     where: { id },
     data: {
@@ -179,6 +179,7 @@ export async function updatePost(id: string, formData: FormData) {
       canonicalUrl,
       isFeatured,
       tags: {
+        deleteMany: {},
         create: tagIds.map((tagId) => ({ tagId })),
       },
     },
@@ -191,7 +192,7 @@ export async function updatePost(id: string, formData: FormData) {
 }
 
 export async function deletePost(id: string) {
-  await requireSession();
+  await requireAdminSession();
   const post = await db.post.delete({ where: { id } });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");

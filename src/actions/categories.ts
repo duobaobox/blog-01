@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import slugify from "slugify";
 
 export async function getCategories() {
@@ -17,7 +17,7 @@ export async function getCategoryBySlug(slug: string) {
 }
 
 export async function createCategory(formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
   const name = formData.get("name") as string;
   const description = (formData.get("description") as string) || null;
   const slug =
@@ -30,7 +30,7 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function updateCategory(id: string, formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
   const description = (formData.get("description") as string) || null;
@@ -44,7 +44,7 @@ export async function updateCategory(id: string, formData: FormData) {
 }
 
 export async function deleteCategory(id: string) {
-  await requireSession();
+  await requireAdminSession();
   await db.category.delete({ where: { id } });
   revalidatePath("/admin/categories");
   revalidatePath("/blog");

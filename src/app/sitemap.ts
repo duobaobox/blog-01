@@ -2,9 +2,11 @@ export const dynamic = "force-dynamic";
 
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
+import { getResolvedSiteConfig } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const site = await getResolvedSiteConfig();
+  const baseUrl = site.url;
 
   const posts = await db.post.findMany({
     where: { status: "published" },

@@ -49,7 +49,7 @@ async function main() {
           data: { slug: newSlug },
         });
         console.log(`  ✓ Updated\n`);
-      } catch (error) {
+      } catch {
         // If slug already exists, add a number suffix
         let counter = 1;
         let uniqueSlug = newSlug;

@@ -16,7 +16,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: "string",
-        defaultValue: "admin",
+        defaultValue: "user",
       },
     },
   },
@@ -33,5 +33,15 @@ export async function requireSession() {
   if (!session) {
     throw new Error("Unauthorized");
   }
+  return session;
+}
+
+export async function requireAdminSession() {
+  const session = await requireSession();
+
+  if (session.user.role !== "admin") {
+    throw new Error("Forbidden");
+  }
+
   return session;
 }

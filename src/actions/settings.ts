@@ -2,14 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 
 export async function getSiteSettings() {
+  await requireAdminSession();
   return db.siteSetting.findFirst();
 }
 
 export async function updateSiteSettings(formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
 
   const data = {
     siteTitle: formData.get("siteTitle") as string,
@@ -34,4 +35,10 @@ export async function updateSiteSettings(formData: FormData) {
 
   revalidatePath("/admin/settings");
   revalidatePath("/");
+  revalidatePath("/about");
+  revalidatePath("/projects");
+  revalidatePath("/blog");
+  revalidatePath("/feed.xml");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/robots.txt");
 }

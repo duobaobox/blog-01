@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
+import { getResolvedSiteConfig } from "@/lib/site";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const site = await getResolvedSiteConfig();
+
   return {
     rules: [
       {
@@ -9,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: "/admin/",
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/sitemap.xml`,
+    sitemap: `${site.url}/sitemap.xml`,
   };
 }

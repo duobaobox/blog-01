@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { requireSession } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import slugify from "slugify";
 
 export async function getTags() {
@@ -17,7 +17,7 @@ export async function getTagBySlug(slug: string) {
 }
 
 export async function createTag(formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
   const name = formData.get("name") as string;
   const description = (formData.get("description") as string) || null;
   const color = (formData.get("color") as string) || null;
@@ -31,7 +31,7 @@ export async function createTag(formData: FormData) {
 }
 
 export async function updateTag(id: string, formData: FormData) {
-  await requireSession();
+  await requireAdminSession();
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
   const description = (formData.get("description") as string) || null;
@@ -46,7 +46,7 @@ export async function updateTag(id: string, formData: FormData) {
 }
 
 export async function deleteTag(id: string) {
-  await requireSession();
+  await requireAdminSession();
   await db.tag.delete({ where: { id } });
   revalidatePath("/admin/tags");
   revalidatePath("/blog");

@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { FileText, FolderOpen, Tags, Settings } from "lucide-react";
+import { FileText, FolderOpen, Tags } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getPostCount } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
