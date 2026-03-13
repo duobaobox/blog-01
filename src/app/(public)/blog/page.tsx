@@ -2,18 +2,12 @@ export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calendar, Clock } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getPosts } from "@/actions/posts";
 import { getCategories } from "@/actions/categories";
 import { getTags } from "@/actions/tags";
+import { PostListCard } from "@/components/blog/post-list-card";
 
 export const metadata: Metadata = {
   title: "博客",
@@ -41,65 +35,7 @@ export default async function BlogPage() {
           {posts.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground">暂无文章</p>
           ) : (
-            posts.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="block"
-              >
-                <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
-                  <CardHeader className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {post.category && (
-                        <span className="font-medium text-primary">
-                          {post.category.name}
-                        </span>
-                      )}
-                      {post.category && <span>·</span>}
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {post.publishedAt
-                          ? new Date(post.publishedAt).toLocaleDateString(
-                              "zh-CN",
-                            )
-                          : new Date(post.createdAt).toLocaleDateString(
-                              "zh-CN",
-                            )}
-                      </span>
-                      {post.readingTimeMinutes && (
-                        <>
-                          <span>·</span>
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {post.readingTimeMinutes} 分钟
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <CardTitle className="text-xl leading-tight">
-                      {post.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm leading-relaxed line-clamp-2">
-                      {post.excerpt ??
-                        post.contentMarkdown.slice(0, 120) + "..."}
-                    </CardDescription>
-                    {post.tags.length > 0 && (
-                      <div className="flex items-center gap-2 pt-2">
-                        {post.tags.map((pt) => (
-                          <Badge
-                            key={pt.tag.id}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {pt.tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))
+            posts.map((post) => <PostListCard key={post.slug} post={post} />)
           )}
         </div>
 
