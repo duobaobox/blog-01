@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────────────
+// Better Auth 认证表
+// ──────────────────────────────────────────────
+
+model user {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          String   @default("admin")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions session[]
+  accounts account[]
+  posts    post[]
+}
+
+model session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ──────────────────────────────────────────────
+// 业务表
+// ──────────────────────────────────────────────
+
+model post {
+  id                  String    @id @default(uuid())
+  title               String
+  slug                String    @unique
+  excerpt             String?   @db.Text
+  coverImageUrl       String?   @db.Text
+  contentMarkdown     String    @db.Text
+  status              String    @default("draft")
+  publishedAt         DateTime?
+  readingTimeMinutes  Int?
+  wordCount           Int?
+  seoTitle            String?
+  seoDescription      String?   @db.Text
+  canonicalUrl        String?   @db.Text
+  isFeatured          Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  categoryId String?
+  category   category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdBy String
+  author    user   @relation(fields: [createdBy], references: [id])
+
+  tags postTag[]
+
+  @@index([categoryId])
+  @@index([createdBy])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts post[]
+}
+
+model tag {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts postTag[]
+}
+
+model postTag {
+  postId String
+  tagId  String
+
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model siteSetting {
+  id              String   @id @default(uuid())
+  siteTitle       String
+  siteSubtitle    String?
+  siteDescription String?  @db.Text
+  siteUrl         String
+  logoUrl         String?  @db.Text
+  avatarUrl       String?  @db.Text
+  githubUrl       String?  @db.Text
+  xUrl            String?  @db.Text
+  email           String?
+  footerText      String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
