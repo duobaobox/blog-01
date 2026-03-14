@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
-import { getPosts } from "@/features/posts";
+import { getPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export default async function HomePage() {

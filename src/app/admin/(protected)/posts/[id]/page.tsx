@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import { getPostById } from "@/features/posts";
-import { getCategories, getTags } from "@/features/taxonomy";
+import { getPostById } from "@/features/posts/queries/post.queries";
+import { getCategories } from "@/features/taxonomy/queries/category.queries";
+import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { PostForm } from "@/components/admin/post-form";
 
 export default async function EditPostPage({

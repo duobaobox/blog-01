@@ -5,7 +5,14 @@ let storageProvider: StorageProvider | null = null;
 
 export function getStorageProvider(): StorageProvider {
   if (!storageProvider) {
-    storageProvider = new LocalStorageProvider();
+    const providerType = process.env.STORAGE_PROVIDER ?? "local";
+    switch (providerType) {
+      case "local":
+        storageProvider = new LocalStorageProvider();
+        break;
+      default:
+        throw new Error(`Unknown storage provider: ${providerType}`);
+    }
   }
   return storageProvider;
 }

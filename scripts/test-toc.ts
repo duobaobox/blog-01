@@ -1,4 +1,4 @@
-import { extractToc } from "../src/lib/markdown.js";
+import { extractToc } from "../src/infrastructure/markdown";
 
 const testMarkdown = `
 # 主标题（不会被提取）

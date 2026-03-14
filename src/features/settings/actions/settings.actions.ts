@@ -4,11 +4,6 @@ import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
 import * as settingsRepo from "@/features/settings/repositories/settings.repository";
 
-export async function getSiteSettings() {
-  await requireAdminSession();
-  return settingsRepo.findSiteSettings();
-}
-
 export async function updateSiteSettings(formData: FormData) {
   await requireAdminSession();
 

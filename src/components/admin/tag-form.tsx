@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTag, updateTag, deleteTag } from "@/features/taxonomy";
+import {
+  createTag,
+  updateTag,
+  deleteTag,
+} from "@/features/taxonomy/actions/tag.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";

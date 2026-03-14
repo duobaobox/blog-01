@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSession } from "@/infrastructure/auth";
-import path from "path";
-import fs from "fs/promises";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-const ALLOWED_TYPES: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-};
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+import { uploadFile } from "@/features/media/services/media.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,31 +18,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const ext = ALLOWED_TYPES[file.type];
+  const { url, error } = await uploadFile(file);
 
-  if (!ext) {
-    return NextResponse.json(
-      { error: "File type not allowed" },
-      { status: 400 },
-    );
+  if (error) {
+    const status = error.includes("too large") ? 400 : 400;
+    return NextResponse.json({ error }, { status });
   }
-
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json(
-      { error: "File too large (max 5MB)" },
-      { status: 400 },
-    );
-  }
-
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const filepath = path.join(UPLOAD_DIR, filename);
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filepath, buffer);
-
-  const url = `/uploads/${filename}`;
 
   return NextResponse.json({ url });
 }

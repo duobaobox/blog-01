@@ -111,27 +111,53 @@ export async function updatePost(
     canonicalUrl: string | null;
     isFeatured: boolean;
     tagIds: string[];
-  }
+  },
 ) {
   const { tagIds, ...postData } = data;
 
-  await db.postTag.deleteMany({ where: { postId: id } });
+  return db.$transaction(async (tx) => {
+    await tx.postTag.deleteMany({ where: { postId: id } });
 
-  return db.post.update({
-    where: { id },
-    data: {
-      ...postData,
-      tags: {
-        create: tagIds.map((tagId) => ({ tagId })),
+    return tx.post.update({
+      where: { id },
+      data: {
+        ...postData,
+        tags: {
+          create: tagIds.map((tagId) => ({ tagId })),
+        },
       },
-    },
-    include: {
-      category: true,
-      tags: { include: { tag: true } },
-    },
+      include: {
+        category: true,
+        tags: { include: { tag: true } },
+      },
+    });
   });
 }
 
 export async function deletePost(id: string) {
   return db.post.delete({ where: { id } });
+}
+
+export async function findPublishedForFeed(take = 20) {
+  return db.post.findMany({
+    where: { status: "published" },
+    orderBy: { publishedAt: "desc" },
+    take,
+    select: {
+      title: true,
+      slug: true,
+      excerpt: true,
+      contentMarkdown: true,
+      publishedAt: true,
+      author: { select: { name: true } },
+    },
+  });
+}
+
+export async function findPublishedSlugs() {
+  return db.post.findMany({
+    where: { status: "published" },
+    orderBy: { publishedAt: "desc" },
+    select: { slug: true, updatedAt: true },
+  });
 }

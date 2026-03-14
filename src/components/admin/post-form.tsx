@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createPost, updatePost, deletePost } from "@/features/posts";
+import {
+  createPost,
+  updatePost,
+  deletePost,
+} from "@/features/posts/actions/post.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";

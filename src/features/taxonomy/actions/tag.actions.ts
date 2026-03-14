@@ -5,14 +5,6 @@ import { requireAdminSession } from "@/infrastructure/auth";
 import * as tagRepo from "@/features/taxonomy/repositories/tag.repository";
 import { generateTaxonomySlug } from "@/features/taxonomy/services/taxonomy.service";
 
-export async function getTags() {
-  return tagRepo.findTags();
-}
-
-export async function getTagBySlug(slug: string) {
-  return tagRepo.findTagBySlug(slug);
-}
-
 export async function createTag(formData: FormData) {
   await requireAdminSession();
   const name = formData.get("name") as string;

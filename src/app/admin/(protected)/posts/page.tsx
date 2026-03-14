@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getPosts } from "@/features/posts";
+import { getPosts } from "@/features/posts/queries/post.queries";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 

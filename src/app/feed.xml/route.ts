@@ -1,23 +1,11 @@
-import { db } from "@/infrastructure/db";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
+import { getPublishedForFeed } from "@/features/posts/queries/post.queries";
 
 export async function GET() {
   const site = await getResolvedSiteConfig();
   const baseUrl = site.url;
 
-  const posts = await db.post.findMany({
-    where: { status: "published" },
-    orderBy: { publishedAt: "desc" },
-    take: 20,
-    select: {
-      title: true,
-      slug: true,
-      excerpt: true,
-      contentMarkdown: true,
-      publishedAt: true,
-      author: { select: { name: true } },
-    },
-  });
+  const posts = await getPublishedForFeed(20);
 
   const items = posts
     .map((post) => {

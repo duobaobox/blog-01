@@ -10,25 +10,37 @@ import { pinyin } from "pinyin-pro";
 import type { Root, Element } from "hast";
 import { visit } from "unist-util-visit";
 
-function generateHeadingId(text: string): string {
+type HeadingIdState = {
+  seenIds: Map<string, number>;
+  fallbackIndex: number;
+};
+
+function generateHeadingBaseId(text: string): string {
   let slug = slugify(text, { lower: true, strict: true });
   if (!slug) {
     const py = pinyin(text, { toneType: "none", type: "array" }).join("-");
     slug = slugify(py, { lower: true, strict: true });
   }
-  return slug || `heading-${Date.now()}`;
+  return slug;
+}
+
+function generateHeadingId(text: string, state: HeadingIdState): string {
+  const baseId =
+    generateHeadingBaseId(text) || `heading-${state.fallbackIndex++}`;
+  const seenCount = state.seenIds.get(baseId);
+
+  if (seenCount === undefined) {
+    state.seenIds.set(baseId, 0);
+    return baseId;
+  }
+
+  const nextCount = seenCount + 1;
+  state.seenIds.set(baseId, nextCount);
+  return `${baseId}-${nextCount}`;
 }
 
 function rehypeHeadingIds() {
-  return (tree: Root) => {
-    visit(tree, "element", (node: Element) => {
-      if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(node.tagName)) {
-        const text = getTextContent(node);
-        node.properties = node.properties || {};
-        node.properties.id = generateHeadingId(text);
-      }
-    });
-  };
+  return (tree: Root) => applyHeadingIds(tree);
 }
 
 function getTextContent(node: Element): string {
@@ -41,6 +53,33 @@ function getTextContent(node: Element): string {
     }
   }
   return text;
+}
+
+function applyHeadingIds(tree: Root) {
+  const state: HeadingIdState = {
+    seenIds: new Map(),
+    fallbackIndex: 0,
+  };
+
+  visit(tree, "element", (node: Element) => {
+    if (!["h1", "h2", "h3", "h4", "h5", "h6"].includes(node.tagName)) {
+      return;
+    }
+
+    const text = getTextContent(node).trim();
+    if (!text) {
+      return;
+    }
+
+    node.properties = node.properties || {};
+    node.properties.id = generateHeadingId(text, state);
+  });
+}
+
+function buildMarkdownTree(markdown: string): Root {
+  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype);
+
+  return processor.runSync(processor.parse(markdown)) as Root;
 }
 
 const sanitizeSchema = {
@@ -60,8 +99,8 @@ export async function renderMarkdown(markdown: string): Promise<string> {
   const result = await unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(rehypeHeadingIds)
     .use(remarkRehype)
+    .use(rehypeHeadingIds)
     .use(rehypeSanitize, sanitizeSchema)
     .use(rehypePrettyCode, { theme: "github-dark" })
     .use(rehypeStringify)
@@ -77,16 +116,30 @@ export interface TocItem {
 }
 
 export function extractToc(markdown: string): TocItem[] {
-  const headingRegex = /^(#{2,3})\s+(.+)$/gm;
   const toc: TocItem[] = [];
-  let match;
+  const tree = buildMarkdownTree(markdown);
 
-  while ((match = headingRegex.exec(markdown)) !== null) {
-    const level = match[1].length;
-    const title = match[2].trim();
-    const id = generateHeadingId(title);
-    toc.push({ id, title, level });
-  }
+  applyHeadingIds(tree);
+
+  visit(tree, "element", (node: Element) => {
+    if (!["h2", "h3"].includes(node.tagName)) {
+      return;
+    }
+
+    const title = getTextContent(node).trim();
+    const id =
+      typeof node.properties?.id === "string" ? node.properties.id : null;
+
+    if (!title || !id) {
+      return;
+    }
+
+    toc.push({
+      id,
+      title,
+      level: Number(node.tagName.slice(1)),
+    });
+  });
 
   return toc;
 }

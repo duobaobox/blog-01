@@ -3,8 +3,9 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
-import { getTagBySlug } from "@/features/taxonomy";
-import { getPosts, PostListCard } from "@/features/posts";
+import { PostListCard } from "@/features/posts/components/post-list-card";
+import { getPosts } from "@/features/posts/queries/post.queries";
+import { getTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 
 export async function generateMetadata({
   params,

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { toNextJsHandler } from "better-auth/next-js";
 import { auth } from "@/infrastructure/auth";
-import { db } from "@/infrastructure/db";
+import {
+  isBootstrapAllowed,
+  promoteToAdmin,
+} from "@/infrastructure/auth/bootstrap";
 
 const authHandler = toNextJsHandler(auth);
 
@@ -22,33 +25,19 @@ async function getBootstrapEmail(request: NextRequest) {
   }
 }
 
-async function isBootstrapAllowed(request: NextRequest) {
-  const userCount = await db.user.count();
-
-  if (userCount > 0) {
-    return false;
-  }
-
-  if (process.env.NODE_ENV !== "production") {
-    return true;
-  }
-
-  const expectedToken = process.env.ADMIN_SETUP_TOKEN;
-  const providedToken = request.headers.get("x-admin-setup-token");
-
-  return Boolean(expectedToken && providedToken === expectedToken);
-}
-
 export const GET = authHandler.GET;
 
 export async function POST(request: NextRequest) {
   const isEmailSignUp = isEmailSignUpRequest(request);
 
-  if (isEmailSignUp && !(await isBootstrapAllowed(request))) {
-    return NextResponse.json(
-      { error: "Sign-up is disabled." },
-      { status: 403 },
-    );
+  if (isEmailSignUp) {
+    const setupToken = request.headers.get("x-admin-setup-token");
+    if (!(await isBootstrapAllowed(setupToken))) {
+      return NextResponse.json(
+        { error: "Sign-up is disabled." },
+        { status: 403 },
+      );
+    }
   }
 
   const bootstrapEmail = isEmailSignUp
@@ -57,10 +46,7 @@ export async function POST(request: NextRequest) {
   const response = await authHandler.POST(request);
 
   if (response.ok && bootstrapEmail) {
-    await db.user.updateMany({
-      where: { email: bootstrapEmail, role: { not: "admin" } },
-      data: { role: "admin" },
-    });
+    await promoteToAdmin(bootstrapEmail);
   }
 
   return response;

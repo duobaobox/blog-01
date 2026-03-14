@@ -5,14 +5,6 @@ import { requireAdminSession } from "@/infrastructure/auth";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
 import { generateTaxonomySlug } from "@/features/taxonomy/services/taxonomy.service";
 
-export async function getCategories() {
-  return categoryRepo.findCategories();
-}
-
-export async function getCategoryBySlug(slug: string) {
-  return categoryRepo.findCategoryBySlug(slug);
-}
-
 export async function createCategory(formData: FormData) {
   await requireAdminSession();
   const name = formData.get("name") as string;

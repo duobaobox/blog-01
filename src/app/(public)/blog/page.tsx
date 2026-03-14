@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
-import { getPosts, PostListCard } from "@/features/posts";
-import { getCategories, getTags } from "@/features/taxonomy";
+import { PostListCard } from "@/features/posts/components/post-list-card";
+import { getPosts } from "@/features/posts/queries/post.queries";
+import { getCategories } from "@/features/taxonomy/queries/category.queries";
+import { getTags } from "@/features/taxonomy/queries/tag.queries";
 
 export const metadata: Metadata = {
   title: "博客",

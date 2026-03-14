@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
-import { getPostBySlug } from "@/features/posts";
+import { getPostBySlug } from "@/features/posts/queries/post.queries";
 import { renderMarkdown, extractToc } from "@/infrastructure/markdown";
 
 export async function generateMetadata({

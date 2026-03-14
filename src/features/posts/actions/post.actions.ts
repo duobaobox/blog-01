@@ -5,28 +5,6 @@ import { requireAdminSession } from "@/infrastructure/auth";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import * as postService from "@/features/posts/services/post.service";
 
-export async function getPosts(options?: {
-  status?: string;
-  categoryId?: string;
-  tagId?: string;
-  take?: number;
-  skip?: number;
-}) {
-  return postRepo.findPosts(options);
-}
-
-export async function getPostBySlug(slug: string) {
-  return postRepo.findPostBySlug(slug);
-}
-
-export async function getPostById(id: string) {
-  return postRepo.findPostById(id);
-}
-
-export async function getPostCount(status?: string) {
-  return postRepo.countPosts(status);
-}
-
 export async function createPost(formData: FormData) {
   const session = await requireAdminSession();
 

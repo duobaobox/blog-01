@@ -20,7 +20,13 @@ export interface ResolvedSiteConfig {
 
 export const getResolvedSiteConfig = cache(
   async (): Promise<ResolvedSiteConfig> => {
-    const dbSettings = await db.siteSetting.findFirst();
+    let dbSettings: Awaited<ReturnType<typeof db.siteSetting.findFirst>> = null;
+
+    try {
+      dbSettings = await db.siteSetting.findFirst();
+    } catch {
+      // DB query failed — fall through to static config
+    }
 
     if (dbSettings) {
       return {
@@ -47,5 +53,5 @@ export const getResolvedSiteConfig = cache(
       nav: siteConfig.nav,
       social: siteConfig.social,
     };
-  }
+  },
 );

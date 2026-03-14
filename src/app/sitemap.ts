@@ -1,18 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import type { MetadataRoute } from "next";
-import { db } from "@/infrastructure/db";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
+import { getPublishedSlugs } from "@/features/posts/queries/post.queries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = await getResolvedSiteConfig();
   const baseUrl = site.url;
 
-  const posts = await db.post.findMany({
-    where: { status: "published" },
-    select: { slug: true, updatedAt: true },
-    orderBy: { publishedAt: "desc" },
-  });
+  const posts = await getPublishedSlugs();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date() },
