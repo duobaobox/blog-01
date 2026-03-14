@@ -31,7 +31,7 @@ export function Header({ siteName, nav }: HeaderProps) {
           {siteName}
         </Link>
 
-        {/* Desktop nav */}
+        {/* 桌面端导航 */}
         <nav className="hidden flex-1 items-center gap-1 md:flex">
           {nav.map((item) => (
             <Link
@@ -52,7 +52,7 @@ export function Header({ siteName, nav }: HeaderProps) {
         <div className="flex flex-1 items-center justify-end gap-1">
           <ThemeToggle />
 
-          {/* Mobile menu */}
+          {/* 移动端菜单 */}
           <Sheet>
             <SheetTrigger
               render={

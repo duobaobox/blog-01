@@ -97,7 +97,7 @@ export default async function PostPage({
           />
         </article>
 
-        {/* Table of Contents */}
+        {/* 文章目录 */}
         {toc.length > 0 && (
           <aside className="hidden lg:block">
             <div className="sticky top-20">

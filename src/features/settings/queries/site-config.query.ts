@@ -25,7 +25,7 @@ export const getResolvedSiteConfig = cache(
     try {
       dbSettings = await db.siteSetting.findFirst();
     } catch {
-      // DB query failed — fall through to static config
+      // 数据库查询失败时，回退到静态站点配置
     }
 
     if (dbSettings) {

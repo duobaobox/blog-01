@@ -30,7 +30,7 @@ export default async function BlogPage() {
       <Separator className="my-6" />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
-        {/* Post list */}
+        {/* 文章列表 */}
         <div className="space-y-6">
           {posts.length === 0 ? (
             <p className="py-12 text-center text-muted-foreground">暂无文章</p>
@@ -39,7 +39,7 @@ export default async function BlogPage() {
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* 侧边栏 */}
         <aside className="space-y-6">
           <div>
             <h3 className="mb-3 text-sm font-semibold">分类</h3>

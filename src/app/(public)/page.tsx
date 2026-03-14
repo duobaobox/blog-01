@@ -20,7 +20,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6">
-      {/* Hero */}
+      {/* 首页头图介绍区 */}
       <section className="py-20 sm:py-28">
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
           你好，我是 <span className="text-primary">开发者</span>
@@ -65,7 +65,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Recent Posts */}
+      {/* 最新文章区域 */}
       <section className="pb-20">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold">最新文章</h2>

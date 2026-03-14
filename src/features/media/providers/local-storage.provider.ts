@@ -13,7 +13,7 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/gif": "gif",
   "image/webp": "webp",
 };
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 5 * 1024 * 1024; // 最大 5 兆字节
 
 export class LocalStorageProvider implements StorageProvider {
   async upload({ file }: UploadOptions): Promise<UploadResult> {
