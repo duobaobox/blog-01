@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useRef, useState, useEffect } from "react";
 import type { Editor, JSONContent } from "@tiptap/core";
 import type { ReactNode } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -43,6 +43,7 @@ type PostRichEditorProps = {
   initialMarkdown: string;
   placeholder?: string;
   onChange: (snapshot: EditorSnapshot) => void;
+  onEditorReady?: (editor: Editor | null) => void;
 };
 
 function resolveInitialContent(initialJson: string, initialMarkdown: string) {
@@ -114,15 +115,228 @@ function ToolbarButton({
   );
 }
 
+type EditorToolbarProps = {
+  editor: Editor | null;
+};
+
+export function EditorToolbar({ editor }: EditorToolbarProps) {
+  const inputId = useId();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  function handleSetLink() {
+    if (!editor) return;
+
+    const previousUrl =
+      typeof editor.getAttributes("link").href === "string"
+        ? String(editor.getAttributes("link").href)
+        : "";
+    const url = window.prompt(
+      "输入链接地址，留空则移除当前链接。",
+      previousUrl || "https://",
+    );
+
+    if (url === null) return;
+
+    if (!url.trim()) {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      return;
+    }
+
+    if (editor.state.selection.empty) {
+      window.alert("请先选中一段文字，再设置链接。");
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: normalizeUrl(url.trim()) })
+      .run();
+  }
+
+  async function handleUploadImage(file: File) {
+    if (!editor) return;
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json()) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "上传失败");
+      }
+
+      editor
+        .chain()
+        .focus()
+        .setImage({
+          src: data.url,
+          alt: file.name,
+          title: file.name,
+        })
+        .run();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "图片上传失败，请稍后重试。";
+      window.alert(message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="flex shrink-0 flex-wrap items-center gap-1 border-b px-4 py-1.5">
+      <ToolbarButton
+        label="二级标题"
+        active={editor?.isActive("heading", { level: 2 })}
+        disabled={!editor}
+        onClick={() =>
+          editor?.chain().focus().toggleHeading({ level: 2 }).run()
+        }
+      >
+        <Heading2 className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="三级标题"
+        active={editor?.isActive("heading", { level: 3 })}
+        disabled={!editor}
+        onClick={() =>
+          editor?.chain().focus().toggleHeading({ level: 3 }).run()
+        }
+      >
+        <Heading3 className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="加粗"
+        active={editor?.isActive("bold")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleBold().run()}
+      >
+        <Bold className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="斜体"
+        active={editor?.isActive("italic")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleItalic().run()}
+      >
+        <Italic className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="删除线"
+        active={editor?.isActive("strike")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleStrike().run()}
+      >
+        <Strikethrough className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="无序列表"
+        active={editor?.isActive("bulletList")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleBulletList().run()}
+      >
+        <List className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="有序列表"
+        active={editor?.isActive("orderedList")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+      >
+        <ListOrdered className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="引用"
+        active={editor?.isActive("blockquote")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+      >
+        <Quote className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="代码块"
+        active={editor?.isActive("codeBlock")}
+        disabled={!editor}
+        onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+      >
+        <Code2 className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="链接"
+        active={editor?.isActive("link")}
+        disabled={!editor}
+        onClick={handleSetLink}
+      >
+        <Link2 className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="上传图片"
+        disabled={!editor || uploading}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <ImagePlus className="size-4" />
+      </ToolbarButton>
+      <div className="ml-auto flex items-center gap-1">
+        {uploading ? (
+          <span className="mr-2 text-xs text-muted-foreground">上传中...</span>
+        ) : null}
+        <ToolbarButton
+          label="撤销"
+          disabled={!editor?.can().chain().focus().undo().run()}
+          onClick={() => editor?.chain().focus().undo().run()}
+        >
+          <Undo2 className="size-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="重做"
+          disabled={!editor?.can().chain().focus().redo().run()}
+          onClick={() => editor?.chain().focus().redo().run()}
+        >
+          <Redo2 className="size-4" />
+        </ToolbarButton>
+      </div>
+
+      <label htmlFor={inputId} className="sr-only">
+        上传图片
+      </label>
+      <input
+        id={inputId}
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+
+          if (!file) return;
+          await handleUploadImage(file);
+        }}
+      />
+    </div>
+  );
+}
+
 export function PostRichEditor({
   initialJson,
   initialMarkdown,
   placeholder = "从一句清晰的开头开始。",
   onChange,
+  onEditorReady,
 }: PostRichEditorProps) {
-  const inputId = useId();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const { content, contentType } = resolveInitialContent(
     initialJson,
     initialMarkdown,
@@ -165,218 +379,23 @@ export function PostRichEditor({
           "tiptap min-h-[60svh] text-[15px] leading-8 text-foreground focus:outline-none",
       },
     },
-    onCreate: ({ editor }) => emitSnapshot(editor),
+    onCreate: ({ editor }) => {
+      emitSnapshot(editor);
+      onEditorReady?.(editor);
+    },
     onUpdate: ({ editor }) => emitSnapshot(editor),
+    onDestroy: () => onEditorReady?.(null),
   });
 
-  function handleSetLink() {
-    if (!instance) return;
-
-    const previousUrl =
-      typeof instance.getAttributes("link").href === "string"
-        ? String(instance.getAttributes("link").href)
-        : "";
-    const url = window.prompt(
-      "输入链接地址，留空则移除当前链接。",
-      previousUrl || "https://",
-    );
-
-    if (url === null) return;
-
-    if (!url.trim()) {
-      instance.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
+  useEffect(() => {
+    if (instance) {
+      onEditorReady?.(instance);
     }
-
-    if (instance.state.selection.empty) {
-      window.alert("请先选中一段文字，再设置链接。");
-      return;
-    }
-
-    instance
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({ href: normalizeUrl(url.trim()) })
-      .run();
-  }
-
-  async function handleUploadImage(file: File) {
-    if (!instance) return;
-
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.set("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = (await response.json()) as {
-        url?: string;
-        error?: string;
-      };
-
-      if (!response.ok || !data.url) {
-        throw new Error(data.error || "上传失败");
-      }
-
-      instance
-        .chain()
-        .focus()
-        .setImage({
-          src: data.url,
-          alt: file.name,
-          title: file.name,
-        })
-        .run();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "图片上传失败，请稍后重试。";
-      window.alert(message);
-    } finally {
-      setUploading(false);
-    }
-  }
+  }, [instance]);
 
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border bg-card/40">
-      <div className="flex flex-wrap items-center gap-1 border-b px-3 py-2">
-        <ToolbarButton
-          label="二级标题"
-          active={instance?.isActive("heading", { level: 2 })}
-          disabled={!instance}
-          onClick={() =>
-            instance?.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-        >
-          <Heading2 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="三级标题"
-          active={instance?.isActive("heading", { level: 3 })}
-          disabled={!instance}
-          onClick={() =>
-            instance?.chain().focus().toggleHeading({ level: 3 }).run()
-          }
-        >
-          <Heading3 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="加粗"
-          active={instance?.isActive("bold")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleBold().run()}
-        >
-          <Bold className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="斜体"
-          active={instance?.isActive("italic")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleItalic().run()}
-        >
-          <Italic className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="删除线"
-          active={instance?.isActive("strike")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleStrike().run()}
-        >
-          <Strikethrough className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="无序列表"
-          active={instance?.isActive("bulletList")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleBulletList().run()}
-        >
-          <List className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="有序列表"
-          active={instance?.isActive("orderedList")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleOrderedList().run()}
-        >
-          <ListOrdered className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="引用"
-          active={instance?.isActive("blockquote")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleBlockquote().run()}
-        >
-          <Quote className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="代码块"
-          active={instance?.isActive("codeBlock")}
-          disabled={!instance}
-          onClick={() => instance?.chain().focus().toggleCodeBlock().run()}
-        >
-          <Code2 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="链接"
-          active={instance?.isActive("link")}
-          disabled={!instance}
-          onClick={handleSetLink}
-        >
-          <Link2 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="上传图片"
-          disabled={!instance || uploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <ImagePlus className="size-4" />
-        </ToolbarButton>
-        <div className="ml-auto flex items-center gap-1">
-          {uploading ? (
-            <span className="mr-2 text-xs text-muted-foreground">上传中...</span>
-          ) : null}
-          <ToolbarButton
-            label="撤销"
-            disabled={!instance?.can().chain().focus().undo().run()}
-            onClick={() => instance?.chain().focus().undo().run()}
-          >
-            <Undo2 className="size-4" />
-          </ToolbarButton>
-          <ToolbarButton
-            label="重做"
-            disabled={!instance?.can().chain().focus().redo().run()}
-            onClick={() => instance?.chain().focus().redo().run()}
-          >
-            <Redo2 className="size-4" />
-          </ToolbarButton>
-        </div>
-      </div>
-
-      <label htmlFor={inputId} className="sr-only">
-        上传图片
-      </label>
-      <input
-        id={inputId}
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={async (event) => {
-          const file = event.target.files?.[0];
-          event.target.value = "";
-
-          if (!file) return;
-          await handleUploadImage(file);
-        }}
-      />
-
-      <div className="px-8 py-6">
-        <EditorContent editor={instance} />
-      </div>
+    <div className="mt-8">
+      <EditorContent editor={instance} />
     </div>
   );
 }

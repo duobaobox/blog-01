@@ -17,7 +17,11 @@ import {
   createPost,
   updatePost,
 } from "@/features/posts/actions/post.actions";
-import { PostRichEditor } from "@/components/admin/post-rich-editor";
+import type { Editor } from "@tiptap/core";
+import {
+  EditorToolbar,
+  PostRichEditor,
+} from "@/components/admin/post-rich-editor";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -81,8 +85,6 @@ interface PostFormProps {
 
 type FormState = {
   title: string;
-  slug: string;
-  slugTouched: boolean;
   excerpt: string;
   coverImageUrl: string;
   contentJson: string;
@@ -96,16 +98,13 @@ type FormState = {
   status: string;
 };
 
-function generateSlugPreview(value: string, customSlug?: string) {
-  const base = customSlug || value;
-  if (!base.trim()) {
-    return "untitled-post";
-  }
+function generateSlug(title: string) {
+  if (!title.trim()) return "untitled-post";
 
-  let slug = slugify(base, { lower: true, strict: true });
+  let slug = slugify(title, { lower: true, strict: true });
 
   if (!slug) {
-    const py = pinyin(base, { toneType: "none", type: "array" }).join("-");
+    const py = pinyin(title, { toneType: "none", type: "array" }).join("-");
     slug = slugify(py, { lower: true, strict: true });
   }
 
@@ -117,10 +116,7 @@ function generateSlugPreview(value: string, customSlug?: string) {
 }
 
 function serializeContentJson(value: unknown | null | undefined) {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   try {
     return JSON.stringify(value);
   } catch {
@@ -131,8 +127,6 @@ function serializeContentJson(value: unknown | null | undefined) {
 function createFormState(post?: PostData): FormState {
   return {
     title: post?.title ?? "",
-    slug: post?.slug ?? "",
-    slugTouched: Boolean(post?.slug),
     excerpt: post?.excerpt ?? "",
     coverImageUrl: post?.coverImageUrl ?? "",
     contentJson: serializeContentJson(post?.contentJson),
@@ -150,7 +144,6 @@ function createFormState(post?: PostData): FormState {
 function createSnapshot(form: FormState) {
   return JSON.stringify({
     title: form.title,
-    slug: form.slug,
     excerpt: form.excerpt,
     coverImageUrl: form.coverImageUrl,
     contentMarkdown: form.contentMarkdown,
@@ -175,6 +168,7 @@ export function PostForm({
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
 
   useEffect(() => {
@@ -205,7 +199,6 @@ export function PostForm({
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
-  const previewSlug = form.slug || generateSlugPreview(form.title);
 
   function patchForm(next: Partial<FormState>) {
     setForm((current) => ({ ...current, ...next }));
@@ -222,7 +215,7 @@ export function PostForm({
   async function handleSubmit(targetStatus = form.status) {
     setSaving(true);
 
-    const finalSlug = generateSlugPreview(form.title, form.slug || undefined);
+    const finalSlug = post?.slug || generateSlug(form.title);
     const formData = new FormData();
     formData.set("title", form.title);
     formData.set("slug", finalSlug);
@@ -243,13 +236,7 @@ export function PostForm({
         ? await updatePost(post.id, formData)
         : await createPost(formData);
 
-      const nextForm = {
-        ...form,
-        slug: savedPost.slug,
-        slugTouched: true,
-        status: savedPost.status,
-      };
-
+      const nextForm = { ...form, status: savedPost.status };
       baselineRef.current = createSnapshot(nextForm);
       setForm(nextForm);
       setIsDirty(false);
@@ -281,7 +268,7 @@ export function PostForm({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* Toolbar */}
+      {/* Top action bar */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground">
@@ -300,7 +287,7 @@ export function PostForm({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3">
           {wordCount > 0 ? (
             <span className="hidden text-xs text-muted-foreground sm:inline">
               {wordCount} 字 · {readingMinutes} 分钟
@@ -353,37 +340,25 @@ export function PostForm({
         </div>
       </div>
 
+      {/* Editor toolbar */}
+      <EditorToolbar editor={editorInstance} />
+
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-8 py-10">
-          <div className="flex flex-col gap-4">
-            <Input
-              value={form.title}
-              onChange={(event) => {
-                const nextTitle = event.target.value;
-                patchForm({
-                  title: nextTitle,
-                  slug:
-                    form.slugTouched || post
-                      ? form.slug
-                      : generateSlugPreview(nextTitle),
-                });
-              }}
-              placeholder="文章标题"
-              className="h-auto border-0 bg-transparent px-0 py-0 text-4xl font-bold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-5xl"
-            />
-
-            <div className="text-sm text-muted-foreground">
-              /blog/
-              <span className="text-foreground/60">{previewSlug}</span>
-            </div>
-          </div>
+          <Input
+            value={form.title}
+            onChange={(event) => patchForm({ title: event.target.value })}
+            placeholder="文章标题"
+            className="h-auto border-0 bg-transparent px-0 py-0 text-4xl font-bold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-5xl"
+          />
 
           <PostRichEditor
             key={post?.id ?? "new"}
             initialJson={form.contentJson}
             initialMarkdown={form.contentMarkdown}
             placeholder={`从一句清晰的开头开始。\n\n# 可以像这样写标题\n- 或者先列出要点\n- 再慢慢展开成正文`}
+            onEditorReady={setEditorInstance}
             onChange={({ json, markdown }) =>
               patchForm({
                 contentJson: json,
@@ -408,39 +383,19 @@ export function PostForm({
             </TabsList>
 
             <TabsContent value="basic" className="mt-5 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="status">发布状态</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) =>
-                    patchForm({ status: value ?? form.status })
+              <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">发布状态</span>
+                  <span className="text-xs text-muted-foreground">
+                    开启后文章将对所有访客可见
+                  </span>
+                </div>
+                <Switch
+                  id="status"
+                  checked={form.status === "published"}
+                  onCheckedChange={(checked) =>
+                    patchForm({ status: checked ? "published" : "draft" })
                   }
-                >
-                  <SelectTrigger id="status" className="h-9 rounded-lg">
-                    <SelectValue placeholder="选择状态" />
-                  </SelectTrigger>
-                  <SelectContent align="start">
-                    <SelectGroup>
-                      <SelectItem value="draft">草稿</SelectItem>
-                      <SelectItem value="published">已发布</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  value={form.slug}
-                  onChange={(event) =>
-                    patchForm({
-                      slug: event.target.value,
-                      slugTouched: true,
-                    })
-                  }
-                  placeholder="post-slug"
-                  className="h-9 rounded-lg"
                 />
               </div>
 
