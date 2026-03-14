@@ -39,6 +39,7 @@ type WorkspacePost = {
   title: string;
   slug: string;
   excerpt: string | null;
+  contentJson?: unknown | null;
   contentMarkdown: string;
   status: string;
   isFeatured: boolean;

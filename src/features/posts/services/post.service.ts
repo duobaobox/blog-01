@@ -22,6 +22,7 @@ function generateSlug(title: string, customSlug?: string): string {
 export async function createPost(input: {
   title: string;
   slug?: string;
+  contentJson: unknown | null;
   contentMarkdown: string;
   excerpt: string | null;
   coverImageUrl: string | null;
@@ -36,13 +37,15 @@ export async function createPost(input: {
 }) {
   const slug = generateSlug(input.title, input.slug);
   const stats = readingTime(input.contentMarkdown);
-  const readingTimeMinutes = Math.ceil(stats.minutes);
+  const readingTimeMinutes =
+    stats.words > 0 ? Math.max(1, Math.ceil(stats.minutes)) : 0;
   const wordCount = stats.words;
   const publishedAt = input.status === "published" ? new Date() : null;
 
   return postRepo.createPost({
     title: input.title,
     slug,
+    contentJson: input.contentJson,
     contentMarkdown: input.contentMarkdown,
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
@@ -65,6 +68,7 @@ export async function updatePost(
   input: {
     title: string;
     slug?: string;
+    contentJson: unknown | null;
     contentMarkdown: string;
     excerpt: string | null;
     coverImageUrl: string | null;
@@ -83,7 +87,8 @@ export async function updatePost(
     : existingPost?.slug || generateSlug(input.title);
 
   const stats = readingTime(input.contentMarkdown);
-  const readingTimeMinutes = Math.ceil(stats.minutes);
+  const readingTimeMinutes =
+    stats.words > 0 ? Math.max(1, Math.ceil(stats.minutes)) : 0;
   const wordCount = stats.words;
 
   let publishedAt = existingPost?.publishedAt || null;
@@ -94,6 +99,7 @@ export async function updatePost(
   return postRepo.updatePost(id, {
     title: input.title,
     slug,
+    contentJson: input.contentJson,
     contentMarkdown: input.contentMarkdown,
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,

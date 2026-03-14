@@ -17,6 +17,7 @@ import {
   createPost,
   updatePost,
 } from "@/features/posts/actions/post.actions";
+import { PostRichEditor } from "@/components/admin/post-rich-editor";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -56,6 +57,7 @@ interface PostData {
   slug: string;
   excerpt: string | null;
   coverImageUrl: string | null;
+  contentJson?: unknown | null;
   contentMarkdown: string;
   status: string;
   categoryId: string | null;
@@ -83,7 +85,8 @@ type FormState = {
   slugTouched: boolean;
   excerpt: string;
   coverImageUrl: string;
-  content: string;
+  contentJson: string;
+  contentMarkdown: string;
   categoryId: string;
   selectedTagIds: string[];
   isFeatured: boolean;
@@ -113,6 +116,18 @@ function generateSlugPreview(value: string, customSlug?: string) {
   return slug;
 }
 
+function serializeContentJson(value: unknown | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "";
+  }
+}
+
 function createFormState(post?: PostData): FormState {
   return {
     title: post?.title ?? "",
@@ -120,7 +135,8 @@ function createFormState(post?: PostData): FormState {
     slugTouched: Boolean(post?.slug),
     excerpt: post?.excerpt ?? "",
     coverImageUrl: post?.coverImageUrl ?? "",
-    content: post?.contentMarkdown ?? "",
+    contentJson: serializeContentJson(post?.contentJson),
+    contentMarkdown: post?.contentMarkdown ?? "",
     categoryId: post?.categoryId ?? "",
     selectedTagIds: post?.tags.map((item) => item.tag.id) ?? [],
     isFeatured: post?.isFeatured ?? false,
@@ -137,7 +153,7 @@ function createSnapshot(form: FormState) {
     slug: form.slug,
     excerpt: form.excerpt,
     coverImageUrl: form.coverImageUrl,
-    content: form.content,
+    contentMarkdown: form.contentMarkdown,
     categoryId: form.categoryId,
     selectedTagIds: [...form.selectedTagIds].sort(),
     isFeatured: form.isFeatured,
@@ -185,7 +201,7 @@ export function PostForm({
     return () => onDirtyChange?.(false);
   }, [onDirtyChange]);
 
-  const readingStats = readingTime(form.content);
+  const readingStats = readingTime(form.contentMarkdown);
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
@@ -212,7 +228,8 @@ export function PostForm({
     formData.set("slug", finalSlug);
     formData.set("excerpt", form.excerpt);
     formData.set("coverImageUrl", form.coverImageUrl);
-    formData.set("contentMarkdown", form.content);
+    formData.set("contentJson", form.contentJson);
+    formData.set("contentMarkdown", form.contentMarkdown);
     formData.set("categoryId", form.categoryId);
     formData.set("status", targetStatus);
     formData.set("isFeatured", form.isFeatured.toString());
@@ -362,11 +379,17 @@ export function PostForm({
             </div>
           </div>
 
-          <Textarea
-            value={form.content}
-            onChange={(event) => patchForm({ content: event.target.value })}
+          <PostRichEditor
+            key={post?.id ?? "new"}
+            initialJson={form.contentJson}
+            initialMarkdown={form.contentMarkdown}
             placeholder={`从一句清晰的开头开始。\n\n# 可以像这样写标题\n- 或者先列出要点\n- 再慢慢展开成正文`}
-            className="mt-8 min-h-[60svh] resize-none border-0 bg-transparent px-0 py-0 text-[15px] leading-8 shadow-none focus-visible:ring-0"
+            onChange={({ json, markdown }) =>
+              patchForm({
+                contentJson: json,
+                contentMarkdown: markdown,
+              })
+            }
           />
         </div>
       </div>

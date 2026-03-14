@@ -1,4 +1,5 @@
 import { db } from "@/infrastructure/db";
+import { Prisma } from "@/generated/prisma/client";
 
 export async function findPosts(options?: {
   status?: string;
@@ -62,6 +63,7 @@ export async function countPosts(status?: string) {
 export async function createPost(data: {
   title: string;
   slug: string;
+  contentJson: unknown | null;
   contentMarkdown: string;
   excerpt: string | null;
   coverImageUrl: string | null;
@@ -77,11 +79,14 @@ export async function createPost(data: {
   createdBy: string;
   tagIds: string[];
 }) {
-  const { tagIds, ...postData } = data;
+  const { tagIds, contentJson, ...postData } = data;
 
   return db.post.create({
     data: {
       ...postData,
+      contentJson: contentJson
+        ? (contentJson as Prisma.InputJsonValue)
+        : Prisma.DbNull,
       tags: {
         create: tagIds.map((tagId) => ({ tagId })),
       },
@@ -98,6 +103,7 @@ export async function updatePost(
   data: {
     title: string;
     slug: string;
+    contentJson: unknown | null;
     contentMarkdown: string;
     excerpt: string | null;
     coverImageUrl: string | null;
@@ -113,7 +119,7 @@ export async function updatePost(
     tagIds: string[];
   },
 ) {
-  const { tagIds, ...postData } = data;
+  const { tagIds, contentJson, ...postData } = data;
 
   return db.$transaction(async (tx) => {
     await tx.postTag.deleteMany({ where: { postId: id } });
@@ -122,6 +128,9 @@ export async function updatePost(
       where: { id },
       data: {
         ...postData,
+        contentJson: contentJson
+          ? (contentJson as Prisma.InputJsonValue)
+          : Prisma.DbNull,
         tags: {
           create: tagIds.map((tagId) => ({ tagId })),
         },
