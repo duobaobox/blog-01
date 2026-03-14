@@ -15,7 +15,7 @@ import { ThemeToggle } from "@/shared/ui/theme-toggle";
 
 const routeLabels: Record<string, string> = {
   "/admin": "概览",
-  "/admin/posts": "文章管理",
+  "/admin/posts": "内容工作台",
   "/admin/posts/new": "新建文章",
   "/admin/categories": "分类管理",
   "/admin/tags": "标签管理",

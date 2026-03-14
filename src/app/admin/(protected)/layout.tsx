@@ -32,8 +32,8 @@ export default async function AdminLayout({
       <AdminSidebar />
       <SidebarInset>
         <AdminHeader />
-        <div className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-5xl p-6">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>

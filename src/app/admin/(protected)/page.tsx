@@ -54,34 +54,45 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Link key={stat.label} href={stat.href} className="group">
-            <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
-              <CardHeader className="pb-2">
-                <CardDescription className="text-sm font-medium">
-                  {stat.label}
-                </CardDescription>
-                <CardAction>
-                  <div className="rounded-md bg-muted p-1.5">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </CardAction>
-                <CardTitle className="text-3xl font-bold tracking-tight">
-                  {stat.value}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="mt-1 text-xs">
-                  {stat.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </Link>
-        );
-      })}
+    <div className="flex-1 overflow-y-auto">
+      <div className="mx-auto w-full max-w-[1680px] p-4 md:p-6">
+        <div className="mb-6">
+          <h1 className="text-lg font-semibold">概览</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            站点内容数据一览
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Link key={stat.label} href={stat.href} className="group">
+                <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
+                  <CardHeader className="pb-2">
+                    <CardDescription className="text-sm font-medium">
+                      {stat.label}
+                    </CardDescription>
+                    <CardAction>
+                      <div className="rounded-md bg-muted p-1.5">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </CardAction>
+                    <CardTitle className="text-3xl font-bold tracking-tight">
+                      {stat.value}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="mt-1 text-xs">
+                      {stat.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
