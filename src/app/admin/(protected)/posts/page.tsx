@@ -5,82 +5,115 @@ import { Plus } from "lucide-react";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/ui/table";
 
 export default async function AdminPostsPage() {
   const posts = await getPosts();
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">文章管理</h1>
-        <Link href="/admin/posts/new">
-          <Button>
-            <Plus className="mr-1 h-4 w-4" />
-            新建文章
-          </Button>
-        </Link>
-      </div>
-
-      <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-sm font-medium">标题</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">分类</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">状态</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">日期</th>
-              <th className="px-4 py-3 text-right text-sm font-medium">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-8 text-center text-muted-foreground"
-                >
-                  暂无文章
-                </td>
-              </tr>
-            ) : (
-              posts.map((post) => (
-                <tr key={post.id} className="border-b last:border-0">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{post.title}</div>
-                    {post.isFeatured && (
-                      <Badge variant="secondary" className="mt-1">
-                        置顶
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {post.category?.name ?? "-"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge
-                      variant={
-                        post.status === "published" ? "default" : "secondary"
-                      }
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>文章列表</CardTitle>
+          <CardDescription>共 {posts.length} 篇文章</CardDescription>
+          <CardAction>
+            <Button
+              size="sm"
+              render={<Link href="/admin/posts/new" />}
+              nativeButton={false}
+            >
+              <Plus data-icon="inline-start" />
+              新建文章
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>标题</TableHead>
+                <TableHead>分类</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead>日期</TableHead>
+                <TableHead className="text-right">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {posts.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    暂无文章，
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 text-sm"
+                      render={<Link href="/admin/posts/new" />}
+                      nativeButton={false}
                     >
-                      {post.status === "published" ? "已发布" : "草稿"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {new Date(post.createdAt).toLocaleDateString("zh-CN")}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link href={`/admin/posts/${post.id}`}>
-                      <Button variant="ghost" size="sm">
+                      新建一篇
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell>
+                      <div className="font-medium">{post.title}</div>
+                      {post.isFeatured && (
+                        <Badge variant="secondary" className="mt-1 text-xs">
+                          置顶
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {post.category?.name ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          post.status === "published" ? "default" : "secondary"
+                        }
+                      >
+                        {post.status === "published" ? "已发布" : "草稿"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(post.createdAt).toLocaleDateString("zh-CN")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        render={<Link href={`/admin/posts/${post.id}`} />}
+                        nativeButton={false}
+                      >
                         编辑
                       </Button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

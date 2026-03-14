@@ -1,8 +1,15 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { FileText, FolderOpen, Tags } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { FileText, FolderOpen, Tags, TrendingUp } from "lucide-react";
+import {
+  Card,
+  CardAction,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/shared/ui/card";
 import { getPostCount } from "@/features/posts/queries/post.queries";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
@@ -19,42 +26,62 @@ export default async function AdminDashboard() {
     {
       label: "已发布文章",
       value: postCount,
+      description: "公开可见的文章",
       icon: FileText,
       href: "/admin/posts",
     },
-    { label: "草稿", value: draftCount, icon: FileText, href: "/admin/posts" },
+    {
+      label: "草稿",
+      value: draftCount,
+      description: "未发布的草稿",
+      icon: TrendingUp,
+      href: "/admin/posts",
+    },
     {
       label: "分类",
       value: categories.length,
+      description: "内容分类数量",
       icon: FolderOpen,
       href: "/admin/categories",
     },
-    { label: "标签", value: tags.length, icon: Tags, href: "/admin/tags" },
+    {
+      label: "标签",
+      value: tags.length,
+      description: "文章标签数量",
+      icon: Tags,
+      href: "/admin/tags",
+    },
   ];
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">概览</h1>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Link key={stat.label} href={stat.href}>
-              <Card className="transition-colors hover:bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.label}
-                  </CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <Link key={stat.label} href={stat.href} className="group">
+            <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-sm font-medium">
+                  {stat.label}
+                </CardDescription>
+                <CardAction>
+                  <div className="rounded-md bg-muted p-1.5">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardAction>
+                <CardTitle className="text-3xl font-bold tracking-tight">
+                  {stat.value}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="mt-1 text-xs">
+                  {stat.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
+        );
+      })}
     </div>
   );
 }

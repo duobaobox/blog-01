@@ -9,10 +9,22 @@ import {
   Tags,
   Settings,
   LogOut,
+  Globe,
+  BookOpen,
 } from "lucide-react";
 import { authClient } from "@/infrastructure/auth/client";
-import { Button } from "@/shared/ui/button";
-import { cn } from "@/shared/lib/utils";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/shared/ui/sidebar";
 
 const navItems = [
   { label: "概览", href: "/admin", icon: LayoutDashboard },
@@ -33,54 +45,81 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-r bg-muted/30">
-      <div className="flex h-14 items-center border-b px-4">
-        <Link href="/admin" className="font-bold">
-          后台管理
-        </Link>
-      </div>
-
-      <nav className="flex-1 space-y-1 p-3">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-accent text-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              render={<Link href="/admin" />}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <BookOpen className="size-4" />
+              </div>
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-semibold">后台管理</span>
+                <span className="text-xs text-muted-foreground">Admin</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-      <div className="border-t p-3">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-2 text-muted-foreground"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4" />
-          退出登录
-        </Button>
-        <Link
-          href="/"
-          className="mt-1 flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          查看站点
-        </Link>
-      </div>
-    </aside>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href === "/admin"
+                    ? pathname === "/admin"
+                    : pathname.startsWith(item.href);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={isActive}
+                      tooltip={item.label}
+                    >
+                      <Icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={
+                <Link href="/" target="_blank" rel="noopener noreferrer" />
+              }
+              tooltip="查看站点"
+            >
+              <Globe />
+              <span>查看站点</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleLogout}
+              tooltip="退出登录"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <LogOut />
+              <span>退出登录</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
   );
 }
