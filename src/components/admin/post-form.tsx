@@ -170,12 +170,15 @@ export function PostForm({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
+  // 追踪编辑器是否已完成初始化（首次 onChange 来自 onCreate，需更新 baseline）
+  const editorReadyRef = useRef(false);
 
   useEffect(() => {
     const nextForm = createFormState(post);
     baselineRef.current = createSnapshot(nextForm);
     setForm(nextForm);
     setIsDirty(false);
+    editorReadyRef.current = false;
   }, [post]);
 
   useEffect(() => {
@@ -194,6 +197,40 @@ export function PostForm({
   useEffect(() => {
     return () => onDirtyChange?.(false);
   }, [onDirtyChange]);
+
+  // 编辑器内容变化处理：首次调用（来自 onCreate）时同步 baseline，避免虚假 isDirty
+  function handleEditorChange({
+    json,
+    markdown,
+  }: {
+    json: string;
+    markdown: string;
+    text: string;
+  }) {
+    if (!editorReadyRef.current) {
+      editorReadyRef.current = true;
+      setForm((prev) => {
+        const next = { ...prev, contentJson: json, contentMarkdown: markdown };
+        baselineRef.current = createSnapshot(next);
+        return next;
+      });
+    } else {
+      patchForm({ contentJson: json, contentMarkdown: markdown });
+    }
+  }
+
+  // 自动保存：用户停止编辑 3 秒后静默保存（仅针对已有 ID 的文章）
+  const triggerAutoSave = useEffectEvent(() => {
+    if (isDirty && post?.id && form.title.trim() && !saving) {
+      handleSubmit(form.status);
+    }
+  });
+
+  useEffect(() => {
+    if (!isDirty || !post?.id || !form.title.trim()) return;
+    const timer = setTimeout(triggerAutoSave, 3000);
+    return () => clearTimeout(timer);
+  }, [isDirty, form]);
 
   const readingStats = readingTime(form.contentMarkdown);
   const wordCount = readingStats.words;
@@ -359,12 +396,7 @@ export function PostForm({
             initialMarkdown={form.contentMarkdown}
             placeholder={`从一句清晰的开头开始。\n\n# 可以像这样写标题\n- 或者先列出要点\n- 再慢慢展开成正文`}
             onEditorReady={setEditorInstance}
-            onChange={({ json, markdown }) =>
-              patchForm({
-                contentJson: json,
-                contentMarkdown: markdown,
-              })
-            }
+            onChange={handleEditorChange}
           />
         </div>
       </div>
