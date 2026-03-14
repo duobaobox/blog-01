@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { getTags } from "@/actions/tags";
+import { getTags } from "@/features/taxonomy";
 import { TagsList } from "@/components/admin/tags-list";
 
 export default async function AdminTagsPage() {

@@ -10,9 +10,9 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/infrastructure/auth/client";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 const navItems = [
   { label: "概览", href: "/admin", icon: LayoutDashboard },

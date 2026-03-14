@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/shared/theme-provider";
-import { getResolvedSiteConfig } from "@/lib/site";
+import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {

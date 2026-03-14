@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminSession } from "@/lib/auth";
+import { requireAdminSession } from "@/infrastructure/auth";
 import path from "path";
 import fs from "fs/promises";
 
@@ -31,11 +31,17 @@ export async function POST(request: NextRequest) {
   const ext = ALLOWED_TYPES[file.type];
 
   if (!ext) {
-    return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
+    return NextResponse.json(
+      { error: "File type not allowed" },
+      { status: 400 },
+    );
   }
 
   if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
+    return NextResponse.json(
+      { error: "File too large (max 5MB)" },
+      { status: 400 },
+    );
   }
 
   await fs.mkdir(UPLOAD_DIR, { recursive: true });

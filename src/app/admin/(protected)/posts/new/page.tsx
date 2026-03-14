@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { getCategories } from "@/actions/categories";
-import { getTags } from "@/actions/tags";
+import { getCategories, getTags } from "@/features/taxonomy";
 import { PostForm } from "@/components/admin/post-form";
 
 export default async function NewPostPage() {

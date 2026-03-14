@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { getSiteSettings } from "@/actions/settings";
+import { getSiteSettings } from "@/features/settings";
 import { SettingsForm } from "@/components/admin/settings-form";
 
 export default async function AdminSettingsPage() {

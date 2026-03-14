@@ -3,9 +3,8 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { getCategoryBySlug } from "@/actions/categories";
-import { getPosts } from "@/actions/posts";
-import { PostListCard } from "@/components/blog/post-list-card";
+import { getCategoryBySlug } from "@/features/taxonomy";
+import { getPosts, PostListCard } from "@/features/posts";
 
 export async function generateMetadata({
   params,

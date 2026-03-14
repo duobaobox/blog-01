@@ -3,9 +3,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { FileText, FolderOpen, Tags } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { getPostCount } from "@/actions/posts";
-import { getCategories } from "@/actions/categories";
-import { getTags } from "@/actions/tags";
+import { getPostCount } from "@/features/posts";
+import { getCategories, getTags } from "@/features/taxonomy";
 
 export default async function AdminDashboard() {
   const [postCount, draftCount, categories, tags] = await Promise.all([

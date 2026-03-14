@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/infrastructure/auth";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 export const metadata = {

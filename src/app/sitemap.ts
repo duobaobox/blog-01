@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import type { MetadataRoute } from "next";
-import { db } from "@/lib/db";
-import { getResolvedSiteConfig } from "@/lib/site";
+import { db } from "@/infrastructure/db";
+import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = await getResolvedSiteConfig();

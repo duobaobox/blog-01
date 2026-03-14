@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { getCategories } from "@/actions/categories";
+import { getCategories } from "@/features/taxonomy";
 import { CategoriesList } from "@/components/admin/categories-list";
 
 export default async function AdminCategoriesPage() {

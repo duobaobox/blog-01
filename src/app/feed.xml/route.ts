@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
-import { getResolvedSiteConfig } from "@/lib/site";
+import { db } from "@/infrastructure/db";
+import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export async function GET() {
   const site = await getResolvedSiteConfig();

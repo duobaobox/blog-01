@@ -9,8 +9,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPosts } from "@/actions/posts";
-import { getResolvedSiteConfig } from "@/lib/site";
+import { getPosts } from "@/features/posts";
+import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export default async function HomePage() {
   const [recentPosts, site] = await Promise.all([
