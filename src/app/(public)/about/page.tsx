@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/shared/ui/separator";
 
 export const metadata: Metadata = {
   title: "关于",

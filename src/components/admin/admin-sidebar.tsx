@@ -11,7 +11,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { authClient } from "@/infrastructure/auth/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 
 const navItems = [

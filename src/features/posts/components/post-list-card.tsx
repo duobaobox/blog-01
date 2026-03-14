@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { Calendar, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/shared/ui/card";
 
 type PostListCardProps = {
   post: {

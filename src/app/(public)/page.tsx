@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+} from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
 import { getPosts } from "@/features/posts";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 

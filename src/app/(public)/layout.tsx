@@ -1,5 +1,5 @@
-import { Header } from "@/components/shared/header";
-import { Footer } from "@/components/shared/footer";
+import { Header } from "@/shared/ui/header";
+import { Footer } from "@/shared/ui/footer";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export default async function PublicLayout({

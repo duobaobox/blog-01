@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/shared/theme-provider";
+import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import "./globals.css";
 

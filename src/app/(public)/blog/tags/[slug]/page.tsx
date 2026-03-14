@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/shared/ui/separator";
 import { getTagBySlug } from "@/features/taxonomy";
 import { getPosts, PostListCard } from "@/features/posts";
 

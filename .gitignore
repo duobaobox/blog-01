@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# AI agent configurations
+.agents
+.claude/skills
+skills
+skills-lock.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
