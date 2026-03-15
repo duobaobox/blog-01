@@ -23,6 +23,8 @@ import {
   SheetTitle,
 } from "@/shared/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { useConfirm } from "@/shared/lib/use-confirm";
 
 type Category = {
   id: string;
@@ -284,6 +286,7 @@ export function PostsWorkspace({
   const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
+  const leaveConfirm = useConfirm();
   const hasPosts = posts.length > 0;
   const selectedPost =
     mode === "new"
@@ -297,7 +300,7 @@ export function PostsWorkspace({
 
     if (!hasUnsavedChanges) return true;
 
-    return window.confirm("当前有未保存内容，确认离开并切换文章吗？");
+    return leaveConfirm.confirm();
   }
 
   function goTo(url: string) {
@@ -408,6 +411,16 @@ export function PostsWorkspace({
           {navigatorPanel}
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        open={leaveConfirm.open}
+        onOpenChange={(open) => !open && leaveConfirm.handleCancel()}
+        title="放弃未保存内容"
+        description="当前有未保存内容，确认离开并切换文章吗？"
+        confirmText="离开"
+        variant="destructive"
+        onConfirm={leaveConfirm.handleConfirm}
+      />
     </div>
   );
 }

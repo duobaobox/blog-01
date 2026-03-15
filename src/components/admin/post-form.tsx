@@ -49,6 +49,8 @@ import { Switch } from "@/shared/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Textarea } from "@/shared/ui/textarea";
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { useConfirm } from "@/shared/lib/use-confirm";
 
 interface Category {
   id: string;
@@ -224,6 +226,8 @@ export function PostForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
+  const deleteConfirm = useConfirm();
+  const leaveConfirm = useConfirm();
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
   const formRef = useRef(form);
@@ -441,11 +445,11 @@ export function PostForm({
 
       if (saved) return true;
 
-      return window.confirm("当前有未保存内容，确认丢弃并切换文章吗？");
+      return leaveConfirm.confirm();
     });
 
     return () => registerBeforeLeave(null);
-  }, [isDirty, registerBeforeLeave, savePost]);
+  }, [isDirty, registerBeforeLeave, savePost, leaveConfirm.confirm]);
 
   async function handleSubmit(targetStatus = form.status) {
     await savePost({
@@ -457,7 +461,7 @@ export function PostForm({
   }
 
   async function handleDelete() {
-    if (!post || !window.confirm("确定删除这篇文章吗？")) return;
+    if (!post || !(await deleteConfirm.confirm())) return;
 
     try {
       await deletePost(post.id);
@@ -787,6 +791,26 @@ export function PostForm({
         onOpenChange={setCoverPickerOpen}
         onSelect={(media) => patchForm({ coverImageUrl: media.url })}
         mimeTypePrefix="image"
+      />
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
+        title="删除文章"
+        description="确定删除这篇文章吗？发布后的内容将对读者不可见，此操作不可撤销。"
+        confirmText="删除"
+        variant="destructive"
+        onConfirm={deleteConfirm.handleConfirm}
+      />
+
+      <ConfirmDialog
+        open={leaveConfirm.open}
+        onOpenChange={(open) => !open && leaveConfirm.handleCancel()}
+        title="放弃未保存内容"
+        description="当前有未保存内容，确认丢弃并切换文章吗？"
+        confirmText="丢弃"
+        variant="destructive"
+        onConfirm={leaveConfirm.handleConfirm}
       />
     </div>
   );

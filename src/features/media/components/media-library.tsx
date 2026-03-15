@@ -8,6 +8,7 @@ import { deleteMedia } from "@/features/media/actions/media.actions";
 import { MediaGrid } from "./media-grid";
 import { MediaUploadZone } from "./media-upload-zone";
 import { Button } from "@/shared/ui/button";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 
 type FilterType = "all" | "image" | "file";
 
@@ -19,6 +20,7 @@ export function MediaLibrary({ initialItems }: MediaLibraryProps) {
   const router = useRouter();
   const [filter, setFilter] = useState<FilterType>("all");
   const [showUpload, setShowUpload] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const filteredItems = initialItems.filter((item) => {
     if (filter === "image") return item.mimeType.startsWith("image/");
@@ -26,9 +28,9 @@ export function MediaLibrary({ initialItems }: MediaLibraryProps) {
     return true;
   });
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("确定删除这个文件吗？")) return;
-    await deleteMedia(id);
+  async function handleDeleteConfirmed() {
+    if (!confirmId) return;
+    await deleteMedia(confirmId);
     router.refresh();
   }
 
@@ -81,8 +83,18 @@ export function MediaLibrary({ initialItems }: MediaLibraryProps) {
           </span>
         </div>
 
-        <MediaGrid items={filteredItems} onDelete={handleDelete} />
+        <MediaGrid items={filteredItems} onDelete={(id) => setConfirmId(id)} />
       </div>
+
+      <ConfirmDialog
+        open={!!confirmId}
+        onOpenChange={(open) => !open && setConfirmId(null)}
+        title="删除文件"
+        description="确定删除这个文件吗？此操作不可撤销。"
+        confirmText="删除"
+        variant="destructive"
+        onConfirm={handleDeleteConfirmed}
+      />
     </div>
   );
 }
