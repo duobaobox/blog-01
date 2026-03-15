@@ -11,6 +11,7 @@ import {
   LogOut,
   Globe,
   BookOpen,
+  ImageIcon,
 } from "lucide-react";
 import { authClient } from "@/infrastructure/auth/client";
 import {
@@ -29,6 +30,7 @@ import {
 const navItems = [
   { label: "概览", href: "/admin", icon: LayoutDashboard },
   { label: "文章", href: "/admin/posts", icon: FileText },
+  { label: "媒体", href: "/admin/media", icon: ImageIcon },
   { label: "分类", href: "/admin/categories", icon: FolderOpen },
   { label: "标签", href: "/admin/tags", icon: Tags },
   { label: "设置", href: "/admin/settings", icon: Settings },
@@ -49,10 +51,7 @@ export function AdminSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              render={<Link href="/admin" />}
-            >
+            <SidebarMenuButton size="lg" render={<Link href="/admin" />}>
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <BookOpen className="size-4" />
               </div>

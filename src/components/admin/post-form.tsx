@@ -48,6 +48,7 @@ import {
 import { Switch } from "@/shared/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Textarea } from "@/shared/ui/textarea";
+import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
 
 interface Category {
   id: string;
@@ -179,8 +180,7 @@ function prepareFormForSave(
 ) {
   const hasTitle = Boolean(form.title.trim());
   const title = hasTitle ? form.title : UNTITLED_POST_TITLE;
-  const slug =
-    existingSlug || generateSlug();
+  const slug = existingSlug || generateSlug();
 
   return {
     form: {
@@ -223,6 +223,7 @@ export function PostForm({
   const [isDirty, setIsDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
   const formRef = useRef(form);
@@ -586,8 +587,7 @@ export function PostForm({
 
           <Tabs defaultValue="basic" suppressHydrationWarning>
             <TabsList
-              variant="line"
-              className="w-full justify-start p-0"
+              className="w-full"
               suppressHydrationWarning
             >
               <TabsTrigger value="basic" suppressHydrationWarning>
@@ -630,11 +630,11 @@ export function PostForm({
                     })
                   }
                 >
-                <SelectTrigger
-                  id="category"
-                  className="h-9 rounded-lg"
-                  suppressHydrationWarning
-                >
+                  <SelectTrigger
+                    id="category"
+                    className="h-9 rounded-lg"
+                    suppressHydrationWarning
+                  >
                     <SelectValue placeholder="选择分类">
                       {(value) => {
                         if (!value || value === "__none__") {
@@ -686,15 +686,33 @@ export function PostForm({
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="coverImageUrl">封面图</Label>
-                <Input
-                  id="coverImageUrl"
-                  value={form.coverImageUrl}
-                  onChange={(event) =>
-                    patchForm({ coverImageUrl: event.target.value })
-                  }
-                  placeholder="https://..."
-                  className="h-9 rounded-lg"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="coverImageUrl"
+                    value={form.coverImageUrl}
+                    onChange={(event) =>
+                      patchForm({ coverImageUrl: event.target.value })
+                    }
+                    placeholder="https://..."
+                    className="h-9 flex-1 rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 shrink-0"
+                    onClick={() => setCoverPickerOpen(true)}
+                  >
+                    选择
+                  </Button>
+                </div>
+                {form.coverImageUrl && (
+                  <img
+                    src={form.coverImageUrl}
+                    alt="封面预览"
+                    className="mt-1 h-32 w-full rounded-lg border object-cover"
+                  />
+                )}
               </div>
 
               <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
@@ -763,6 +781,13 @@ export function PostForm({
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      <MediaPickerDialog
+        open={coverPickerOpen}
+        onOpenChange={setCoverPickerOpen}
+        onSelect={(media) => patchForm({ coverImageUrl: media.url })}
+        mimeTypePrefix="image"
+      />
     </div>
   );
 }

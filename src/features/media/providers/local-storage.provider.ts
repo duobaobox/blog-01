@@ -12,19 +12,34 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/gif": "gif",
   "image/webp": "webp",
+  "image/svg+xml": "svg",
+  "application/pdf": "pdf",
+  "application/zip": "zip",
 };
-const MAX_SIZE = 5 * 1024 * 1024; // 最大 5 兆字节
+const MAX_SIZE = 10 * 1024 * 1024; // 最大 10 兆字节
 
 export class LocalStorageProvider implements StorageProvider {
   async upload({ file }: UploadOptions): Promise<UploadResult> {
     const ext = ALLOWED_TYPES[file.type];
 
     if (!ext) {
-      return { url: "", error: "File type not allowed" };
+      return {
+        url: "",
+        filename: "",
+        size: 0,
+        mimeType: "",
+        error: "File type not allowed",
+      };
     }
 
     if (file.size > MAX_SIZE) {
-      return { url: "", error: "File too large (max 5MB)" };
+      return {
+        url: "",
+        filename: "",
+        size: 0,
+        mimeType: "",
+        error: "File too large (max 10MB)",
+      };
     }
 
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
@@ -35,7 +50,12 @@ export class LocalStorageProvider implements StorageProvider {
     const buffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filepath, buffer);
 
-    return { url: `/uploads/${filename}` };
+    return {
+      url: `/uploads/${filename}`,
+      filename,
+      size: file.size,
+      mimeType: file.type,
+    };
   }
 
   async delete(url: string): Promise<void> {

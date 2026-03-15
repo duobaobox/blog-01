@@ -158,3 +158,18 @@ model siteSetting {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model media {
+  id        String   @id @default(uuid())
+  url       String   @db.Text
+  filename  String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  alt       String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([mimeType])
+  @@index([createdAt])
+}

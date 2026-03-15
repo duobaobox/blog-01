@@ -18,12 +18,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const { url, error } = await uploadFile(file);
+  const result = await uploadFile(file);
 
-  if (error) {
-    const status = error.includes("too large") ? 400 : 400;
-    return NextResponse.json({ error }, { status });
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  return NextResponse.json({ url });
+  return NextResponse.json({ url: result.url, media: result.media });
 }
