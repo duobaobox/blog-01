@@ -2,12 +2,14 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { getPostBySlug } from "@/features/posts/queries/post.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { renderMarkdown, extractToc } from "@/infrastructure/markdown";
+import { generateSeo } from "@/infrastructure/seo";
 
 export async function generateMetadata({
   params,
@@ -16,12 +18,19 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post) return { title: "文章未找到" };
-  return {
+  if (!post || post.status !== "published") {
+    return { title: "文章未找到" };
+  }
+
+  return generateSeo({
     title: post.seoTitle || post.title,
     description:
       post.seoDescription || post.excerpt || post.contentMarkdown.slice(0, 160),
-  };
+    image: post.coverImageUrl ?? undefined,
+    url: post.canonicalUrl || `/blog/${post.slug}`,
+    type: "article",
+    publishedTime: post.publishedAt?.toISOString(),
+  });
 }
 
 export default async function PostPage({
@@ -50,6 +59,18 @@ export default async function PostPage({
       <div className="grid gap-8 lg:grid-cols-[1fr_200px]">
         <article>
           <header className="mb-8">
+            {post.coverImageUrl ? (
+              <div className="mb-6 overflow-hidden rounded-2xl border bg-muted/30">
+                <Image
+                  src={post.coverImageUrl}
+                  alt={post.title}
+                  width={1600}
+                  height={900}
+                  unoptimized
+                  className="h-auto w-full object-cover"
+                />
+              </div>
+            ) : null}
             {post.category && (
               <div className="mb-3 flex items-center gap-2">
                 <Link href={`/blog/categories/${post.category.slug}`}>

@@ -1,14 +1,28 @@
 import { db } from "@/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
 
-export async function findPosts(options?: {
+export type FindPostsOptions = {
   status?: string;
   categoryId?: string;
   tagId?: string;
   take?: number;
   skip?: number;
-}) {
+  isFeatured?: boolean;
+  order?: "created" | "updated" | "published";
+};
+
+export async function findPosts(options?: FindPostsOptions) {
   const where: Record<string, unknown> = {};
+  const orderBy: Prisma.postOrderByWithRelationInput[] =
+    options?.order === "published"
+      ? [
+          { isFeatured: "desc" },
+          { publishedAt: "desc" },
+          { createdAt: "desc" },
+        ]
+      : options?.order === "updated"
+        ? [{ updatedAt: "desc" }, { createdAt: "desc" }]
+        : [{ createdAt: "desc" }];
 
   if (options?.status) {
     where.status = options.status;
@@ -19,10 +33,13 @@ export async function findPosts(options?: {
   if (options?.tagId) {
     where.tags = { some: { tagId: options.tagId } };
   }
+  if (typeof options?.isFeatured === "boolean") {
+    where.isFeatured = options.isFeatured;
+  }
 
   return db.post.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy,
     take: options?.take,
     skip: options?.skip,
     include: {

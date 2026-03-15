@@ -7,6 +7,7 @@ import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getCategoryBySlug } from "@/features/taxonomy/queries/category.queries";
+import { generateSeo } from "@/infrastructure/seo";
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
   if (!category) return { title: "分类未找到" };
-  return { title: `分类: ${category.name}` };
+  return generateSeo({
+    title: `分类: ${category.name}`,
+    description:
+      category.description || `浏览“${category.name}”分类下的已发布文章。`,
+    url: `/blog/categories/${category.slug}`,
+  });
 }
 
 export default async function CategoryPage({
@@ -32,6 +38,7 @@ export default async function CategoryPage({
   const posts = await getPosts({
     status: "published",
     categoryId: category.id,
+    order: "published",
   });
 
   return (

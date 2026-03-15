@@ -12,6 +12,8 @@ import {
   BookMarked,
   LucideIcon,
 } from "lucide-react";
+import { createElement } from "react";
+import type { ReactNode } from "react";
 
 const categoryIcons: Record<string, LucideIcon> = {
   tech: Code2,
@@ -48,6 +50,14 @@ const categoryIcons: Record<string, LucideIcon> = {
 export function getCategoryIcon(categoryName: string): LucideIcon {
   const nameLower = categoryName.toLowerCase();
   return categoryIcons[nameLower] || categoryIcons[categoryName] || BookMarked;
+}
+
+export function renderCategoryIcon(
+  categoryName: string,
+  className?: string,
+): ReactNode {
+  const Icon = getCategoryIcon(categoryName);
+  return createElement(Icon, { className });
 }
 
 export function getCategoryColor(index: number): string {

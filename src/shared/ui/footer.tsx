@@ -1,13 +1,21 @@
 import Link from "next/link";
-import { Github } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 
 interface FooterProps {
   siteName: string;
   githubUrl?: string;
+  xUrl?: string;
+  email?: string;
   footerText?: string;
 }
 
-export function Footer({ siteName, githubUrl, footerText }: FooterProps) {
+export function Footer({
+  siteName,
+  githubUrl,
+  xUrl,
+  email,
+  footerText,
+}: FooterProps) {
   const copyrightText =
     footerText?.trim() ||
     `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
@@ -27,6 +35,25 @@ export function Footer({ siteName, githubUrl, footerText }: FooterProps) {
             >
               <Github className="h-4 w-4" />
               <span className="sr-only">GitHub</span>
+            </Link>
+          )}
+          {xUrl && (
+            <Link
+              href={xUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              X
+            </Link>
+          )}
+          {email && (
+            <Link
+              href={`mailto:${email}`}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="sr-only">Email</span>
             </Link>
           )}
           <Link

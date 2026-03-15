@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
@@ -10,17 +9,21 @@ import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
+import { generateSeo } from "@/infrastructure/seo";
 
-export const metadata: Metadata = {
-  title: "博客",
-  description: "技术文章、项目经验和学习笔记。",
-};
+export async function generateMetadata() {
+  return generateSeo({
+    title: "博客",
+    description: "技术文章、项目经验和学习笔记。",
+    url: "/blog",
+  });
+}
 
 export default async function BlogPage() {
   const [posts, categories, tags] = await Promise.all([
-    getPosts({ status: "published" }),
-    getCategories(),
-    getTags(),
+    getPosts({ status: "published", order: "published" }),
+    getCategories("public"),
+    getTags("public"),
   ]);
   const hasSidebarContent = categories.length > 0 || tags.length > 0;
 
@@ -67,7 +70,7 @@ export default async function BlogPage() {
                 </span>
               </h3>
               <div className="space-y-2">
-                {categories.map((cat, index) => (
+                {categories.map((cat) => (
                   <Link
                     key={cat.id}
                     href={`/blog/categories/${cat.slug}`}
@@ -75,7 +78,6 @@ export default async function BlogPage() {
                   >
                     <CategoryBadge
                       name={cat.name}
-                      index={index}
                       showCount={cat._count.posts}
                       className="w-full flex"
                     />

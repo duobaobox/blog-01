@@ -8,6 +8,7 @@ import { PostListCard } from "@/features/posts/components/post-list-card";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
+import { generateSeo } from "@/infrastructure/seo";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const tag = await getTagBySlug(slug);
   if (!tag) return { title: "标签未找到" };
-  return { title: `标签: ${tag.name}` };
+  return generateSeo({
+    title: `标签: ${tag.name}`,
+    description: tag.description || `浏览和“${tag.name}”相关的已发布文章。`,
+    url: `/blog/tags/${tag.slug}`,
+  });
 }
 
 export default async function TagPage({
@@ -30,7 +35,11 @@ export default async function TagPage({
 
   if (!tag) notFound();
 
-  const posts = await getPosts({ status: "published", tagId: tag.id });
+  const posts = await getPosts({
+    status: "published",
+    tagId: tag.id,
+    order: "published",
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">

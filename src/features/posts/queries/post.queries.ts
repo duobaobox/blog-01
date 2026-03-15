@@ -1,12 +1,6 @@
 import * as postRepo from "@/features/posts/repositories/post.repository";
 
-export async function getPosts(options?: {
-  status?: string;
-  categoryId?: string;
-  tagId?: string;
-  take?: number;
-  skip?: number;
-}) {
+export async function getPosts(options?: postRepo.FindPostsOptions) {
   return postRepo.findPosts(options);
 }
 

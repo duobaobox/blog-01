@@ -11,11 +11,13 @@ export default async function PublicLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header siteName={site.name} nav={site.nav} />
+      <Header siteName={site.name} logoUrl={site.logoUrl} nav={site.nav} />
       <main className="flex-1">{children}</main>
       <Footer
         siteName={site.name}
         githubUrl={site.social.github}
+        xUrl={site.social.x}
+        email={site.social.email}
         footerText={site.footerText}
       />
     </div>

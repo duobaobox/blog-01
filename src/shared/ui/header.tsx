@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
@@ -15,20 +16,31 @@ import { cn } from "@/shared/lib/utils";
 
 interface HeaderProps {
   siteName: string;
+  logoUrl?: string;
   nav: ReadonlyArray<{
     label: string;
     href: string;
   }>;
 }
 
-export function Header({ siteName, nav }: HeaderProps) {
+export function Header({ siteName, logoUrl, nav }: HeaderProps) {
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-5xl items-center px-4 sm:px-6">
-        <Link href="/" className="mr-6 font-bold">
-          {siteName}
+        <Link href="/" className="mr-6 flex items-center gap-3 font-bold">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={siteName}
+              width={32}
+              height={32}
+              unoptimized
+              className="h-8 w-8 rounded-lg border object-cover"
+            />
+          ) : null}
+          <span>{siteName}</span>
         </Link>
 
         {/* 桌面端导航 */}

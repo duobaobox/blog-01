@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, Clock } from "lucide-react";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import {
@@ -32,9 +33,11 @@ type PostListCardProps = {
     title: string;
     excerpt: string | null;
     contentMarkdown: string;
+    coverImageUrl: string | null;
     publishedAt: Date | null;
     createdAt: Date;
     readingTimeMinutes: number | null;
+    isFeatured: boolean;
     category: {
       name: string;
     } | null;
@@ -56,8 +59,26 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
   return (
     <Link href={`/blog/${post.slug}`} className="block">
       <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
+        {post.coverImageUrl ? (
+          <div className="overflow-hidden rounded-t-xl border-b bg-muted/30">
+            <Image
+              src={post.coverImageUrl}
+              alt={post.title}
+              width={1200}
+              height={630}
+              unoptimized
+              className="h-52 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+            />
+          </div>
+        ) : null}
         <CardHeader className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {post.isFeatured ? (
+              <>
+                <span className="font-medium text-primary">精选</span>
+                <span>·</span>
+              </>
+            ) : null}
             {showCategory && post.category && (
               <>
                 <span className="font-medium text-primary">

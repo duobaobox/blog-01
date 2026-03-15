@@ -10,6 +10,16 @@ interface SeoProps {
   publishedTime?: string;
 }
 
+function resolveAbsoluteUrl(baseUrl: string, value?: string) {
+  if (!value) return undefined;
+
+  try {
+    return new URL(value, baseUrl).toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generateSeo({
   title,
   description,
@@ -21,7 +31,8 @@ export async function generateSeo({
   const site = await getResolvedSiteConfig();
   const siteTitle = title ? `${title} | ${site.name}` : site.name;
   const siteDescription = description || site.description;
-  const siteUrl = url || site.url;
+  const siteUrl = resolveAbsoluteUrl(site.url, url) ?? site.url;
+  const imageUrl = resolveAbsoluteUrl(site.url, image);
 
   return {
     title: siteTitle,
@@ -32,14 +43,14 @@ export async function generateSeo({
       url: siteUrl,
       siteName: site.name,
       type,
-      ...(image && { images: [{ url: image }] }),
+      ...(imageUrl && { images: [{ url: imageUrl }] }),
       ...(publishedTime && { publishedTime }),
     },
     twitter: {
       card: "summary_large_image",
       title: siteTitle,
       description: siteDescription,
-      ...(image && { images: [image] }),
+      ...(imageUrl && { images: [imageUrl] }),
     },
     alternates: {
       canonical: siteUrl,
