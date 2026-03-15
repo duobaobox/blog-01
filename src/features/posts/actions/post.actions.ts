@@ -38,6 +38,8 @@ export async function createPost(formData: FormData) {
   revalidatePath("/admin/posts");
   revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/categories", "layout");
+  revalidatePath("/blog/tags", "layout");
   revalidatePath("/feed.xml");
   revalidatePath("/sitemap.xml");
   return post;
@@ -66,6 +68,8 @@ export async function updatePost(id: string, formData: FormData) {
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath(`/blog/${post.slug}`);
+  revalidatePath("/blog/categories", "layout");
+  revalidatePath("/blog/tags", "layout");
   revalidatePath("/feed.xml");
   revalidatePath("/sitemap.xml");
   return post;
@@ -78,6 +82,8 @@ export async function deletePost(id: string) {
   revalidatePath("/");
   revalidatePath("/blog");
   revalidatePath(`/blog/${post.slug}`);
+  revalidatePath("/blog/categories", "layout");
+  revalidatePath("/blog/tags", "layout");
   revalidatePath("/feed.xml");
   revalidatePath("/sitemap.xml");
 }

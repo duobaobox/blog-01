@@ -35,9 +35,9 @@ export const getResolvedSiteConfig = cache(
         url: dbSettings.siteUrl,
         nav: siteConfig.nav,
         social: {
-          github: dbSettings.githubUrl ?? siteConfig.social.github,
-          x: dbSettings.xUrl ?? siteConfig.social.x,
-          email: dbSettings.email ?? siteConfig.social.email,
+          github: dbSettings.githubUrl ?? "",
+          x: dbSettings.xUrl ?? "",
+          email: dbSettings.email ?? "",
         },
         footerText: dbSettings.footerText ?? undefined,
         subtitle: dbSettings.siteSubtitle ?? undefined,

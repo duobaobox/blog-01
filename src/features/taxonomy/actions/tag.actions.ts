@@ -28,7 +28,9 @@ export async function createTag(formData: FormData) {
     color,
   });
   revalidatePath("/admin/tags");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/tags", "layout");
 }
 
 export async function updateTag(id: string, formData: FormData) {
@@ -54,12 +56,16 @@ export async function updateTag(id: string, formData: FormData) {
     color,
   });
   revalidatePath("/admin/tags");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/tags", "layout");
 }
 
 export async function deleteTag(id: string) {
   await requireAdminSession();
   await tagRepo.deleteTag(id);
   revalidatePath("/admin/tags");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/tags", "layout");
 }

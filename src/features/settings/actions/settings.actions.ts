@@ -21,11 +21,5 @@ export async function updateSiteSettings(formData: FormData) {
   });
 
   revalidatePath("/admin/settings");
-  revalidatePath("/");
-  revalidatePath("/about");
-  revalidatePath("/projects");
-  revalidatePath("/blog");
-  revalidatePath("/feed.xml");
-  revalidatePath("/sitemap.xml");
-  revalidatePath("/robots.txt");
+  revalidatePath("/", "layout");
 }

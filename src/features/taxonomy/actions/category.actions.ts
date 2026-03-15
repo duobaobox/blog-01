@@ -25,7 +25,9 @@ export async function createCategory(formData: FormData) {
     description: description || null,
   });
   revalidatePath("/admin/categories");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/categories", "layout");
 }
 
 export async function updateCategory(id: string, formData: FormData) {
@@ -49,12 +51,16 @@ export async function updateCategory(id: string, formData: FormData) {
     description: description || null,
   });
   revalidatePath("/admin/categories");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/categories", "layout");
 }
 
 export async function deleteCategory(id: string) {
   await requireAdminSession();
   await categoryRepo.deleteCategory(id);
   revalidatePath("/admin/categories");
+  revalidatePath("/");
   revalidatePath("/blog");
+  revalidatePath("/blog/categories", "layout");
 }

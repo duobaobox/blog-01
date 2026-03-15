@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { updateSiteSettings } from "@/features/settings/actions/settings.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -24,7 +23,6 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ settings }: SettingsFormProps) {
-  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -36,7 +34,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     await updateSiteSettings(formData);
     setSaving(false);
     setSaved(true);
-    router.refresh();
     setTimeout(() => setSaved(false), 2000);
   }
 
