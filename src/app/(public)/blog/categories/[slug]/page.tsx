@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getCategoryBySlug } from "@/features/taxonomy/queries/category.queries";
@@ -45,9 +46,12 @@ export default async function CategoryPage({
 
       <div className="space-y-6">
         {posts.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground">
-            该分类下暂无文章
-          </p>
+          <PostsEmptyState
+            title="这个分类下还没有文章"
+            description={`“${category.name}” 相关的内容还在整理中。`}
+            className="py-14"
+            icon={null}
+          />
         ) : (
           posts.map((post) => (
             <PostListCard key={post.slug} post={post} showCategory={false} />

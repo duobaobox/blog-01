@@ -2,26 +2,31 @@
 
 import {
   startTransition,
+  useCallback,
   useEffect,
   useEffectEvent,
   useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { pinyin } from "pinyin-pro";
 import readingTime from "reading-time";
-import slugify from "slugify";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import {
   deletePost,
   createPost,
   updatePost,
 } from "@/features/posts/actions/post.actions";
+import {
+  UNTITLED_POST_TITLE,
+  getPostDisplayTitle,
+} from "@/features/posts/lib/post-title";
+import { TagMultiSelect } from "@/features/taxonomy/components/tag-multi-select";
 import type { Editor } from "@tiptap/core";
 import {
   EditorToolbar,
   PostRichEditor,
 } from "@/components/admin/post-rich-editor";
+import { generateShortSlug } from "@/shared/lib/slug";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -81,6 +86,7 @@ interface PostFormProps {
   categories: Category[];
   tags: Tag[];
   onDirtyChange?: (dirty: boolean) => void;
+  registerBeforeLeave?: (handler: (() => Promise<boolean>) | null) => void;
 }
 
 type FormState = {
@@ -98,21 +104,15 @@ type FormState = {
   status: string;
 };
 
-function generateSlug(title: string) {
-  if (!title.trim()) return "untitled-post";
+type SaveOptions = {
+  targetStatus?: string;
+  redirectAfterCreate?: boolean;
+  refreshAfterCreate?: boolean;
+  silent?: boolean;
+};
 
-  let slug = slugify(title, { lower: true, strict: true });
-
-  if (!slug) {
-    const py = pinyin(title, { toneType: "none", type: "array" }).join("-");
-    slug = slugify(py, { lower: true, strict: true });
-  }
-
-  if (!slug) {
-    slug = `post-${Date.now()}`;
-  }
-
-  return slug;
+function generateSlug() {
+  return generateShortSlug("p");
 }
 
 function serializeContentJson(value: unknown | null | undefined) {
@@ -157,29 +157,96 @@ function createSnapshot(form: FormState) {
   });
 }
 
+function hasMeaningfulDraft(form: FormState) {
+  return Boolean(
+    form.title.trim() ||
+    form.excerpt.trim() ||
+    form.coverImageUrl.trim() ||
+    form.contentMarkdown.trim() ||
+    form.categoryId ||
+    form.selectedTagIds.length > 0 ||
+    form.isFeatured ||
+    form.seoTitle.trim() ||
+    form.seoDescription.trim() ||
+    form.canonicalUrl.trim(),
+  );
+}
+
+function prepareFormForSave(
+  form: FormState,
+  targetStatus: string,
+  existingSlug?: string | null,
+) {
+  const hasTitle = Boolean(form.title.trim());
+  const title = hasTitle ? form.title : UNTITLED_POST_TITLE;
+  const slug =
+    existingSlug || generateSlug();
+
+  return {
+    form: {
+      ...form,
+      title,
+      status: targetStatus,
+    },
+    slug,
+  };
+}
+
+function buildPostFormData(form: FormState, slug: string) {
+  const formData = new FormData();
+  formData.set("title", form.title);
+  formData.set("slug", slug);
+  formData.set("excerpt", form.excerpt);
+  formData.set("coverImageUrl", form.coverImageUrl);
+  formData.set("contentJson", form.contentJson);
+  formData.set("contentMarkdown", form.contentMarkdown);
+  formData.set("categoryId", form.categoryId);
+  formData.set("status", form.status);
+  formData.set("isFeatured", form.isFeatured.toString());
+  formData.set("seoTitle", form.seoTitle);
+  formData.set("seoDescription", form.seoDescription);
+  formData.set("canonicalUrl", form.canonicalUrl);
+  form.selectedTagIds.forEach((id) => formData.append("tagIds", id));
+  return formData;
+}
+
 export function PostForm({
   post,
   categories,
   tags,
   onDirtyChange,
+  registerBeforeLeave,
 }: PostFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => createFormState(post));
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
-  // 追踪编辑器是否已完成初始化（首次 onChange 来自 onCreate，需更新 baseline）
-  const editorReadyRef = useRef(false);
+  const formRef = useRef(form);
+  const postIdRef = useRef<string | null>(post?.id ?? null);
+  const postSlugRef = useRef<string | null>(post?.slug ?? null);
+  const changeVersionRef = useRef(0);
+  const savePromiseRef = useRef<Promise<boolean> | null>(null);
+  const displayTitle = getPostDisplayTitle(form.title);
 
   useEffect(() => {
     const nextForm = createFormState(post);
+    postIdRef.current = post?.id ?? null;
+    postSlugRef.current = post?.slug ?? null;
     baselineRef.current = createSnapshot(nextForm);
+    formRef.current = nextForm;
+    changeVersionRef.current = 0;
     setForm(nextForm);
     setIsDirty(false);
-    editorReadyRef.current = false;
+    setSaveError(null);
   }, [post]);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
 
   useEffect(() => {
     const nextDirty = createSnapshot(form) !== baselineRef.current;
@@ -198,7 +265,6 @@ export function PostForm({
     return () => onDirtyChange?.(false);
   }, [onDirtyChange]);
 
-  // 编辑器内容变化处理：首次调用（来自 onCreate）时同步 baseline，避免虚假 isDirty
   function handleEditorChange({
     json,
     markdown,
@@ -207,30 +273,8 @@ export function PostForm({
     markdown: string;
     text: string;
   }) {
-    if (!editorReadyRef.current) {
-      editorReadyRef.current = true;
-      setForm((prev) => {
-        const next = { ...prev, contentJson: json, contentMarkdown: markdown };
-        baselineRef.current = createSnapshot(next);
-        return next;
-      });
-    } else {
-      patchForm({ contentJson: json, contentMarkdown: markdown });
-    }
+    patchForm({ contentJson: json, contentMarkdown: markdown });
   }
-
-  // 自动保存：用户停止编辑 3 秒后静默保存（仅针对已有 ID 的文章）
-  const triggerAutoSave = useEffectEvent(() => {
-    if (isDirty && post?.id && form.title.trim() && !saving) {
-      handleSubmit(form.status);
-    }
-  });
-
-  useEffect(() => {
-    if (!isDirty || !post?.id || !form.title.trim()) return;
-    const timer = setTimeout(triggerAutoSave, 3000);
-    return () => clearTimeout(timer);
-  }, [isDirty, form]);
 
   const readingStats = readingTime(form.contentMarkdown);
   const wordCount = readingStats.words;
@@ -238,55 +282,177 @@ export function PostForm({
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
 
   function patchForm(next: Partial<FormState>) {
-    setForm((current) => ({ ...current, ...next }));
-  }
-
-  function toggleTag(tagId: string) {
-    patchForm({
-      selectedTagIds: form.selectedTagIds.includes(tagId)
-        ? form.selectedTagIds.filter((id) => id !== tagId)
-        : [...form.selectedTagIds, tagId],
+    setSaveError(null);
+    setForm((current) => {
+      const updated = { ...current, ...next };
+      if (createSnapshot(updated) !== createSnapshot(current)) {
+        changeVersionRef.current += 1;
+        formRef.current = updated;
+      }
+      return updated;
     });
   }
 
-  async function handleSubmit(targetStatus = form.status) {
-    setSaving(true);
+  const savePost = useCallback(
+    async ({
+      targetStatus,
+      redirectAfterCreate = true,
+      refreshAfterCreate = true,
+      silent = false,
+    }: SaveOptions = {}) => {
+      if (savePromiseRef.current) {
+        await savePromiseRef.current;
+      }
 
-    const finalSlug = post?.slug || generateSlug(form.title);
-    const formData = new FormData();
-    formData.set("title", form.title);
-    formData.set("slug", finalSlug);
-    formData.set("excerpt", form.excerpt);
-    formData.set("coverImageUrl", form.coverImageUrl);
-    formData.set("contentJson", form.contentJson);
-    formData.set("contentMarkdown", form.contentMarkdown);
-    formData.set("categoryId", form.categoryId);
-    formData.set("status", targetStatus);
-    formData.set("isFeatured", form.isFeatured.toString());
-    formData.set("seoTitle", form.seoTitle);
-    formData.set("seoDescription", form.seoDescription);
-    formData.set("canonicalUrl", form.canonicalUrl);
-    form.selectedTagIds.forEach((id) => formData.append("tagIds", id));
+      const currentForm = formRef.current;
+      const currentPostId = postIdRef.current;
+      const nextStatus = targetStatus ?? currentForm.status;
+      const currentSnapshot = createSnapshot(currentForm);
+      const hasPendingChanges = currentSnapshot !== baselineRef.current;
+      const hasDraftContent = hasMeaningfulDraft(currentForm);
 
-    try {
-      const savedPost = post
-        ? await updatePost(post.id, formData)
-        : await createPost(formData);
+      if (!currentPostId && !hasDraftContent) {
+        return true;
+      }
 
-      const nextForm = { ...form, status: savedPost.status };
-      baselineRef.current = createSnapshot(nextForm);
-      setForm(nextForm);
-      setIsDirty(false);
+      if (
+        currentPostId &&
+        !hasPendingChanges &&
+        nextStatus === currentForm.status
+      ) {
+        return true;
+      }
 
-      startTransition(() => {
-        router.push(`/admin/posts?postId=${savedPost.id}`);
-        router.refresh();
+      const startedAsNewDraft = !currentPostId;
+      const changeVersionAtSaveStart = changeVersionRef.current;
+      const { form: persistedForm, slug } = prepareFormForSave(
+        currentForm,
+        nextStatus,
+        postSlugRef.current,
+      );
+
+      const promise = (async () => {
+        setSaving(true);
+        setSaveError(null);
+
+        try {
+          const savedPost = currentPostId
+            ? await updatePost(
+                currentPostId,
+                buildPostFormData(persistedForm, slug),
+              )
+            : await createPost(buildPostFormData(persistedForm, slug));
+
+          postIdRef.current = savedPost.id;
+          postSlugRef.current = savedPost.slug;
+
+          const savedForm = {
+            ...persistedForm,
+            status: savedPost.status,
+          };
+          const savedSnapshot = createSnapshot(savedForm);
+
+          baselineRef.current = savedSnapshot;
+
+          if (changeVersionRef.current === changeVersionAtSaveStart) {
+            formRef.current = savedForm;
+            setForm(savedForm);
+            setIsDirty(false);
+          } else {
+            let patchedForm = formRef.current;
+
+            if (patchedForm.status === currentForm.status) {
+              patchedForm = { ...patchedForm, status: savedPost.status };
+            }
+
+            if (
+              !currentForm.title.trim() &&
+              patchedForm.title === currentForm.title
+            ) {
+              patchedForm = { ...patchedForm, title: savedForm.title };
+            }
+
+            if (patchedForm !== formRef.current) {
+              formRef.current = patchedForm;
+              setForm(patchedForm);
+            }
+
+            setIsDirty(createSnapshot(patchedForm) !== savedSnapshot);
+          }
+
+          if (startedAsNewDraft && redirectAfterCreate) {
+            startTransition(() => {
+              router.replace(`/admin/posts?postId=${savedPost.id}`);
+              if (refreshAfterCreate) {
+                router.refresh();
+              }
+            });
+          }
+
+          return true;
+        } catch {
+          setSaveError("保存失败");
+          if (!silent) {
+            window.alert("保存失败，请稍后重试。");
+          }
+          return false;
+        } finally {
+          setSaving(false);
+        }
+      })();
+
+      savePromiseRef.current = promise;
+
+      try {
+        return await promise;
+      } finally {
+        if (savePromiseRef.current === promise) {
+          savePromiseRef.current = null;
+        }
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    if (!isDirty || saving || !hasMeaningfulDraft(form)) return;
+    const timer = setTimeout(() => {
+      void savePost({
+        redirectAfterCreate: true,
+        refreshAfterCreate: true,
+        silent: true,
       });
-    } catch {
-      window.alert("保存失败，请稍后重试。");
-    } finally {
-      setSaving(false);
-    }
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [form, isDirty, savePost, saving]);
+
+  useEffect(() => {
+    if (!registerBeforeLeave) return;
+
+    registerBeforeLeave(async () => {
+      if (!isDirty) return true;
+
+      const saved = await savePost({
+        redirectAfterCreate: false,
+        refreshAfterCreate: false,
+        silent: true,
+      });
+
+      if (saved) return true;
+
+      return window.confirm("当前有未保存内容，确认丢弃并切换文章吗？");
+    });
+
+    return () => registerBeforeLeave(null);
+  }, [isDirty, registerBeforeLeave, savePost]);
+
+  async function handleSubmit(targetStatus = form.status) {
+    await savePost({
+      targetStatus,
+      redirectAfterCreate: true,
+      refreshAfterCreate: true,
+      silent: false,
+    });
   }
 
   async function handleDelete() {
@@ -307,9 +473,12 @@ export function PostForm({
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Top action bar */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">
-            {post ? "编辑文章" : "新建文章"}
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="max-w-[240px] truncate text-sm font-medium text-foreground lg:max-w-[360px]"
+            title={displayTitle}
+          >
+            {displayTitle}
           </span>
           <Badge
             variant={form.status === "published" ? "default" : "secondary"}
@@ -331,13 +500,20 @@ export function PostForm({
             </span>
           ) : null}
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            {saving ? "保存中..." : isDirty ? "未保存" : "已保存"}
+            {saveError
+              ? saveError
+              : saving
+                ? "保存中..."
+                : isDirty
+                  ? "未保存"
+                  : "已保存"}
           </span>
 
           {post ? (
             <Button
               variant="ghost"
               size="icon-sm"
+              disabled={saving}
               onClick={handleDelete}
               className="text-muted-foreground hover:text-destructive"
             >
@@ -357,7 +533,7 @@ export function PostForm({
           <Button
             variant="outline"
             size="sm"
-            disabled={saving || !form.title.trim()}
+            disabled={saving || !hasMeaningfulDraft(form)}
             onClick={() => handleSubmit(form.status)}
           >
             {saving ? "保存中..." : "保存草稿"}
@@ -388,10 +564,10 @@ export function PostForm({
             onChange={(event) => patchForm({ title: event.target.value })}
             placeholder="文章标题"
             className="h-auto border-0 bg-transparent px-0 py-0 text-4xl font-bold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-5xl"
+            suppressHydrationWarning
           />
 
           <PostRichEditor
-            key={post?.id ?? "new"}
             initialJson={form.contentJson}
             initialMarkdown={form.contentMarkdown}
             placeholder={`从一句清晰的开头开始。\n\n# 可以像这样写标题\n- 或者先列出要点\n- 再慢慢展开成正文`}
@@ -408,13 +584,25 @@ export function PostForm({
             <DialogTitle>文章设置</DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="basic">
-            <TabsList variant="line" className="w-full justify-start p-0">
-              <TabsTrigger value="basic">基础</TabsTrigger>
-              <TabsTrigger value="seo">SEO</TabsTrigger>
+          <Tabs defaultValue="basic" suppressHydrationWarning>
+            <TabsList
+              variant="line"
+              className="w-full justify-start p-0"
+              suppressHydrationWarning
+            >
+              <TabsTrigger value="basic" suppressHydrationWarning>
+                基础
+              </TabsTrigger>
+              <TabsTrigger value="seo" suppressHydrationWarning>
+                SEO
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="basic" className="mt-5 flex flex-col gap-4">
+            <TabsContent
+              value="basic"
+              className="mt-5 flex flex-col gap-4"
+              suppressHydrationWarning
+            >
               <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium">发布状态</span>
@@ -428,6 +616,7 @@ export function PostForm({
                   onCheckedChange={(checked) =>
                     patchForm({ status: checked ? "published" : "draft" })
                   }
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -441,8 +630,23 @@ export function PostForm({
                     })
                   }
                 >
-                  <SelectTrigger id="category" className="h-9 rounded-lg">
-                    <SelectValue placeholder="选择分类" />
+                <SelectTrigger
+                  id="category"
+                  className="h-9 rounded-lg"
+                  suppressHydrationWarning
+                >
+                    <SelectValue placeholder="选择分类">
+                      {(value) => {
+                        if (!value || value === "__none__") {
+                          return "无分类";
+                        }
+
+                        return (
+                          categories.find((category) => category.id === value)
+                            ?.name ?? "选择分类"
+                        );
+                      }}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent align="start">
                     <SelectGroup>
@@ -459,26 +663,11 @@ export function PostForm({
 
               <div className="flex flex-col gap-2">
                 <Label>标签</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.length > 0 ? (
-                    tags.map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant={
-                          form.selectedTagIds.includes(tag.id)
-                            ? "default"
-                            : "outline"
-                        }
-                        className="cursor-pointer rounded-full px-2.5 py-0.5"
-                        onClick={() => toggleTag(tag.id)}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground">暂无标签</p>
-                  )}
-                </div>
+                <TagMultiSelect
+                  tags={tags}
+                  value={form.selectedTagIds}
+                  onChange={(selectedTagIds) => patchForm({ selectedTagIds })}
+                />
               </div>
 
               <div className="flex flex-col gap-2">
@@ -521,11 +710,16 @@ export function PostForm({
                   onCheckedChange={(checked) =>
                     patchForm({ isFeatured: checked })
                   }
+                  suppressHydrationWarning
                 />
               </div>
             </TabsContent>
 
-            <TabsContent value="seo" className="mt-5 flex flex-col gap-4">
+            <TabsContent
+              value="seo"
+              className="mt-5 flex flex-col gap-4"
+              suppressHydrationWarning
+            >
               <div className="flex flex-col gap-2">
                 <Label htmlFor="seoTitle">SEO 标题</Label>
                 <Input

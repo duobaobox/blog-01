@@ -11,6 +11,10 @@ export async function findTagBySlug(slug: string) {
   return db.tag.findUnique({ where: { slug } });
 }
 
+export async function findTagById(id: string) {
+  return db.tag.findUnique({ where: { id } });
+}
+
 export async function createTag(data: {
   name: string;
   slug: string;

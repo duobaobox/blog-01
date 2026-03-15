@@ -3,9 +3,11 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getTagBySlug } from "@/features/taxonomy/queries/tag.queries";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 
 export async function generateMetadata({
   params,
@@ -32,7 +34,10 @@ export default async function TagPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight">标签: {tag.name}</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-3xl font-bold tracking-tight">标签</h1>
+        <TagBadge name={tag.name} color={tag.color} className="text-sm" />
+      </div>
       {tag.description && (
         <p className="mt-2 text-muted-foreground">{tag.description}</p>
       )}
@@ -40,9 +45,12 @@ export default async function TagPage({
 
       <div className="space-y-6">
         {posts.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground">
-            该标签下暂无文章
-          </p>
+          <PostsEmptyState
+            title="这个标签下还没有文章"
+            description={`和 “${tag.name}” 相关的内容还在整理中。`}
+            className="py-14"
+            icon={null}
+          />
         ) : (
           posts.map((post) => <PostListCard key={post.slug} post={post} />)
         )}

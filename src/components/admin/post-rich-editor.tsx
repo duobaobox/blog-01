@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import type { Editor, JSONContent } from "@tiptap/core";
 import type { ReactNode } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -120,9 +120,9 @@ type EditorToolbarProps = {
 };
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
-  const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const inputId = "editor-image-upload-input";
 
   function handleSetLink() {
     if (!editor) return;
@@ -337,6 +337,10 @@ export function PostRichEditor({
   onChange,
   onEditorReady,
 }: PostRichEditorProps) {
+  const lastEmittedRef = useRef<{
+    json: string;
+    markdown: string;
+  } | null>(null);
   const { content, contentType } = resolveInitialContent(
     initialJson,
     initialMarkdown,
@@ -380,18 +384,49 @@ export function PostRichEditor({
       },
     },
     onCreate: ({ editor }) => {
-      emitSnapshot(editor);
+      lastEmittedRef.current = {
+        json: JSON.stringify(editor.getJSON()),
+        markdown: editor.getMarkdown(),
+      };
       onEditorReady?.(editor);
     },
-    onUpdate: ({ editor }) => emitSnapshot(editor),
+    onUpdate: ({ editor }) => {
+      lastEmittedRef.current = {
+        json: JSON.stringify(editor.getJSON()),
+        markdown: editor.getMarkdown(),
+      };
+      emitSnapshot(editor);
+    },
     onDestroy: () => onEditorReady?.(null),
   });
 
   useEffect(() => {
-    if (instance) {
-      onEditorReady?.(instance);
+    if (!instance) return;
+
+    const lastEmitted = lastEmittedRef.current;
+    if (
+      lastEmitted?.json === initialJson &&
+      lastEmitted?.markdown === initialMarkdown
+    ) {
+      return;
     }
-  }, [instance]);
+
+    const next = resolveInitialContent(initialJson, initialMarkdown);
+
+    instance.commands.setContent(next.content, {
+      contentType: next.contentType,
+      emitUpdate: false,
+    });
+
+    lastEmittedRef.current = {
+      json: JSON.stringify(instance.getJSON()),
+      markdown: instance.getMarkdown(),
+    };
+  }, [instance, initialJson, initialMarkdown]);
+
+  useEffect(() => {
+    onEditorReady?.(instance ?? null);
+  }, [instance, onEditorReady]);
 
   return (
     <div className="mt-8">

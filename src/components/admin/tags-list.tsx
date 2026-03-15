@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { Badge } from "@/shared/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { TagForm } from "./tag-form";
 
 interface Tag {
@@ -81,11 +81,12 @@ export function TagsList({ tags }: { tags: Tag[] }) {
                     </td>
                     <td className="px-4 py-3">
                       {tag.color ? (
-                        <Badge
-                          style={{ backgroundColor: tag.color, color: "#fff" }}
-                        >
-                          {tag.color}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <TagBadge name={tag.name} color={tag.color} />
+                          <span className="text-xs text-muted-foreground">
+                            {tag.color}
+                          </span>
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

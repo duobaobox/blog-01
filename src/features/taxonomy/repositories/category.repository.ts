@@ -11,6 +11,10 @@ export async function findCategoryBySlug(slug: string) {
   return db.category.findUnique({ where: { slug } });
 }
 
+export async function findCategoryById(id: string) {
+  return db.category.findUnique({ where: { id } });
+}
+
 export async function createCategory(data: {
   name: string;
   slug: string;

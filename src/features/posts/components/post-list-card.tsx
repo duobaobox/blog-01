@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, Clock } from "lucide-react";
-import { Badge } from "@/shared/ui/badge";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import {
   Card,
   CardDescription,
@@ -26,6 +26,7 @@ type PostListCardProps = {
       tag: {
         id: string;
         name: string;
+        color: string | null;
       };
     }>;
   };
@@ -69,9 +70,11 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
           {post.tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 pt-2">
               {post.tags.map((pt) => (
-                <Badge key={pt.tag.id} variant="secondary" className="text-xs">
-                  {pt.tag.name}
-                </Badge>
+                <TagBadge
+                  key={pt.tag.id}
+                  name={pt.tag.name}
+                  color={pt.tag.color}
+                />
               ))}
             </div>
           )}

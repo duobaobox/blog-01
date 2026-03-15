@@ -11,7 +11,6 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
-import slugify from "slugify";
 
 interface CategoryFormProps {
   category?: {
@@ -26,14 +25,12 @@ interface CategoryFormProps {
 export function CategoryForm({ category, onClose }: CategoryFormProps) {
   const router = useRouter();
   const [name, setName] = useState(category?.name ?? "");
-  const [slug, setSlug] = useState(category?.slug ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const formData = new FormData();
     formData.set("name", name);
-    formData.set("slug", slug || slugify(name, { lower: true, strict: true }));
     formData.set("description", description);
 
     if (category) {
@@ -59,22 +56,20 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
         <Input
           id="name"
           value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (!category)
-              setSlug(slugify(e.target.value, { lower: true, strict: true }));
-          }}
+          onChange={(e) => setName(e.target.value)}
           required
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="slug">Slug</Label>
-        <Input
-          id="slug"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          required
-        />
+        <Label>Slug</Label>
+        <div className="rounded-lg border bg-muted/35 px-3 py-2 text-sm text-muted-foreground">
+          {category?.slug ?? "创建后自动生成短链接 ID"}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {category
+            ? "Slug 已固定，更新名称不会影响已发布链接。"
+            : "创建后会自动生成稳定的短链接标识，例如 c-8f3k2m1q。"}
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">描述</Label>

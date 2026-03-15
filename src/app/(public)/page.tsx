@@ -8,9 +8,10 @@ import {
   CardTitle,
   CardDescription,
 } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 
 export default async function HomePage() {
   const [recentPosts, site] = await Promise.all([
@@ -78,9 +79,12 @@ export default async function HomePage() {
         </div>
 
         {recentPosts.length === 0 ? (
-          <p className="text-muted-foreground">
-            暂无文章，快去后台发布第一篇吧。
-          </p>
+          <PostsEmptyState
+            title="最新文章还在整理中"
+            description="第一篇文章发布后，这里会展示最近更新的内容。"
+            className="py-14"
+            icon={null}
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {recentPosts.map((post) => (
@@ -94,13 +98,11 @@ export default async function HomePage() {
                     {post.tags.length > 0 && (
                       <div className="flex items-center gap-2 flex-wrap">
                         {post.tags.slice(0, 2).map((pt) => (
-                          <Badge
+                          <TagBadge
                             key={pt.tag.id}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {pt.tag.name}
-                          </Badge>
+                            name={pt.tag.name}
+                            color={pt.tag.color}
+                          />
                         ))}
                       </div>
                     )}

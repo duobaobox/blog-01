@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { getPostBySlug } from "@/features/posts/queries/post.queries";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { renderMarkdown, extractToc } from "@/infrastructure/markdown";
 
 export async function generateMetadata({
@@ -81,9 +82,7 @@ export default async function PostPage({
             <div className="mt-3 flex flex-wrap gap-2">
               {post.tags.map((pt) => (
                 <Link key={pt.tag.id} href={`/blog/tags/${pt.tag.slug}`}>
-                  <Badge variant="outline" className="text-xs">
-                    {pt.tag.name}
-                  </Badge>
+                  <TagBadge name={pt.tag.name} color={pt.tag.color} />
                 </Link>
               ))}
             </div>

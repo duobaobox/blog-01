@@ -5,11 +5,14 @@ import {
   useDeferredValue,
   useEffect,
   useEffectEvent,
+  useRef,
   useState,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FilePlus2, Globe, Menu, NotebookPen, Search } from "lucide-react";
 import { PostForm } from "@/components/admin/post-form";
+import { getPostDisplayTitle } from "@/features/posts/lib/post-title";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -19,6 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/shared/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
 type Category = {
   id: string;
@@ -67,6 +71,7 @@ type PostsWorkspaceProps = {
   tags: Tag[];
   mode: "new" | "edit";
   selectedPostId?: string;
+  showEmptyState?: boolean;
 };
 
 function formatRelativeDate(value: Date | string | null) {
@@ -105,8 +110,8 @@ type NavigatorPanelProps = {
   mode: "new" | "edit";
   search: string;
   onSearchChange: (value: string) => void;
-  onCreateNew: () => void;
-  onSelectPost: (postId: string) => void;
+  onCreateNew: () => void | Promise<void>;
+  onSelectPost: (postId: string) => void | Promise<void>;
 };
 
 type StatusTab = "all" | "published" | "draft";
@@ -148,6 +153,8 @@ function NavigatorPanel({
         .toLowerCase();
       return haystack.includes(query);
     });
+  const hasPosts = posts.length > 0;
+  const isSearchOrFilterActive = activeTab !== "all" || query.length > 0;
 
   function renderPostItem(post: WorkspacePost) {
     const isActive = mode !== "new" && selectedPostId === post.id;
@@ -164,7 +171,8 @@ function NavigatorPanel({
             : "text-foreground/80 hover:bg-accent/60 hover:text-foreground",
         )}
       >
-        <span className={cn(
+        <span
+          className={cn(
             "shrink-0",
             post.status === "published"
               ? "text-green-500"
@@ -179,7 +187,7 @@ function NavigatorPanel({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">
-            {post.title || "未命名文章"}
+            {getPostDisplayTitle(post.title)}
           </span>
         </span>
         <span className="shrink-0 text-xs text-muted-foreground">
@@ -192,23 +200,20 @@ function NavigatorPanel({
   return (
     <div className="flex h-full flex-col">
       {/* Status tabs */}
-      <div className="flex gap-1 px-3 py-2.5">
-        {STATUS_TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveTab(key)}
-            className={cn(
-              "rounded-md px-2.5 py-1 text-sm font-medium transition-colors",
-              activeTab === key
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as StatusTab)}
+        className="px-3 py-2.5"
+        suppressHydrationWarning
+      >
+        <TabsList suppressHydrationWarning>
+          {STATUS_TABS.map(({ key, label }) => (
+            <TabsTrigger key={key} value={key} suppressHydrationWarning>
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Search + new post */}
       <div className="flex items-center gap-1.5 px-3 py-2">
@@ -219,6 +224,7 @@ function NavigatorPanel({
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="搜索文章"
             className="h-8 rounded-md bg-muted/60 pl-8 text-xs shadow-none"
+            suppressHydrationWarning
           />
         </div>
         <Button
@@ -233,18 +239,27 @@ function NavigatorPanel({
       {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-4">
         {filteredPosts.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed px-4 py-8 text-center">
-            <p className="text-xs text-muted-foreground">没有找到文章</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onCreateNew}
-              className="h-7 text-xs"
-            >
-              <FilePlus2 className="size-3" />
-              新建文章
-            </Button>
-          </div>
+          <PostsEmptyState
+            title={
+              hasPosts
+                ? "没有匹配结果"
+                : mode === "new"
+                  ? "正在创建第一篇文章"
+                  : "还没有文章"
+            }
+            description={
+              hasPosts
+                ? isSearchOrFilterActive
+                  ? "换个关键词或筛选条件试试。"
+                  : "当前列表为空。"
+                : mode === "new"
+                  ? "保存后会显示在这里。"
+                  : "点击右上角加号开始创建。"
+            }
+            className="px-4 pt-8"
+            size="sm"
+            icon={null}
+          />
         ) : (
           <div className="flex flex-col pt-1">
             {filteredPosts.map((post) => renderPostItem(post))}
@@ -261,18 +276,25 @@ export function PostsWorkspace({
   tags,
   mode,
   selectedPostId,
+  showEmptyState = false,
 }: PostsWorkspaceProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [search, setSearch] = useState("");
   const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
+  const hasPosts = posts.length > 0;
   const selectedPost =
     mode === "new"
       ? undefined
       : (posts.find((post) => post.id === selectedPostId) ?? posts[0]);
 
-  function confirmNavigation() {
+  async function confirmNavigation() {
+    if (beforeLeaveHandlerRef.current) {
+      return beforeLeaveHandlerRef.current();
+    }
+
     if (!hasUnsavedChanges) return true;
 
     return window.confirm("当前有未保存内容，确认离开并切换文章吗？");
@@ -284,20 +306,20 @@ export function PostsWorkspace({
     });
   }
 
-  function handleCreateNew() {
-    if (!confirmNavigation()) return;
+  async function handleCreateNew() {
+    if (!(await confirmNavigation())) return;
 
     setNavigatorOpen(false);
     goTo(`${pathname}?view=new`);
   }
 
-  function handleSelectPost(postId: string) {
+  async function handleSelectPost(postId: string) {
     if (mode !== "new" && selectedPost?.id === postId) {
       setNavigatorOpen(false);
       return;
     }
 
-    if (!confirmNavigation()) return;
+    if (!(await confirmNavigation())) return;
 
     setNavigatorOpen(false);
     goTo(`${pathname}?postId=${postId}`);
@@ -349,12 +371,32 @@ export function PostsWorkspace({
         </div>
 
         {/* Editor area */}
-        <PostForm
-          post={selectedPost}
-          categories={categories}
-          tags={tags}
-          onDirtyChange={setHasUnsavedChanges}
-        />
+        {showEmptyState && !hasPosts ? (
+          <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-10">
+            <PostsEmptyState
+              title="还没有文章"
+              description="先创建第一篇文章，之后它会出现在左侧列表。"
+              className="max-w-sm"
+              size="lg"
+              icon={FilePlus2}
+            >
+              <Button onClick={handleCreateNew}>
+                <FilePlus2 data-icon="inline-start" />
+                创建第一篇文章
+              </Button>
+            </PostsEmptyState>
+          </div>
+        ) : (
+          <PostForm
+            post={selectedPost}
+            categories={categories}
+            tags={tags}
+            onDirtyChange={setHasUnsavedChanges}
+            registerBeforeLeave={(handler) => {
+              beforeLeaveHandlerRef.current = handler;
+            }}
+          />
+        )}
       </div>
 
       {/* Mobile nav sheet */}

@@ -20,15 +20,13 @@ export default async function AdminPostsPage({
   const requestedPostId =
     typeof params.postId === "string" ? params.postId : undefined;
   const requestedView = params.view === "new" ? "new" : "edit";
+  const showEmptyState = posts.length === 0 && requestedView !== "new";
   const fallbackPostId = posts[0]?.id;
   const selectedPostId =
-    requestedView === "new"
+    requestedView === "new" || posts.length === 0
       ? undefined
       : posts.find((post) => post.id === requestedPostId)?.id ?? fallbackPostId;
-  const mode =
-    requestedView === "new" || (!selectedPostId && posts.length === 0)
-      ? "new"
-      : "edit";
+  const mode = requestedView === "new" ? "new" : "edit";
 
   return (
     <PostsWorkspace
@@ -37,6 +35,7 @@ export default async function AdminPostsPage({
       tags={tags}
       mode={mode}
       selectedPostId={selectedPostId}
+      showEmptyState={showEmptyState}
     />
   );
 }

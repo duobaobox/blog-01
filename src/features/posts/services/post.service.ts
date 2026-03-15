@@ -1,22 +1,12 @@
-import slugify from "slugify";
-import { pinyin } from "pinyin-pro";
 import readingTime from "reading-time";
 import * as postRepo from "@/features/posts/repositories/post.repository";
+import { generateUniqueShortSlug } from "@/shared/lib/slug";
 
-function generateSlug(title: string, customSlug?: string): string {
-  const base = customSlug || title;
-  let slug = slugify(base, { lower: true, strict: true });
-
-  if (!slug) {
-    const py = pinyin(base, { toneType: "none", type: "array" }).join("-");
-    slug = slugify(py, { lower: true, strict: true });
-  }
-
-  if (!slug) {
-    slug = `post-${Date.now()}`;
-  }
-
-  return slug;
+async function generateSlug() {
+  return generateUniqueShortSlug(
+    async (slug) => Boolean(await postRepo.findPostBySlug(slug)),
+    "p",
+  );
 }
 
 export async function createPost(input: {
@@ -35,7 +25,7 @@ export async function createPost(input: {
   tagIds: string[];
   createdBy: string;
 }) {
-  const slug = generateSlug(input.title, input.slug);
+  const slug = await generateSlug();
   const stats = readingTime(input.contentMarkdown);
   const readingTimeMinutes =
     stats.words > 0 ? Math.max(1, Math.ceil(stats.minutes)) : 0;
@@ -82,9 +72,7 @@ export async function updatePost(
   }
 ) {
   const existingPost = await postRepo.findPostById(id);
-  const slug = input.slug
-    ? generateSlug(input.title, input.slug)
-    : existingPost?.slug || generateSlug(input.title);
+  const slug = existingPost?.slug || input.slug || (await generateSlug());
 
   const stats = readingTime(input.contentMarkdown);
   const readingTimeMinutes =

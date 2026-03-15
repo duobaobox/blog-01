@@ -1,8 +1,8 @@
-import slugify from "slugify";
+import { generateUniqueShortSlug } from "@/shared/lib/slug";
 
-export function generateTaxonomySlug(name: string, customSlug?: string): string {
-  if (customSlug) {
-    return slugify(customSlug, { lower: true, strict: true });
-  }
-  return slugify(name, { lower: true, strict: true });
+export async function generateUniqueTaxonomySlug(
+  exists: (slug: string) => Promise<boolean>,
+  fallbackPrefix: string,
+) {
+  return generateUniqueShortSlug(exists, fallbackPrefix);
 }
