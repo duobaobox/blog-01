@@ -10,6 +10,22 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`[^`]*`/g, "")
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/~~(.*?)~~/g, "$1")
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+    .replace(/^>\s+/gm, "")
+    .replace(/^[-*+]\s+/gm, "")
+    .replace(/^\d+\.\s+/gm, "")
+    .replace(/\n+/g, " ")
+    .trim();
+}
+
 type PostListCardProps = {
   post: {
     slug: string;
@@ -34,6 +50,9 @@ type PostListCardProps = {
 };
 
 export function PostListCard({ post, showCategory = true }: PostListCardProps) {
+  const preview =
+    post.excerpt ?? `${stripMarkdown(post.contentMarkdown).slice(0, 120)}...`;
+
   return (
     <Link href={`/blog/${post.slug}`} className="block">
       <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
@@ -65,7 +84,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
           </div>
           <CardTitle className="text-xl leading-tight">{post.title}</CardTitle>
           <CardDescription className="text-sm leading-relaxed line-clamp-2">
-            {post.excerpt ?? `${post.contentMarkdown.slice(0, 120)}...`}
+            {preview}
           </CardDescription>
           {post.tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 pt-2">

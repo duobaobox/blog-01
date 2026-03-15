@@ -28,7 +28,7 @@ export default async function AdminLayout({
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={defaultOpen} className="h-dvh overflow-hidden">
       <AdminSidebar />
       <SidebarInset>
         <AdminHeader />

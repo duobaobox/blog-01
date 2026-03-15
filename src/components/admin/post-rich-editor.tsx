@@ -380,7 +380,7 @@ export function PostRichEditor({
     editorProps: {
       attributes: {
         class:
-          "tiptap min-h-[60svh] text-[15px] leading-8 text-foreground focus:outline-none",
+          "tiptap prose prose-neutral dark:prose-invert max-w-none min-h-[60svh] focus:outline-none",
       },
     },
     onCreate: ({ editor }) => {

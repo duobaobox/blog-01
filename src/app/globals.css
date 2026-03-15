@@ -131,44 +131,9 @@
 }
 
 @layer components {
+  /* placeholder 样式，prose 不处理这个 */
   .tiptap p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     @apply pointer-events-none float-left h-0 text-muted-foreground;
-  }
-
-  .tiptap h2 {
-    @apply mt-8 text-3xl font-semibold tracking-tight;
-  }
-
-  .tiptap h3 {
-    @apply mt-6 text-2xl font-semibold tracking-tight;
-  }
-
-  .tiptap p {
-    @apply my-4;
-  }
-
-  .tiptap ul {
-    @apply my-4 list-disc pl-6;
-  }
-
-  .tiptap ol {
-    @apply my-4 list-decimal pl-6;
-  }
-
-  .tiptap blockquote {
-    @apply my-6 border-l-2 pl-4 text-muted-foreground;
-  }
-
-  .tiptap pre {
-    @apply my-6 overflow-x-auto rounded-xl bg-muted px-4 py-3 font-mono text-sm leading-6;
-  }
-
-  .tiptap a {
-    @apply text-primary underline underline-offset-4;
-  }
-
-  .tiptap img {
-    @apply my-6 rounded-xl border;
   }
 }
