@@ -9,6 +9,7 @@ import { getPosts } from "@/features/posts/queries/post.queries";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
+import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
 
 export const metadata: Metadata = {
   title: "博客",
@@ -56,33 +57,55 @@ export default async function BlogPage() {
           </div>
 
           {/* 侧边栏 */}
-          <aside className="space-y-6">
+          <aside className="space-y-8">
+            {/* 分类部分 */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold">分类</h3>
-              <div className="space-y-1">
-                {categories.map((cat) => (
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+                <span>分类</span>
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {categories.length}
+                </span>
+              </h3>
+              <div className="space-y-2">
+                {categories.map((cat, index) => (
                   <Link
                     key={cat.id}
                     href={`/blog/categories/${cat.slug}`}
-                    className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    className="block transition-all duration-200 hover:-translate-x-1"
                   >
-                    <span>{cat.name}</span>
-                    <span className="text-xs">{cat._count.posts}</span>
+                    <CategoryBadge
+                      name={cat.name}
+                      index={index}
+                      showCount={cat._count.posts}
+                      className="w-full flex"
+                    />
                   </Link>
                 ))}
                 {categories.length === 0 && (
-                  <p className="px-3 text-xs text-muted-foreground">暂无分类</p>
+                  <p className="px-3 py-2 text-xs text-muted-foreground">
+                    暂无分类
+                  </p>
                 )}
               </div>
             </div>
 
-            <Separator />
+            <Separator className="my-2" />
 
+            {/* 标签部分 */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold">标签</h3>
+              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+                <span>标签</span>
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {tags.length}
+                </span>
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
-                  <Link key={tag.id} href={`/blog/tags/${tag.slug}`}>
+                  <Link
+                    key={tag.id}
+                    href={`/blog/tags/${tag.slug}`}
+                    className="transition-all duration-200 hover:scale-105"
+                  >
                     <TagBadge
                       name={tag.name}
                       color={tag.color}

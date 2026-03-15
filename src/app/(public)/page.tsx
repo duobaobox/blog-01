@@ -2,21 +2,19 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { ArrowRight, Github, Mail } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/shared/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
+import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
+import { getCategories } from "@/features/taxonomy/queries/category.queries";
 
 export default async function HomePage() {
-  const [recentPosts, site] = await Promise.all([
+  const [recentPosts, site, categories] = await Promise.all([
     getPosts({ status: "published", take: 3 }),
     getResolvedSiteConfig(),
+    getCategories(),
   ]);
 
   return (
@@ -125,6 +123,37 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      {/* 技术分类展示 */}
+      {categories.length > 0 && (
+        <section className="py-20">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-bold">技术分类</h2>
+            <Link
+              href="/blog"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              浏览所有分类 <ArrowRight className="ml-1 inline h-3 w-3" />
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((category, index) => (
+              <Link
+                key={category.id}
+                href={`/blog/categories/${category.slug}`}
+                className="transition-all duration-200 hover:-translate-y-1"
+              >
+                <CategoryBadge
+                  name={category.name}
+                  index={index}
+                  showCount={category._count.posts}
+                  className="w-full"
+                />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
