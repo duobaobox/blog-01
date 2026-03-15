@@ -107,6 +107,7 @@ function ToolbarButton({
       className={cn("h-8 px-2", active && "bg-secondary")}
       disabled={disabled}
       onClick={onClick}
+      onMouseDown={(e) => e.preventDefault()}
       aria-label={label}
       title={label}
     >
@@ -197,7 +198,24 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   }
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-1 border-b px-4 py-1.5">
+    <div className="flex shrink-0 flex-wrap items-center justify-center gap-1 border-b bg-background px-4 py-1.5">
+      <ToolbarButton
+        label="撤销"
+        disabled={!editor?.can().chain().focus().undo().run()}
+        onClick={() => editor?.chain().focus().undo().run()}
+      >
+        <Undo2 className="size-4" />
+      </ToolbarButton>
+      <ToolbarButton
+        label="重做"
+        disabled={!editor?.can().chain().focus().redo().run()}
+        onClick={() => editor?.chain().focus().redo().run()}
+      >
+        <Redo2 className="size-4" />
+      </ToolbarButton>
+
+      <div className="mx-1 h-4 w-px bg-border" />
+
       <ToolbarButton
         label="二级标题"
         active={editor?.isActive("heading", { level: 2 })}
@@ -289,25 +307,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       >
         <ImagePlus className="size-4" />
       </ToolbarButton>
-      <div className="ml-auto flex items-center gap-1">
-        {uploading ? (
-          <span className="mr-2 text-xs text-muted-foreground">上传中...</span>
-        ) : null}
-        <ToolbarButton
-          label="撤销"
-          disabled={!editor?.can().chain().focus().undo().run()}
-          onClick={() => editor?.chain().focus().undo().run()}
-        >
-          <Undo2 className="size-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          label="重做"
-          disabled={!editor?.can().chain().focus().redo().run()}
-          onClick={() => editor?.chain().focus().redo().run()}
-        >
-          <Redo2 className="size-4" />
-        </ToolbarButton>
-      </div>
+      {uploading ? (
+        <span className="ml-2 text-xs text-muted-foreground">上传中...</span>
+      ) : null}
 
       <label htmlFor={inputId} className="sr-only">
         上传图片
