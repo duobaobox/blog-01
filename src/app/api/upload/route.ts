@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const result = await uploadFile(file);
+  let result;
+  try {
+    result = await uploadFile(file);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   if (result.error) {
     return NextResponse.json({ error: result.error }, { status: 400 });

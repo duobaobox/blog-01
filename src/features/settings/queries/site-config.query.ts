@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { db } from "@/infrastructure/db";
 import { siteConfig } from "@/shared/config/site.config";
+import { normalizeSiteUrl } from "@/shared/lib/url";
 
 export interface ResolvedSiteConfig {
   name: string;
@@ -32,7 +33,7 @@ export const getResolvedSiteConfig = cache(
       return {
         name: dbSettings.siteTitle,
         description: dbSettings.siteDescription ?? siteConfig.description,
-        url: dbSettings.siteUrl,
+        url: normalizeSiteUrl(dbSettings.siteUrl),
         nav: siteConfig.nav,
         social: {
           github: dbSettings.githubUrl ?? "",

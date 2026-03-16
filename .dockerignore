@@ -1,0 +1,13 @@
+.git
+.gitignore
+.next
+.env
+.env.local
+.env.*.local
+node_modules
+npm-debug.log*
+Dockerfile*
+docker-compose*.yml
+README.md
+docs
+public/uploads

@@ -1,5 +1,6 @@
 import type { StorageProvider } from "@/features/media/types/storage.types";
 import { LocalStorageProvider } from "@/features/media/providers/local-storage.provider";
+import { VercelBlobStorageProvider } from "@/features/media/providers/vercel-blob.provider";
 import * as mediaRepo from "@/features/media/repositories/media.repository";
 
 let storageProvider: StorageProvider | null = null;
@@ -10,6 +11,9 @@ export function getStorageProvider(): StorageProvider {
     switch (providerType) {
       case "local":
         storageProvider = new LocalStorageProvider();
+        break;
+      case "vercel-blob":
+        storageProvider = new VercelBlobStorageProvider();
         break;
       default:
         throw new Error(`Unknown storage provider: ${providerType}`);

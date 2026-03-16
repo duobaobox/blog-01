@@ -13,6 +13,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Button } from "@/shared/ui/button";
+import { DEFAULT_MEDIA_ACCEPT } from "@/features/media/config/upload.config";
 import { MediaGrid } from "./media-grid";
 import { MediaUploadZone } from "./media-upload-zone";
 
@@ -147,9 +148,7 @@ export function MediaPickerDialog({
               <MediaUploadZone
                 onUploadComplete={handleUploadComplete}
                 accept={
-                  mimeTypePrefix === "image"
-                    ? "image/*"
-                    : "image/*,.pdf,.zip,.svg"
+                  mimeTypePrefix === "image" ? "image/*" : DEFAULT_MEDIA_ACCEPT
                 }
               />
             )}

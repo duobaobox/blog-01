@@ -5,41 +5,27 @@ import type {
   UploadOptions,
   UploadResult,
 } from "@/features/media/types/storage.types";
+import {
+  getUploadExtension,
+  LOCAL_UPLOAD_MAX_SIZE,
+  validateUpload,
+} from "@/features/media/config/upload.config";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-const ALLOWED_TYPES: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-  "application/pdf": "pdf",
-  "application/zip": "zip",
-};
-const MAX_SIZE = 10 * 1024 * 1024; // 最大 10 兆字节
 
 export class LocalStorageProvider implements StorageProvider {
   async upload({ file }: UploadOptions): Promise<UploadResult> {
-    const ext = ALLOWED_TYPES[file.type];
-
-    if (!ext) {
+    const validationError = validateUpload(file, LOCAL_UPLOAD_MAX_SIZE);
+    if (validationError) {
       return {
         url: "",
         filename: "",
         size: 0,
         mimeType: "",
-        error: "File type not allowed",
+        error: validationError,
       };
     }
-
-    if (file.size > MAX_SIZE) {
-      return {
-        url: "",
-        filename: "",
-        size: 0,
-        mimeType: "",
-        error: "File too large (max 10MB)",
-      };
-    }
+    const ext = getUploadExtension(file.type);
 
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
 

@@ -5,6 +5,7 @@ import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.q
 import { getPublishedSlugs } from "@/features/posts/queries/post.queries";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
+import { joinSiteUrl } from "@/shared/lib/url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = await getResolvedSiteConfig();
@@ -17,24 +18,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: baseUrl, lastModified: new Date() },
-    { url: `${baseUrl}/about`, lastModified: new Date() },
-    { url: `${baseUrl}/projects`, lastModified: new Date() },
-    { url: `${baseUrl}/blog`, lastModified: new Date() },
+    { url: joinSiteUrl(baseUrl), lastModified: new Date() },
+    { url: joinSiteUrl(baseUrl, "about"), lastModified: new Date() },
+    { url: joinSiteUrl(baseUrl, "projects"), lastModified: new Date() },
+    { url: joinSiteUrl(baseUrl, "blog"), lastModified: new Date() },
   ];
 
   const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
+    url: joinSiteUrl(baseUrl, `blog/${post.slug}`),
     lastModified: post.updatedAt,
   }));
 
   const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${baseUrl}/blog/categories/${cat.slug}`,
+    url: joinSiteUrl(baseUrl, `blog/categories/${cat.slug}`),
     lastModified: new Date(),
   }));
 
   const tagPages: MetadataRoute.Sitemap = tags.map((tag) => ({
-    url: `${baseUrl}/blog/tags/${tag.slug}`,
+    url: joinSiteUrl(baseUrl, `blog/tags/${tag.slug}`),
     lastModified: new Date(),
   }));
 

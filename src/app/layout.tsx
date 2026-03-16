@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";

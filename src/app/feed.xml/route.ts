@@ -1,5 +1,6 @@
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { getPublishedForFeed } from "@/features/posts/queries/post.queries";
+import { joinSiteUrl } from "@/shared/lib/url";
 
 export async function GET() {
   const site = await getResolvedSiteConfig();
@@ -16,8 +17,8 @@ export async function GET() {
 
       return `    <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>${baseUrl}/blog/${post.slug}</link>
-      <guid isPermaLink="true">${baseUrl}/blog/${post.slug}</guid>
+      <link>${joinSiteUrl(baseUrl, `blog/${post.slug}`)}</link>
+      <guid isPermaLink="true">${joinSiteUrl(baseUrl, `blog/${post.slug}`)}</guid>
       <description><![CDATA[${description}]]></description>
       <pubDate>${pubDate}</pubDate>
       <author>${post.author.name}</author>
@@ -29,10 +30,10 @@ export async function GET() {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${site.name}</title>
-    <link>${baseUrl}</link>
+    <link>${joinSiteUrl(baseUrl)}</link>
     <description>${site.description}</description>
     <language>zh-CN</language>
-    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${joinSiteUrl(baseUrl, "feed.xml")}" rel="self" type="application/rss+xml"/>
 ${items}
   </channel>
 </rss>`;

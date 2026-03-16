@@ -56,6 +56,12 @@ ADMIN_SETUP_TOKEN=""
 
 # 站点 URL
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+# 媒体存储：local | vercel-blob
+STORAGE_PROVIDER="local"
+
+# 仅 vercel-blob 模式需要
+BLOB_READ_WRITE_TOKEN=""
 ```
 
 ### 2. 安装依赖
@@ -188,12 +194,85 @@ npm run db:generate  # 生成Prisma客户端
 
 ## 部署
 
+详细运行手册见：
+
+- [Docker 构建与发版指导](/Users/duobao/个人/个人-网站搭建/blog-01/docs/docker-build-and-release-guide.md)
+- [阿里云 Docker + Nginx + HTTPS 上线手册](/Users/duobao/个人/个人-网站搭建/blog-01/docs/alicloud-docker-nginx-https-guide.md)
+- [离线镜像交付与阿里云测试指南](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
+- [发版与回滚 Checklist](/Users/duobao/个人/个人-网站搭建/blog-01/docs/release-and-rollback-checklist.md)
+
+### 推荐：Docker Compose 部署（app + db + volume）
+
+这是当前项目最推荐的上线方式，部署模型接近 Typecho / WordPress 常见的容器化方案：应用、数据库、持久化存储一起由 Compose 管理。
+
+#### 1. 配置环境变量
+
+先复制环境变量：
+
+```bash
+cp .env.example .env
+```
+
+如果你使用 Compose 自带的 PostgreSQL，可以保留下面这一组：
+
+```env
+POSTGRES_USER=blog
+POSTGRES_PASSWORD=change-me
+POSTGRES_DB=blog
+POSTGRES_PORT=5432
+```
+
+然后把应用侧配置补齐：
+
+```env
+BETTER_AUTH_SECRET=your-production-secret
+BETTER_AUTH_URL=https://your-domain.com
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+ADMIN_SETUP_TOKEN=your-random-token
+STORAGE_PROVIDER=local
+```
+
+#### 2. 启动数据库和应用
+
+```bash
+docker compose up -d --build
+```
+
+#### 3. 初始化数据库结构
+
+```bash
+docker compose run --rm --profile tools migrate
+```
+
+#### 4. 首次创建管理员
+
+```bash
+docker compose run --rm --profile tools seed
+```
+
+#### 5. 持久化说明
+
+- PostgreSQL 数据保存在 Compose volume `postgres_data`
+- 本地上传文件保存在 Compose volume `uploads_data`
+- 如果你走 `STORAGE_PROVIDER=local`，这两个 volume 都应该纳入备份方案
+
 ### 部署到 Vercel
 
 ```bash
 # 连接 GitHub 仓库后在 Vercel 上创建项目
 # 配置环境变量后自动部署
 ```
+
+说明：
+
+- 如果部署到 Vercel，建议将 `STORAGE_PROVIDER` 设为 `vercel-blob`，并配置 `BLOB_READ_WRITE_TOKEN`
+- 当前上传接口走服务端路由，Vercel 环境下更适合较小文件；较大的媒体文件更推荐自托管或后续改为客户端直传方案
+
+### ARM / x86 架构注意事项
+
+- 你的本地电脑是 ARM，线上阿里云服务器是 Linux x86；Docker 方案可以直接在服务器上构建镜像，天然避开本地构建产物跨架构复用的问题
+- 如果你想在本地构建再推镜像，需要显式使用 `docker buildx build --platform linux/amd64`
+- 不要把本地 ARM 环境下生成的 `.next` 或 `node_modules` 直接拷到 x86 服务器运行
 
 ### 必要的环境变量
 
@@ -202,6 +281,10 @@ npm run db:generate  # 生成Prisma客户端
 - `BETTER_AUTH_URL` - 生产环境认证 URL
 - `ADMIN_SETUP_TOKEN` - 首次初始化管理员时使用的受控注册令牌
 - `NEXT_PUBLIC_SITE_URL` - 生产环境站点 URL
+- `STORAGE_PROVIDER` - 媒体存储提供方，`local` 或 `vercel-blob`
+- `BLOB_READ_WRITE_TOKEN` - Vercel Blob 读写令牌（仅 `vercel-blob` 模式）
+- `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` - Compose 内置 PostgreSQL 配置
+- `APP_PORT` / `POSTGRES_PORT` - Compose 暴露端口
 
 ## SEO 配置
 

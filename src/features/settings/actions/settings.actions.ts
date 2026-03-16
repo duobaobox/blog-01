@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
 import * as settingsRepo from "@/features/settings/repositories/settings.repository";
+import { normalizeSiteUrl } from "@/shared/lib/url";
 
 function isValidUrl(value: string) {
   try {
@@ -22,6 +23,7 @@ export async function updateSiteSettings(formData: FormData) {
   if (!siteTitle) throw new Error("站点名称不能为空");
   if (!siteUrl || !isValidUrl(siteUrl))
     throw new Error("站点 URL 格式不正确，请填写完整的 http/https 地址");
+  const normalizedSiteUrl = normalizeSiteUrl(siteUrl);
 
   const urlFields = ["logoUrl", "avatarUrl", "githubUrl", "xUrl"] as const;
   for (const field of urlFields) {
@@ -34,7 +36,7 @@ export async function updateSiteSettings(formData: FormData) {
     siteTitle,
     siteSubtitle: (formData.get("siteSubtitle") as string) || null,
     siteDescription: (formData.get("siteDescription") as string) || null,
-    siteUrl,
+    siteUrl: normalizedSiteUrl,
     logoUrl: (formData.get("logoUrl") as string) || null,
     avatarUrl: (formData.get("avatarUrl") as string) || null,
     githubUrl: (formData.get("githubUrl") as string) || null,

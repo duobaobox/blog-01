@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import type { MediaItem } from "@/features/media/types/storage.types";
+import { DEFAULT_MEDIA_ACCEPT } from "@/features/media/config/upload.config";
 import { cn } from "@/shared/lib/utils";
 
 type MediaUploadZoneProps = {
@@ -13,7 +14,7 @@ type MediaUploadZoneProps = {
 
 export function MediaUploadZone({
   onUploadComplete,
-  accept = "image/*,.pdf,.zip,.svg",
+  accept = DEFAULT_MEDIA_ACCEPT,
   className,
 }: MediaUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,7 +81,7 @@ export function MediaUploadZone({
             拖拽文件到这里，或点击选择
           </p>
           <p className="text-xs text-muted-foreground/70">
-            支持图片、PDF、ZIP，最大 10MB
+            支持图片、PDF、ZIP；大小限制取决于当前存储配置
           </p>
         </>
       )}
