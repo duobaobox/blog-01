@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
-import { generateUniqueTaxonomySlug } from "@/features/taxonomy/services/taxonomy.service";
+import { generateSemanticSlug } from "@/shared/lib/slug";
 
 export async function createCategory(formData: FormData) {
   await requireAdminSession();
@@ -14,9 +14,9 @@ export async function createCategory(formData: FormData) {
     throw new Error("分类名称不能为空");
   }
 
-  const slug = await generateUniqueTaxonomySlug(
+  const slug = await generateSemanticSlug(
     async (value) => Boolean(await categoryRepo.findCategoryBySlug(value)),
-    "c",
+    { title: name, prefix: "c" },
   );
 
   await categoryRepo.createCategory({

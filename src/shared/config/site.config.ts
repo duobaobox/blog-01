@@ -11,7 +11,7 @@ export const siteConfig = {
   ],
 
   social: {
-    github: "https://github.com",
+    github: "",
     x: "",
     email: "",
   },

@@ -29,16 +29,17 @@ export async function generateSeo({
   publishedTime,
 }: SeoProps = {}): Promise<Metadata> {
   const site = await getResolvedSiteConfig();
-  const siteTitle = title ? `${title} | ${site.name}` : site.name;
+  const pageTitle = title?.trim() || undefined;
+  const socialTitle = pageTitle ? `${pageTitle} | ${site.name}` : site.name;
   const siteDescription = description || site.description;
   const siteUrl = resolveAbsoluteUrl(site.url, url) ?? site.url;
   const imageUrl = resolveAbsoluteUrl(site.url, image);
 
   return {
-    title: siteTitle,
+    ...(pageTitle ? { title: pageTitle } : {}),
     description: siteDescription,
     openGraph: {
-      title: siteTitle,
+      title: socialTitle,
       description: siteDescription,
       url: siteUrl,
       siteName: site.name,
@@ -48,7 +49,7 @@ export async function generateSeo({
     },
     twitter: {
       card: "summary_large_image",
-      title: siteTitle,
+      title: socialTitle,
       description: siteDescription,
       ...(imageUrl && { images: [imageUrl] }),
     },

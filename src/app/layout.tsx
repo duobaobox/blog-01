@@ -20,20 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${site.name}`,
     },
     description: site.description,
-    alternates: {
-      canonical: site.url,
-    },
     openGraph: {
-      title: site.name,
-      description: site.description,
       siteName: site.name,
-      url: site.url,
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: site.name,
-      description: site.description,
     },
   };
 }

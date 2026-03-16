@@ -14,7 +14,6 @@ import { CategoryForm } from "./category-form";
 interface Category {
   id: string;
   name: string;
-  slug: string;
   description: string | null;
   _count: { posts: number };
 }
@@ -51,7 +50,6 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium">名称</th>
-                <th className="px-4 py-3 text-left font-medium">Slug</th>
                 <th className="px-4 py-3 text-left font-medium">文章数</th>
                 <th className="px-4 py-3 text-right font-medium">操作</th>
               </tr>
@@ -60,7 +58,7 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
               {categories.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={3}
                     className="px-4 py-10 text-center text-muted-foreground"
                   >
                     暂无分类，点击右上角新建一个
@@ -73,9 +71,6 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
                     className="border-b last:border-0 hover:bg-muted/30"
                   >
                     <td className="px-4 py-3 font-medium">{cat.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {cat.slug}
-                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {cat._count.posts}
                     </td>

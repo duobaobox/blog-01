@@ -17,7 +17,6 @@ interface CategoryFormProps {
   category?: {
     id: string;
     name: string;
-    slug: string;
     description: string | null;
   };
   onClose: () => void;
@@ -62,17 +61,6 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
             onChange={(e) => setName(e.target.value)}
             required
           />
-        </div>
-        <div className="space-y-2">
-          <Label>Slug</Label>
-          <div className="rounded-lg border bg-muted/35 px-3 py-2 text-sm text-muted-foreground">
-            {category?.slug ?? "创建后自动生成短链接 ID"}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {category
-              ? "Slug 已固定，更新名称不会影响已发布链接。"
-              : "创建后会自动生成稳定的短链接标识，例如 c-8f3k2m1q。"}
-          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">描述</Label>

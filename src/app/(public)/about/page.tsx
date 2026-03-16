@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
 import { Separator } from "@/shared/ui/separator";
+import { generateSeo } from "@/infrastructure/seo";
 
-export const metadata: Metadata = {
-  title: "关于",
-  description: "关于我 — 全栈开发者，热爱构建优雅的产品。",
-};
+export async function generateMetadata() {
+  return generateSeo({
+    title: "关于",
+    description: "关于我 — 全栈开发者，热爱构建优雅的产品。",
+    url: "/about",
+  });
+}
 
 export default function AboutPage() {
   return (

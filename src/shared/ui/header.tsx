@@ -26,6 +26,11 @@ interface HeaderProps {
 export function Header({ siteName, logoUrl, nav }: HeaderProps) {
   const pathname = usePathname();
 
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-5xl items-center px-4 sm:px-6">
@@ -51,9 +56,7 @@ export function Header({ siteName, logoUrl, nav }: HeaderProps) {
               href={item.href}
               className={cn(
                 "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
-                pathname === item.href
-                  ? "text-foreground"
-                  : "text-foreground/60",
+                isActive(item.href) ? "text-foreground" : "text-foreground/60",
               )}
             >
               {item.label}
@@ -83,7 +86,7 @@ export function Header({ siteName, logoUrl, nav }: HeaderProps) {
                     href={item.href}
                     className={cn(
                       "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
-                      pathname === item.href
+                      isActive(item.href)
                         ? "bg-accent text-foreground"
                         : "text-foreground/60",
                     )}

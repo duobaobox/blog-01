@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
 import * as tagRepo from "@/features/taxonomy/repositories/tag.repository";
 import { normalizeTagColor } from "@/features/taxonomy/lib/tag-color";
-import { generateUniqueTaxonomySlug } from "@/features/taxonomy/services/taxonomy.service";
+import { generateSemanticSlug } from "@/shared/lib/slug";
 
 export async function createTag(formData: FormData) {
   await requireAdminSession();
@@ -16,9 +16,9 @@ export async function createTag(formData: FormData) {
     throw new Error("标签名称不能为空");
   }
 
-  const slug = await generateUniqueTaxonomySlug(
+  const slug = await generateSemanticSlug(
     async (value) => Boolean(await tagRepo.findTagBySlug(value)),
-    "t",
+    { title: name, prefix: "t" },
   );
 
   await tagRepo.createTag({

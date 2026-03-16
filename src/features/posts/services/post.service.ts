@@ -1,11 +1,11 @@
 import readingTime from "reading-time";
 import * as postRepo from "@/features/posts/repositories/post.repository";
-import { generateUniqueShortSlug } from "@/shared/lib/slug";
+import { generateSemanticSlug } from "@/shared/lib/slug";
 
-async function generateSlug() {
-  return generateUniqueShortSlug(
+async function resolveSlug(userSlug?: string, title?: string) {
+  return generateSemanticSlug(
     async (slug) => Boolean(await postRepo.findPostBySlug(slug)),
-    "p",
+    { userSlug, title, prefix: "p" },
   );
 }
 
@@ -25,7 +25,7 @@ export async function createPost(input: {
   tagIds: string[];
   createdBy: string;
 }) {
-  const slug = await generateSlug();
+  const slug = await resolveSlug(input.slug, input.title);
   const stats = readingTime(input.contentMarkdown);
   const readingTimeMinutes =
     stats.words > 0 ? Math.max(1, Math.ceil(stats.minutes)) : 0;
@@ -69,10 +69,11 @@ export async function updatePost(
     canonicalUrl: string | null;
     isFeatured: boolean;
     tagIds: string[];
-  }
+  },
 ) {
   const existingPost = await postRepo.findPostById(id);
-  const slug = existingPost?.slug || input.slug || (await generateSlug());
+  const slug =
+    existingPost?.slug || (await resolveSlug(input.slug, input.title));
 
   const stats = readingTime(input.contentMarkdown);
   const readingTimeMinutes =

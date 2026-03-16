@@ -25,16 +25,26 @@ interface SettingsFormProps {
 export function SettingsForm({ settings }: SettingsFormProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
-    const formData = new FormData(e.currentTarget);
-    await updateSiteSettings(formData);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveError(null);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      await updateSiteSettings(formData);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "保存失败，请稍后重试。",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -132,6 +142,9 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           {saving ? "保存中..." : "保存设置"}
         </Button>
         {saved && <span className="text-sm text-green-600">已保存</span>}
+        {saveError && (
+          <span className="text-sm text-destructive">{saveError}</span>
+        )}
       </div>
     </form>
   );

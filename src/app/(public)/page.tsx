@@ -4,6 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { PostListCard } from "@/features/posts/components/post-list-card";
 import { getPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
+import { generateSeo } from "@/infrastructure/seo";
+
+export async function generateMetadata() {
+  return generateSeo({ url: "/" });
+}
 
 export default async function HomePage() {
   const site = await getResolvedSiteConfig();

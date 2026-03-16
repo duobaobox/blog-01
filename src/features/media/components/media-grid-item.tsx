@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FileIcon, Trash2 } from "lucide-react";
 import type { MediaItem } from "@/features/media/types/storage.types";
 import { cn } from "@/shared/lib/utils";
@@ -37,12 +38,14 @@ export function MediaGridItem({
       onClick={() => onSelect?.(item)}
       onDoubleClick={() => onDoubleClick?.(item)}
     >
-      <div className="aspect-square">
+      <div className="relative aspect-square">
         {isImage ? (
-          <img
+          <Image
             src={item.url}
             alt={item.alt || item.filename}
-            className="h-full w-full object-cover"
+            fill
+            unoptimized
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4">

@@ -12,7 +12,6 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/gif": "gif",
   "image/webp": "webp",
-  "image/svg+xml": "svg",
   "application/pdf": "pdf",
   "application/zip": "zip",
 };

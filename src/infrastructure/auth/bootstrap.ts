@@ -6,7 +6,8 @@ const DEFAULT_DEV_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_DEV_ADMIN_PASSWORD = "admin123456";
 
 function getDevelopmentAdminCredentials() {
-  if (process.env.NODE_ENV === "production") {
+  // Only auto-create in explicit local development — never in staging/preview/test
+  if (process.env.NODE_ENV !== "development") {
     return null;
   }
 
@@ -27,7 +28,7 @@ export async function isBootstrapAllowed(setupToken?: string | null) {
     return false;
   }
 
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV === "development") {
     return true;
   }
 

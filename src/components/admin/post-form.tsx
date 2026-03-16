@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import readingTime from "reading-time";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import {
@@ -26,7 +27,6 @@ import {
   EditorToolbar,
   PostRichEditor,
 } from "@/components/admin/post-rich-editor";
-import { generateShortSlug } from "@/shared/lib/slug";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -114,10 +114,6 @@ type SaveOptions = {
   silent?: boolean;
 };
 
-function generateSlug() {
-  return generateShortSlug("p");
-}
-
 function serializeContentJson(value: unknown | null | undefined) {
   if (!value) return "";
   try {
@@ -182,7 +178,9 @@ function prepareFormForSave(
 ) {
   const hasTitle = Boolean(form.title.trim());
   const title = hasTitle ? form.title : UNTITLED_POST_TITLE;
-  const slug = existingSlug || generateSlug();
+  // New posts: omit slug — server derives it from the title.
+  // Existing posts: preserve the existing slug unchanged.
+  const slug = existingSlug ?? null;
 
   return {
     form: {
@@ -194,10 +192,10 @@ function prepareFormForSave(
   };
 }
 
-function buildPostFormData(form: FormState, slug: string) {
+function buildPostFormData(form: FormState, slug: string | null) {
   const formData = new FormData();
   formData.set("title", form.title);
-  formData.set("slug", slug);
+  if (slug) formData.set("slug", slug);
   formData.set("excerpt", form.excerpt);
   formData.set("coverImageUrl", form.coverImageUrl);
   formData.set("contentJson", form.contentJson);
@@ -227,7 +225,12 @@ export function PostForm({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const deleteConfirm = useConfirm();
-  const leaveConfirm = useConfirm();
+  const {
+    open: leaveConfirmOpen,
+    confirm: confirmLeave,
+    handleCancel: handleLeaveCancel,
+    handleConfirm: handleLeaveConfirm,
+  } = useConfirm();
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(createSnapshot(createFormState(post)));
   const formRef = useRef(form);
@@ -445,11 +448,11 @@ export function PostForm({
 
       if (saved) return true;
 
-      return leaveConfirm.confirm();
+      return confirmLeave();
     });
 
     return () => registerBeforeLeave(null);
-  }, [isDirty, registerBeforeLeave, savePost, leaveConfirm.confirm]);
+  }, [confirmLeave, isDirty, registerBeforeLeave, savePost]);
 
   async function handleSubmit(targetStatus = form.status) {
     await savePost({
@@ -590,10 +593,7 @@ export function PostForm({
           </DialogHeader>
 
           <Tabs defaultValue="basic" suppressHydrationWarning>
-            <TabsList
-              className="w-full"
-              suppressHydrationWarning
-            >
+            <TabsList className="w-full" suppressHydrationWarning>
               <TabsTrigger value="basic" suppressHydrationWarning>
                 基础
               </TabsTrigger>
@@ -711,11 +711,15 @@ export function PostForm({
                   </Button>
                 </div>
                 {form.coverImageUrl && (
-                  <img
-                    src={form.coverImageUrl}
-                    alt="封面预览"
-                    className="mt-1 h-32 w-full rounded-lg border object-cover"
-                  />
+                  <div className="relative mt-1 h-32 w-full overflow-hidden rounded-lg border">
+                    <Image
+                      src={form.coverImageUrl}
+                      alt="封面预览"
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  </div>
                 )}
               </div>
 
@@ -804,13 +808,13 @@ export function PostForm({
       />
 
       <ConfirmDialog
-        open={leaveConfirm.open}
-        onOpenChange={(open) => !open && leaveConfirm.handleCancel()}
+        open={leaveConfirmOpen}
+        onOpenChange={(open) => !open && handleLeaveCancel()}
         title="放弃未保存内容"
         description="当前有未保存内容，确认丢弃并切换文章吗？"
         confirmText="丢弃"
         variant="destructive"
-        onConfirm={leaveConfirm.handleConfirm}
+        onConfirm={handleLeaveConfirm}
       />
     </div>
   );

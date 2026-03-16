@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink, Github } from "lucide-react";
 import {
@@ -10,33 +9,23 @@ import {
 } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
+import { generateSeo } from "@/infrastructure/seo";
 
-export const metadata: Metadata = {
-  title: "项目",
-  description: "我的开源项目和个人作品集。",
-};
+export async function generateMetadata() {
+  return generateSeo({
+    title: "项目",
+    description: "我的开源项目和个人作品集。",
+    url: "/projects",
+  });
+}
 
 const projects = [
   {
     name: "个人博客",
     description: "基于 Next.js + shadcn/ui + PostgreSQL 的全栈个人博客系统。",
     tags: ["Next.js", "TypeScript", "Prisma"],
-    repo: "https://github.com",
+    repo: null,
     demo: null,
-  },
-  {
-    name: "CLI 工具",
-    description: "一个提升开发效率的命令行工具集。",
-    tags: ["Node.js", "CLI"],
-    repo: "https://github.com",
-    demo: null,
-  },
-  {
-    name: "设计系统",
-    description: "基于 Tailwind CSS 的组件库和设计令牌系统。",
-    tags: ["React", "Tailwind CSS", "Storybook"],
-    repo: "https://github.com",
-    demo: "https://example.com",
   },
 ];
 
@@ -44,9 +33,7 @@ export default function ProjectsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight">项目</h1>
-      <p className="mt-2 text-muted-foreground">
-        我的开源项目和个人作品。
-      </p>
+      <p className="mt-2 text-muted-foreground">我的开源项目和个人作品。</p>
       <Separator className="my-6" />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

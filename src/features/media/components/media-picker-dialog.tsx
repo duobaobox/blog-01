@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import type { MediaItem } from "@/features/media/types/storage.types";
 import {
@@ -34,17 +35,7 @@ export function MediaPickerDialog({
   const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
   const [justUploaded, setJustUploaded] = useState<MediaItem | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      setSelectedItem(null);
-      setJustUploaded(null);
-      setActiveTab("library");
-      return;
-    }
-    fetchMedia();
-  }, [open]);
-
-  async function fetchMedia() {
+  const fetchMedia = useCallback(async () => {
     setLoading(true);
     try {
       const params = mimeTypePrefix ? `?mimeTypePrefix=${mimeTypePrefix}` : "";
@@ -56,7 +47,17 @@ export function MediaPickerDialog({
     } finally {
       setLoading(false);
     }
-  }
+  }, [mimeTypePrefix]);
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedItem(null);
+      setJustUploaded(null);
+      setActiveTab("library");
+      return;
+    }
+    fetchMedia();
+  }, [fetchMedia, open]);
 
   function handleConfirm() {
     if (selectedItem) {
@@ -110,9 +111,7 @@ export function MediaPickerDialog({
                   items={items}
                   selectedId={selectedItem?.id}
                   onSelect={(item) =>
-                    setSelectedItem(
-                      item.id === selectedItem?.id ? null : item,
-                    )
+                    setSelectedItem(item.id === selectedItem?.id ? null : item)
                   }
                   onDoubleClick={handleItemDoubleClick}
                 />
@@ -125,11 +124,15 @@ export function MediaPickerDialog({
               <div className="flex flex-col items-center gap-4 rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-900 dark:bg-green-950/30">
                 <CheckCircle2 className="size-8 text-green-500" />
                 {isImage(justUploaded) ? (
-                  <img
-                    src={justUploaded.url}
-                    alt={justUploaded.filename}
-                    className="h-32 max-w-full rounded-lg border object-contain shadow-sm"
-                  />
+                  <div className="relative h-32 w-full overflow-hidden rounded-lg border shadow-sm">
+                    <Image
+                      src={justUploaded.url}
+                      alt={justUploaded.filename}
+                      fill
+                      unoptimized
+                      className="object-contain"
+                    />
+                  </div>
                 ) : null}
                 <div className="text-center">
                   <p className="text-sm font-medium text-green-700 dark:text-green-400">

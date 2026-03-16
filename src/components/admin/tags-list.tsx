@@ -15,7 +15,6 @@ import { TagForm } from "./tag-form";
 interface Tag {
   id: string;
   name: string;
-  slug: string;
   description: string | null;
   color: string | null;
   _count: { posts: number };
@@ -53,7 +52,6 @@ export function TagsList({ tags }: { tags: Tag[] }) {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium">名称</th>
-                <th className="px-4 py-3 text-left font-medium">Slug</th>
                 <th className="px-4 py-3 text-left font-medium">颜色</th>
                 <th className="px-4 py-3 text-left font-medium">文章数</th>
                 <th className="px-4 py-3 text-right font-medium">操作</th>
@@ -63,7 +61,7 @@ export function TagsList({ tags }: { tags: Tag[] }) {
               {tags.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={4}
                     className="px-4 py-10 text-center text-muted-foreground"
                   >
                     暂无标签，点击右上角新建一个
@@ -76,9 +74,6 @@ export function TagsList({ tags }: { tags: Tag[] }) {
                     className="border-b last:border-0 hover:bg-muted/30"
                   >
                     <td className="px-4 py-3 font-medium">{tag.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {tag.slug}
-                    </td>
                     <td className="px-4 py-3">
                       {tag.color ? (
                         <div className="flex items-center gap-2">
