@@ -21,19 +21,13 @@ function getDevelopmentAdminCredentials() {
   };
 }
 
-export async function isBootstrapAllowed(setupToken?: string | null) {
-  const userCount = await db.user.count();
+export async function getUserCount() {
+  return db.user.count();
+}
 
-  if (userCount > 0) {
-    return false;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    return true;
-  }
-
-  const expectedToken = process.env.ADMIN_SETUP_TOKEN;
-  return Boolean(expectedToken && setupToken === expectedToken);
+export async function isBootstrapAllowed() {
+  const userCount = await getUserCount();
+  return userCount === 0;
 }
 
 export async function promoteToAdmin(email: string) {

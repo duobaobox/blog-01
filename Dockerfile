@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS deps
+FROM --platform=linux/amd64 node:20-bookworm-slim AS deps
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run db:generate
 RUN npm run build
 
-FROM node:20-bookworm-slim AS runner
+FROM --platform=linux/amd64 node:20-bookworm-slim AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -35,8 +35,9 @@ COPY --from=builder /app/next-env.d.ts ./next-env.d.ts
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-RUN mkdir -p /app/public/uploads \
-  && chown -R nextjs:nodejs /app
+RUN mkdir -p /app/public/media \
+  && chown -R nextjs:nodejs /app \
+  && chmod -R 750 /app/public
 
 USER nextjs
 

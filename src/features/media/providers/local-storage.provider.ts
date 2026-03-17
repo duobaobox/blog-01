@@ -11,7 +11,7 @@ import {
   validateUpload,
 } from "@/features/media/config/upload.config";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR = path.join(process.cwd(), "public", "media");
 
 export class LocalStorageProvider implements StorageProvider {
   async upload({ file }: UploadOptions): Promise<UploadResult> {
@@ -36,7 +36,7 @@ export class LocalStorageProvider implements StorageProvider {
     await fs.writeFile(filepath, buffer);
 
     return {
-      url: `/uploads/${filename}`,
+      url: `/media/${filename}`,
       filename,
       size: file.size,
       mimeType: file.type,
@@ -44,7 +44,7 @@ export class LocalStorageProvider implements StorageProvider {
   }
 
   async delete(url: string): Promise<void> {
-    const filename = url.replace("/uploads/", "");
+    const filename = url.replace("/media/", "");
     const filepath = path.join(UPLOAD_DIR, filename);
     await fs.unlink(filepath).catch(() => {});
   }

@@ -11,14 +11,14 @@
  *   SEED_ADMIN_EMAIL    — admin email  (default: admin@example.com)
  *   SEED_ADMIN_PASSWORD — admin pass   (default: admin123456)
  *   SEED_ADMIN_NAME     — admin name   (default: Admin)
- *   NEXT_PUBLIC_SITE_URL — site URL    (default: http://localhost:3000)
+ *   SITE_URL           — site URL    (default: http://localhost:3000)
  */
 
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const BASE_URL = process.env.SITE_URL || "http://localhost:3000";
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || "admin@example.com";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "admin123456";
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME || "Admin";
@@ -99,9 +99,11 @@ async function main() {
   console.log(`   Password: ${ADMIN_PASSWORD}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-}).finally(async () => {
-  await db.$disconnect();
-});
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await db.$disconnect();
+  });

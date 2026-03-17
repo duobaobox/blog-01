@@ -13,7 +13,9 @@ import {
 function getBlobToken() {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!token) {
-    throw new Error("BLOB_READ_WRITE_TOKEN is required for vercel-blob storage");
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is required for vercel-blob storage",
+    );
   }
   return token;
 }
@@ -33,7 +35,7 @@ export class VercelBlobStorageProvider implements StorageProvider {
 
     const ext = getUploadExtension(file.type);
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const pathname = `uploads/${filename}`;
+    const pathname = `media/${filename}`;
 
     const blob = await put(pathname, file, {
       access: "public",

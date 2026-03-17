@@ -20,6 +20,7 @@ const routeLabels: Record<string, string> = {
   "/admin/categories": "分类管理",
   "/admin/tags": "标签管理",
   "/admin/settings": "站点设置",
+  "/admin/account": "账户设置",
 };
 
 function getPageLabel(pathname: string): string {

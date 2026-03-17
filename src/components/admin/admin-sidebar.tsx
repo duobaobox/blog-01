@@ -12,6 +12,7 @@ import {
   Globe,
   BookOpen,
   ImageIcon,
+  UserCog,
 } from "lucide-react";
 import { authClient } from "@/infrastructure/auth/client";
 import {
@@ -34,6 +35,7 @@ const navItems = [
   { label: "分类", href: "/admin/categories", icon: FolderOpen },
   { label: "标签", href: "/admin/tags", icon: Tags },
   { label: "设置", href: "/admin/settings", icon: Settings },
+  { label: "账户", href: "/admin/account", icon: UserCog },
 ];
 
 export function AdminSidebar() {

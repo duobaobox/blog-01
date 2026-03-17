@@ -11,6 +11,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  rateLimit: {
+    window: 300, // 5分钟窗口内最多5次请求
+    max: 5,
+  },
   user: {
     additionalFields: {
       role: {
@@ -24,8 +28,13 @@ export const auth = betterAuth({
   plugins: [nextCookies()],
 });
 
+export type AuthSession = typeof auth.$Infer.Session;
+export type AuthUser = AuthSession["user"] & { role: string };
+
 export async function getSession() {
-  return auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return null;
+  return session as Omit<typeof session, "user"> & { user: AuthUser };
 }
 
 export async function requireSession() {

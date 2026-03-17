@@ -31,8 +31,7 @@ export async function POST(request: NextRequest) {
   const isEmailSignUp = isEmailSignUpRequest(request);
 
   if (isEmailSignUp) {
-    const setupToken = request.headers.get("x-admin-setup-token");
-    if (!(await isBootstrapAllowed(setupToken))) {
+    if (!(await isBootstrapAllowed())) {
       return NextResponse.json(
         { error: "Sign-up is disabled." },
         { status: 403 },

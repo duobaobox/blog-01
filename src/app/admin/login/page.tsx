@@ -1,7 +1,17 @@
+import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
-import { ensureDevelopmentAdminUser } from "@/infrastructure/auth/bootstrap";
+import {
+  ensureDevelopmentAdminUser,
+  getUserCount,
+} from "@/infrastructure/auth/bootstrap";
 
 export default async function AdminLoginPage() {
+  const userCount = await getUserCount();
+
+  if (userCount === 0) {
+    redirect("/admin/setup");
+  }
+
   const developmentAdmin = await ensureDevelopmentAdminUser();
 
   return (

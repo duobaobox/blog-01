@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "My Blog",
   description: "个人博客",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  url: process.env.SITE_URL || "http://localhost:3000",
 
   nav: [
     { label: "首页", href: "/" },
