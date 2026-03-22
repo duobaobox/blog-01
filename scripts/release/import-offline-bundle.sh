@@ -21,14 +21,15 @@ for image_tar in "$IMAGES_DIR"/*.tar; do
   docker load -i "$image_tar"
 done
 
-echo "[2/3] Preparing environment file"
-if [[ ! -f "$CONFIG_DIR/.env" ]]; then
-  cp "$CONFIG_DIR/.env.example" "$CONFIG_DIR/.env"
-  echo "Created $CONFIG_DIR/.env from template. Please edit it before starting services."
+echo "[2/3] Verifying compose file"
+if [[ ! -f "$CONFIG_DIR/docker-compose.yml" ]]; then
+  echo "docker-compose.yml not found: $CONFIG_DIR/docker-compose.yml"
+  exit 1
 fi
 
 echo "[3/3] Done"
 echo "Next:"
 echo "  cd $CONFIG_DIR"
-echo "  vim .env"
+echo "  vim docker-compose.yml"
+echo "  # edit only the install-config block at the top"
 echo "  bash ../scripts/start-offline-stack.sh $BUNDLE_DIR"

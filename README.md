@@ -55,7 +55,7 @@ BETTER_AUTH_URL="http://localhost:3000"
 ADMIN_SETUP_TOKEN=""
 
 # 站点 URL
-NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+SITE_URL="http://localhost:3000"
 
 # 媒体存储：local | vercel-blob
 STORAGE_PROVIDER="local"
@@ -198,7 +198,7 @@ npm run db:generate  # 生成Prisma客户端
 
 - [Docker 构建与发版指导](/Users/duobao/个人/个人-网站搭建/blog-01/docs/docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](/Users/duobao/个人/个人-网站搭建/blog-01/docs/alicloud-docker-nginx-https-guide.md)
-- [离线镜像交付与阿里云测试指南](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
+- [离线镜像交付指南](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
 - [发版与回滚 Checklist](/Users/duobao/个人/个人-网站搭建/blog-01/docs/release-and-rollback-checklist.md)
 
 ### 推荐：Docker Compose 部署（app + db + volume）
@@ -227,7 +227,7 @@ POSTGRES_PORT=5432
 ```env
 BETTER_AUTH_SECRET=your-production-secret
 BETTER_AUTH_URL=https://your-domain.com
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
+SITE_URL=https://your-domain.com
 ADMIN_SETUP_TOKEN=your-random-token
 STORAGE_PROVIDER=local
 ```
@@ -253,8 +253,8 @@ docker compose run --rm --profile tools seed
 #### 5. 持久化说明
 
 - PostgreSQL 数据保存在 Compose volume `postgres_data`
-- 本地上传文件保存在 Compose volume `uploads_data`
-- 如果你走 `STORAGE_PROVIDER=local`，这两个 volume 都应该纳入备份方案
+- 本地上传文件保存在项目根目录下的 `./media`
+- 如果你走 `STORAGE_PROVIDER=local`，数据库和 `./media` 都应该纳入备份方案
 
 ### 部署到 Vercel
 
@@ -280,7 +280,7 @@ docker compose run --rm --profile tools seed
 - `BETTER_AUTH_SECRET` - 认证密钥
 - `BETTER_AUTH_URL` - 生产环境认证 URL
 - `ADMIN_SETUP_TOKEN` - 首次初始化管理员时使用的受控注册令牌
-- `NEXT_PUBLIC_SITE_URL` - 生产环境站点 URL
+- `SITE_URL` - 生产环境站点 URL
 - `STORAGE_PROVIDER` - 媒体存储提供方，`local` 或 `vercel-blob`
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob 读写令牌（仅 `vercel-blob` 模式）
 - `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` - Compose 内置 PostgreSQL 配置

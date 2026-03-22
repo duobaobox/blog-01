@@ -43,8 +43,6 @@ services:
       db:
         condition: service_healthy
     command: ["npm", "run", "db:push"]
-    volumes:
-      - uploads_data:/app/public/uploads
 
   seed:
     image: ${APP_IMAGE:-blog-01-app:latest}
@@ -57,8 +55,6 @@ services:
       db:
         condition: service_healthy
     command: ["npm", "run", "db:seed"]
-    volumes:
-      - uploads_data:/app/public/uploads
 
   db:
     image: postgres:16

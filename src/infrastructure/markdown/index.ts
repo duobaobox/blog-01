@@ -84,6 +84,7 @@ function buildMarkdownTree(markdown: string): Root {
 
 const sanitizeSchema = {
   ...defaultSchema,
+  clobberPrefix: "",
   attributes: {
     ...defaultSchema.attributes,
     h1: [...(defaultSchema.attributes?.h1 || []), "id"],

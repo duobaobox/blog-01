@@ -29,14 +29,22 @@ docker save -o "$IMAGES_DIR/${APP_IMAGE_REPO//\//_}-${APP_IMAGE_TAG}.tar" "$APP_
 docker save -o "$IMAGES_DIR/${POSTGRES_IMAGE//[:\/]/_}.tar" "$POSTGRES_IMAGE"
 
 echo "[4/6] Copying delivery files"
-cp "$ROOT_DIR/delivery/offline/docker-compose.offline.yml" "$CONFIG_DIR/docker-compose.yml"
-cp "$ROOT_DIR/delivery/offline/.env.offline.example" "$CONFIG_DIR/.env.example"
-cp "$ROOT_DIR/docs/docker-build-and-release-guide.md" "$DOCS_DIR/"
-cp "$ROOT_DIR/docs/alicloud-docker-nginx-https-guide.md" "$DOCS_DIR/"
-cp "$ROOT_DIR/docs/release-and-rollback-checklist.md" "$DOCS_DIR/"
+sed \
+  -e "s|__APP_IMAGE__|$APP_IMAGE|g" \
+  -e "s|__POSTGRES_IMAGE__|$POSTGRES_IMAGE|g" \
+  "$ROOT_DIR/delivery/offline/docker-compose.offline.yml" \
+  > "$CONFIG_DIR/docker-compose.yml"
 cp "$ROOT_DIR/docs/offline-image-delivery-guide.md" "$DOCS_DIR/"
 cp "$ROOT_DIR/scripts/release/import-offline-bundle.sh" "$SCRIPTS_DIR/"
 cp "$ROOT_DIR/scripts/release/start-offline-stack.sh" "$SCRIPTS_DIR/"
+cat > "$BUNDLE_DIR/QUICKSTART.txt" <<EOF
+1. Upload this bundle directory or archive to your server and extract it.
+2. Run: bash scripts/import-offline-bundle.sh .
+3. Edit: config/docker-compose.yml
+   Only change the install-config block at the top.
+4. Run: bash scripts/start-offline-stack.sh .
+5. Open: http://your-server-ip:3000/admin/login
+EOF
 
 echo "[5/6] Writing manifest"
 cat > "$BUNDLE_DIR/manifest.txt" <<EOF

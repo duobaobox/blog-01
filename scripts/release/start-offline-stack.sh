@@ -15,16 +15,23 @@ if [[ ! -f "$CONFIG_DIR/docker-compose.yml" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$CONFIG_DIR/.env" ]]; then
-  echo ".env not found in $CONFIG_DIR"
+if grep -Eq "your-server-ip|replace-with-strong|change-this-password" "$CONFIG_DIR/docker-compose.yml"; then
+  echo "Please edit $CONFIG_DIR/docker-compose.yml first."
+  echo "Only change the install-config block at the top, then rerun this script."
   exit 1
 fi
 
-echo "[1/3] Starting app + db"
-docker compose -f "$CONFIG_DIR/docker-compose.yml" --env-file "$CONFIG_DIR/.env" up -d
+mkdir -p "$CONFIG_DIR/media" "$CONFIG_DIR/data/postgres"
 
-echo "[2/3] Running migrate"
-docker compose -f "$CONFIG_DIR/docker-compose.yml" --env-file "$CONFIG_DIR/.env" run --rm --profile tools migrate
+echo "[1/4] Starting app + db"
+docker compose -f "$CONFIG_DIR/docker-compose.yml" up -d
 
-echo "[3/3] If this is first deploy, run seed:"
-echo "docker compose -f \"$CONFIG_DIR/docker-compose.yml\" --env-file \"$CONFIG_DIR/.env\" run --rm --profile tools seed"
+echo "[2/4] Running migrate"
+docker compose -f "$CONFIG_DIR/docker-compose.yml" run --rm --profile tools migrate
+
+echo "[3/4] Running seed"
+docker compose -f "$CONFIG_DIR/docker-compose.yml" run --rm --profile tools seed
+
+echo "[4/4] Done"
+echo "Open:"
+echo "  http://your-server-ip:3000/admin/login"

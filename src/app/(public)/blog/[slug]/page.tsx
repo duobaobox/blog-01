@@ -10,6 +10,7 @@ import { getPostBySlug } from "@/features/posts/queries/post.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { renderMarkdown, extractToc } from "@/infrastructure/markdown";
 import { generateSeo } from "@/infrastructure/seo";
+import { TableOfContents } from "@/components/blog/table-of-contents";
 
 export async function generateMetadata({
   params,
@@ -118,26 +119,7 @@ export default async function PostPage({
         </article>
 
         {/* 文章目录 */}
-        {toc.length > 0 && (
-          <aside className="hidden lg:block">
-            <div className="sticky top-20">
-              <h3 className="mb-3 text-sm font-semibold">目录</h3>
-              <nav className="space-y-1">
-                {toc.map((item) => (
-                  <a
-                    key={item.id}
-                    href={`#${item.id}`}
-                    className={`block text-sm text-muted-foreground transition-colors hover:text-foreground ${
-                      item.level === 3 ? "pl-4" : ""
-                    }`}
-                  >
-                    {item.title}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </aside>
-        )}
+        {toc.length > 0 && <TableOfContents toc={toc} />}
       </div>
     </div>
   );
