@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import type { Editor, JSONContent } from "@tiptap/core";
+import { Extension, type Editor, type JSONContent } from "@tiptap/core";
 import type { ReactNode } from "react";
+import { Plugin } from "@tiptap/pm/state";
 import { EditorContent, useEditor } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
@@ -11,7 +12,9 @@ import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
+  Code,
   Code2,
+  Heading1,
   Heading2,
   Heading3,
   ImagePlus,
@@ -19,9 +22,11 @@ import {
   Link2,
   List,
   ListOrdered,
+  Minus,
   Quote,
   Redo2,
   Strikethrough,
+  Type,
   Undo2,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -86,6 +91,94 @@ function normalizeUrl(value: string) {
   return `https://${value}`;
 }
 
+const PLAIN_TEXT_NODE_TYPES = new Set(["doc", "paragraph", "text"]);
+const MARKDOWN_HINT_PATTERNS = [
+  /^(#{1,6})\s+\S+/m,
+  /^>\s+\S+/m,
+  /^(?:[-*+]\s|\d+\.\s)\S+/m,
+  /^```[\s\S]*```$/m,
+  /^(?:---|\*\*\*|___)\s*$/m,
+  /!\[[^\]]*]\([^)]+\)/,
+  /\[[^\]]+]\([^)]+\)/,
+  /(^|[^`])`[^`\n]+`(?!`)/,
+  /(^|[^*])\*\*[^*\n]+\*\*(?!\*)/,
+  /(^|[^~])~~[^~\n]+~~(?!~)/,
+];
+
+function looksLikeMarkdown(text: string) {
+  const normalized = text.trim();
+
+  if (!normalized) {
+    return false;
+  }
+
+  return MARKDOWN_HINT_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+function containsRichMarkdown(node: JSONContent | undefined | null): boolean {
+  if (!node) {
+    return false;
+  }
+
+  if (node.marks?.length) {
+    return true;
+  }
+
+  if (node.type && !PLAIN_TEXT_NODE_TYPES.has(node.type)) {
+    return true;
+  }
+
+  return node.content?.some((child) => containsRichMarkdown(child)) ?? false;
+}
+
+const MarkdownPaste = Extension.create({
+  name: "markdownPaste",
+  priority: 1000,
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handlePaste: (_view, event) => {
+            const clipboard = event.clipboardData;
+
+            if (!clipboard || clipboard.files.length > 0) {
+              return false;
+            }
+
+            const markdownText = clipboard.getData("text/markdown");
+            const plainText = clipboard.getData("text/plain");
+            const candidate = markdownText || plainText;
+
+            if (!candidate.trim()) {
+              return false;
+            }
+
+            if (!markdownText && !looksLikeMarkdown(candidate)) {
+              return false;
+            }
+
+            const parsed = this.editor.markdown?.parse(candidate);
+            if (!markdownText && !containsRichMarkdown(parsed)) {
+              return false;
+            }
+
+            const inserted = this.editor.commands.insertContent(candidate, {
+              contentType: "markdown",
+            });
+
+            if (!inserted) {
+              return false;
+            }
+
+            event.preventDefault();
+            return true;
+          },
+        },
+      }),
+    ];
+  },
+});
+
 type ToolbarButtonProps = {
   active?: boolean;
   disabled?: boolean;
@@ -124,6 +217,14 @@ type EditorToolbarProps = {
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const isParagraphActive = Boolean(
+    editor?.isActive("paragraph") &&
+      !editor?.isActive("heading") &&
+      !editor?.isActive("bulletList") &&
+      !editor?.isActive("orderedList") &&
+      !editor?.isActive("blockquote") &&
+      !editor?.isActive("codeBlock"),
+  );
 
   function handleSetLink() {
     if (!editor) return;
@@ -172,7 +273,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
   return (
     <>
-      <div className="flex shrink-0 flex-wrap items-center justify-center gap-1 border-b bg-background px-4 py-1.5">
+      <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b bg-background/95 px-3 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <ToolbarButton
           label="撤销"
           disabled={!editor?.can().chain().focus().undo().run()}
@@ -190,6 +291,26 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
         <div className="mx-1 h-4 w-px bg-border" />
 
+        <ToolbarButton
+          label="正文"
+          active={isParagraphActive}
+          disabled={!editor}
+          onClick={() =>
+            editor?.chain().focus().clearNodes().setParagraph().run()
+          }
+        >
+          <Type className="size-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="一级标题"
+          active={editor?.isActive("heading", { level: 1 })}
+          disabled={!editor}
+          onClick={() =>
+            editor?.chain().focus().toggleHeading({ level: 1 }).run()
+          }
+        >
+          <Heading1 className="size-4" />
+        </ToolbarButton>
         <ToolbarButton
           label="二级标题"
           active={editor?.isActive("heading", { level: 2 })}
@@ -210,6 +331,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         >
           <Heading3 className="size-4" />
         </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-border" />
+
         <ToolbarButton
           label="加粗"
           active={editor?.isActive("bold")}
@@ -234,6 +358,17 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         >
           <Strikethrough className="size-4" />
         </ToolbarButton>
+        <ToolbarButton
+          label="行内代码"
+          active={editor?.isActive("code")}
+          disabled={!editor}
+          onClick={() => editor?.chain().focus().toggleCode().run()}
+        >
+          <Code className="size-4" />
+        </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-border" />
+
         <ToolbarButton
           label="无序列表"
           active={editor?.isActive("bulletList")}
@@ -266,6 +401,16 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         >
           <Code2 className="size-4" />
         </ToolbarButton>
+        <ToolbarButton
+          label="分隔线"
+          disabled={!editor}
+          onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+        >
+          <Minus className="size-4" />
+        </ToolbarButton>
+
+        <div className="mx-1 h-4 w-px bg-border" />
+
         <ToolbarButton
           label="链接"
           active={editor?.isActive("link")}
@@ -320,9 +465,10 @@ export function PostRichEditor({
   const instance = useEditor({
     immediatelyRender: false,
     extensions: [
+      MarkdownPaste,
       StarterKit.configure({
         heading: {
-          levels: [2, 3, 4],
+          levels: [1, 2, 3, 4, 5, 6],
         },
       }),
       Link.configure({
