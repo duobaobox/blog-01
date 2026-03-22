@@ -1,15 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { Extension, type Editor, type JSONContent } from "@tiptap/core";
+import { useEffect, useRef, useState } from "react";
+import type { Editor } from "@tiptap/core";
 import type { ReactNode } from "react";
-import { Plugin } from "@tiptap/pm/state";
 import { EditorContent, useEditor } from "@tiptap/react";
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "@tiptap/markdown";
-import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
   Code,
@@ -21,62 +16,38 @@ import {
   Italic,
   Link2,
   List,
+  ListTodo,
   ListOrdered,
   Minus,
   Quote,
   Redo2,
   Strikethrough,
+  Table2,
   Type,
   Undo2,
 } from "lucide-react";
+import {
+  parseStoredContentJson,
+  stringifyContentJson,
+} from "@/features/editor/content-types";
+import { MarkdownPaste } from "@/features/editor/markdown-paste";
+import { createPostEditorExtensions } from "@/features/editor/tiptap-extensions";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
 import type { MediaItem } from "@/features/media/types/storage.types";
 
-const EMPTY_DOC: JSONContent = {
-  type: "doc",
-  content: [{ type: "paragraph" }],
-};
-
 type EditorSnapshot = {
   json: string;
-  markdown: string;
   text: string;
 };
 
 type PostRichEditorProps = {
   initialJson: string;
-  initialMarkdown: string;
   placeholder?: string;
   onChange: (snapshot: EditorSnapshot) => void;
   onEditorReady?: (editor: Editor | null) => void;
 };
-
-function resolveInitialContent(initialJson: string, initialMarkdown: string) {
-  if (initialJson.trim()) {
-    try {
-      return {
-        content: JSON.parse(initialJson) as JSONContent,
-        contentType: "json" as const,
-      };
-    } catch {
-      // Fall back to markdown if an older record contains malformed JSON.
-    }
-  }
-
-  if (initialMarkdown.trim()) {
-    return {
-      content: initialMarkdown,
-      contentType: "markdown" as const,
-    };
-  }
-
-  return {
-    content: EMPTY_DOC,
-    contentType: "json" as const,
-  };
-}
 
 function normalizeUrl(value: string) {
   if (
@@ -90,94 +61,6 @@ function normalizeUrl(value: string) {
 
   return `https://${value}`;
 }
-
-const PLAIN_TEXT_NODE_TYPES = new Set(["doc", "paragraph", "text"]);
-const MARKDOWN_HINT_PATTERNS = [
-  /^(#{1,6})\s+\S+/m,
-  /^>\s+\S+/m,
-  /^(?:[-*+]\s|\d+\.\s)\S+/m,
-  /^```[\s\S]*```$/m,
-  /^(?:---|\*\*\*|___)\s*$/m,
-  /!\[[^\]]*]\([^)]+\)/,
-  /\[[^\]]+]\([^)]+\)/,
-  /(^|[^`])`[^`\n]+`(?!`)/,
-  /(^|[^*])\*\*[^*\n]+\*\*(?!\*)/,
-  /(^|[^~])~~[^~\n]+~~(?!~)/,
-];
-
-function looksLikeMarkdown(text: string) {
-  const normalized = text.trim();
-
-  if (!normalized) {
-    return false;
-  }
-
-  return MARKDOWN_HINT_PATTERNS.some((pattern) => pattern.test(normalized));
-}
-
-function containsRichMarkdown(node: JSONContent | undefined | null): boolean {
-  if (!node) {
-    return false;
-  }
-
-  if (node.marks?.length) {
-    return true;
-  }
-
-  if (node.type && !PLAIN_TEXT_NODE_TYPES.has(node.type)) {
-    return true;
-  }
-
-  return node.content?.some((child) => containsRichMarkdown(child)) ?? false;
-}
-
-const MarkdownPaste = Extension.create({
-  name: "markdownPaste",
-  priority: 1000,
-  addProseMirrorPlugins() {
-    return [
-      new Plugin({
-        props: {
-          handlePaste: (_view, event) => {
-            const clipboard = event.clipboardData;
-
-            if (!clipboard || clipboard.files.length > 0) {
-              return false;
-            }
-
-            const markdownText = clipboard.getData("text/markdown");
-            const plainText = clipboard.getData("text/plain");
-            const candidate = markdownText || plainText;
-
-            if (!candidate.trim()) {
-              return false;
-            }
-
-            if (!markdownText && !looksLikeMarkdown(candidate)) {
-              return false;
-            }
-
-            const parsed = this.editor.markdown?.parse(candidate);
-            if (!markdownText && !containsRichMarkdown(parsed)) {
-              return false;
-            }
-
-            const inserted = this.editor.commands.insertContent(candidate, {
-              contentType: "markdown",
-            });
-
-            if (!inserted) {
-              return false;
-            }
-
-            event.preventDefault();
-            return true;
-          },
-        },
-      }),
-    ];
-  },
-});
 
 type ToolbarButtonProps = {
   active?: boolean;
@@ -386,6 +269,14 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           <ListOrdered className="size-4" />
         </ToolbarButton>
         <ToolbarButton
+          label="任务列表"
+          active={editor?.isActive("taskList")}
+          disabled={!editor}
+          onClick={() => editor?.chain().focus().toggleTaskList().run()}
+        >
+          <ListTodo className="size-4" />
+        </ToolbarButton>
+        <ToolbarButton
           label="引用"
           active={editor?.isActive("blockquote")}
           disabled={!editor}
@@ -407,6 +298,20 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           onClick={() => editor?.chain().focus().setHorizontalRule().run()}
         >
           <Minus className="size-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          label="插入表格"
+          active={editor?.isActive("table")}
+          disabled={!editor}
+          onClick={() =>
+            editor
+              ?.chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+        >
+          <Table2 className="size-4" />
         </ToolbarButton>
 
         <div className="mx-1 h-4 w-px bg-border" />
@@ -440,24 +345,18 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
 export function PostRichEditor({
   initialJson,
-  initialMarkdown,
   placeholder = "从一句清晰的开头开始。",
   onChange,
   onEditorReady,
 }: PostRichEditorProps) {
-  const lastEmittedRef = useRef<{
-    json: string;
-    markdown: string;
-  } | null>(null);
-  const { content, contentType } = resolveInitialContent(
-    initialJson,
-    initialMarkdown,
+  const lastEmittedRef = useRef<string | null>(null);
+  const normalizedInitialJson = stringifyContentJson(
+    parseStoredContentJson(initialJson),
   );
 
   function emitSnapshot(editor: Editor) {
     onChange({
-      json: JSON.stringify(editor.getJSON()),
-      markdown: editor.getMarkdown(),
+      json: stringifyContentJson(editor.getJSON()),
       text: editor.getText(),
     });
   }
@@ -466,26 +365,10 @@ export function PostRichEditor({
     immediatelyRender: false,
     extensions: [
       MarkdownPaste,
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3, 4, 5, 6],
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        defaultProtocol: "https",
-      }),
-      Image.configure({
-        allowBase64: false,
-      }),
-      Placeholder.configure({
-        placeholder,
-      }),
+      ...createPostEditorExtensions({ placeholder }),
       Markdown,
     ],
-    content,
-    contentType,
+    content: parseStoredContentJson(normalizedInitialJson),
     editorProps: {
       attributes: {
         class:
@@ -493,17 +376,11 @@ export function PostRichEditor({
       },
     },
     onCreate: ({ editor }) => {
-      lastEmittedRef.current = {
-        json: JSON.stringify(editor.getJSON()),
-        markdown: editor.getMarkdown(),
-      };
+      lastEmittedRef.current = stringifyContentJson(editor.getJSON());
       onEditorReady?.(editor);
     },
     onUpdate: ({ editor }) => {
-      lastEmittedRef.current = {
-        json: JSON.stringify(editor.getJSON()),
-        markdown: editor.getMarkdown(),
-      };
+      lastEmittedRef.current = stringifyContentJson(editor.getJSON());
       emitSnapshot(editor);
     },
     onDestroy: () => onEditorReady?.(null),
@@ -512,26 +389,16 @@ export function PostRichEditor({
   useEffect(() => {
     if (!instance) return;
 
-    const lastEmitted = lastEmittedRef.current;
-    if (
-      lastEmitted?.json === initialJson &&
-      lastEmitted?.markdown === initialMarkdown
-    ) {
+    if (lastEmittedRef.current === normalizedInitialJson) {
       return;
     }
 
-    const next = resolveInitialContent(initialJson, initialMarkdown);
-
-    instance.commands.setContent(next.content, {
-      contentType: next.contentType,
+    instance.commands.setContent(parseStoredContentJson(normalizedInitialJson), {
       emitUpdate: false,
     });
 
-    lastEmittedRef.current = {
-      json: JSON.stringify(instance.getJSON()),
-      markdown: instance.getMarkdown(),
-    };
-  }, [instance, initialJson, initialMarkdown]);
+    lastEmittedRef.current = stringifyContentJson(instance.getJSON());
+  }, [instance, normalizedInitialJson]);
 
   useEffect(() => {
     onEditorReady?.(instance ?? null);

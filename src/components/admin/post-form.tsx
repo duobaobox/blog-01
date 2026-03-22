@@ -13,6 +13,11 @@ import Image from "next/image";
 import readingTime from "reading-time";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import {
+  hasMeaningfulContent,
+  parseStoredContentJson,
+  stringifyContentJson,
+} from "@/features/editor/content-types";
+import {
   deletePost,
   createPost,
   updatePost,
@@ -69,8 +74,8 @@ interface PostData {
   slug: string;
   excerpt: string | null;
   coverImageUrl: string | null;
-  contentJson?: unknown | null;
-  contentMarkdown: string;
+  contentJson: unknown;
+  contentText: string;
   status: string;
   categoryId: string | null;
   seoTitle: string | null;
@@ -97,7 +102,7 @@ type FormState = {
   excerpt: string;
   coverImageUrl: string;
   contentJson: string;
-  contentMarkdown: string;
+  contentText: string;
   categoryId: string;
   selectedTagIds: string[];
   isFeatured: boolean;
@@ -114,22 +119,13 @@ type SaveOptions = {
   silent?: boolean;
 };
 
-function serializeContentJson(value: unknown | null | undefined) {
-  if (!value) return "";
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return "";
-  }
-}
-
 function createFormState(post?: PostData): FormState {
   return {
     title: post?.title ?? "",
     excerpt: post?.excerpt ?? "",
     coverImageUrl: post?.coverImageUrl ?? "",
-    contentJson: serializeContentJson(post?.contentJson),
-    contentMarkdown: post?.contentMarkdown ?? "",
+    contentJson: stringifyContentJson(post?.contentJson),
+    contentText: post?.contentText ?? "",
     categoryId: post?.categoryId ?? "",
     selectedTagIds: post?.tags.map((item) => item.tag.id) ?? [],
     isFeatured: post?.isFeatured ?? false,
@@ -145,7 +141,7 @@ function createSnapshot(form: FormState) {
     title: form.title,
     excerpt: form.excerpt,
     coverImageUrl: form.coverImageUrl,
-    contentMarkdown: form.contentMarkdown,
+    contentJson: form.contentJson,
     categoryId: form.categoryId,
     selectedTagIds: [...form.selectedTagIds].sort(),
     isFeatured: form.isFeatured,
@@ -161,7 +157,8 @@ function hasMeaningfulDraft(form: FormState) {
     form.title.trim() ||
     form.excerpt.trim() ||
     form.coverImageUrl.trim() ||
-    form.contentMarkdown.trim() ||
+    form.contentText.trim() ||
+    hasMeaningfulContent(parseStoredContentJson(form.contentJson)) ||
     form.categoryId ||
     form.selectedTagIds.length > 0 ||
     form.isFeatured ||
@@ -199,7 +196,6 @@ function buildPostFormData(form: FormState, slug: string | null) {
   formData.set("excerpt", form.excerpt);
   formData.set("coverImageUrl", form.coverImageUrl);
   formData.set("contentJson", form.contentJson);
-  formData.set("contentMarkdown", form.contentMarkdown);
   formData.set("categoryId", form.categoryId);
   formData.set("status", form.status);
   formData.set("isFeatured", form.isFeatured.toString());
@@ -275,16 +271,15 @@ export function PostForm({
 
   function handleEditorChange({
     json,
-    markdown,
+    text,
   }: {
     json: string;
-    markdown: string;
     text: string;
   }) {
-    patchForm({ contentJson: json, contentMarkdown: markdown });
+    patchForm({ contentJson: json, contentText: text });
   }
 
-  const readingStats = readingTime(form.contentMarkdown);
+  const readingStats = readingTime(form.contentText);
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
@@ -356,6 +351,8 @@ export function PostForm({
 
           const savedForm = {
             ...persistedForm,
+            contentJson: stringifyContentJson(savedPost.contentJson),
+            contentText: savedPost.contentText ?? persistedForm.contentText,
             status: savedPost.status,
           };
           const savedSnapshot = createSnapshot(savedForm);
@@ -398,10 +395,14 @@ export function PostForm({
           }
 
           return true;
-        } catch {
-          setSaveError("保存失败");
+        } catch (error) {
+          const message =
+            error instanceof Error && error.message
+              ? error.message
+              : "保存失败";
+          setSaveError(message);
           if (!silent) {
-            window.alert("保存失败，请稍后重试。");
+            window.alert(message);
           }
           return false;
         } finally {
@@ -577,7 +578,6 @@ export function PostForm({
 
           <PostRichEditor
             initialJson={form.contentJson}
-            initialMarkdown={form.contentMarkdown}
             placeholder={`从一句清晰的开头开始。\n\n# 可以像这样写标题\n- 或者先列出要点\n- 再慢慢展开成正文`}
             onEditorReady={setEditorInstance}
             onChange={handleEditorChange}

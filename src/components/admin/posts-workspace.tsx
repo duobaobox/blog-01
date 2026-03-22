@@ -45,8 +45,7 @@ type WorkspacePost = {
   title: string;
   slug: string;
   excerpt: string | null;
-  contentJson?: unknown | null;
-  contentMarkdown: string;
+  contentText: string;
   status: string;
   isFeatured: boolean;
   createdAt: Date | string;
@@ -62,17 +61,35 @@ type WorkspacePost = {
     tag: Tag;
   }>;
   coverImageUrl: string | null;
+};
+
+type SelectedPost = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  contentJson: unknown;
+  contentText: string;
+  status: string;
+  categoryId: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   canonicalUrl: string | null;
+  isFeatured: boolean;
+  publishedAt?: Date | string | null;
+  updatedAt?: Date | string;
+  readingTimeMinutes?: number | null;
+  wordCount?: number | null;
+  tags: { tag: Tag }[];
+  coverImageUrl: string | null;
 };
 
 type PostsWorkspaceProps = {
   posts: WorkspacePost[];
+  selectedPost?: SelectedPost;
   categories: Category[];
   tags: Tag[];
   mode: "new" | "edit";
-  selectedPostId?: string;
   showEmptyState?: boolean;
 };
 
@@ -274,10 +291,10 @@ function NavigatorPanel({
 
 export function PostsWorkspace({
   posts,
+  selectedPost,
   categories,
   tags,
   mode,
-  selectedPostId,
   showEmptyState = false,
 }: PostsWorkspaceProps) {
   const router = useRouter();
@@ -288,10 +305,6 @@ export function PostsWorkspace({
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
   const leaveConfirm = useConfirm();
   const hasPosts = posts.length > 0;
-  const selectedPost =
-    mode === "new"
-      ? undefined
-      : (posts.find((post) => post.id === selectedPostId) ?? posts[0]);
 
   async function confirmNavigation() {
     if (beforeLeaveHandlerRef.current) {

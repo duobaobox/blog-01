@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type { TocItem } from "@/infrastructure/markdown";
+import type { TocItem } from "@/features/editor/content-types";
 
 interface TableOfContentsProps {
   toc: TocItem[];
 }
 
 export function TableOfContents({ toc }: TableOfContentsProps) {
-  const [activeId, setActiveId] = useState<string>("");
+  const [activeId, setActiveId] = useState<string>(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const hash = window.location.hash.slice(1);
+    return toc.some((item) => item.id === hash) ? hash : "";
+  });
   const observerRef = useRef<IntersectionObserver | null>(null);
   const headingElementsRef = useRef<Map<string, IntersectionObserverEntry>>(
     new Map()
@@ -86,14 +93,6 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
       setActiveId(id);
     }
   };
-
-  // 页面加载后，如果 URL 有 hash，设为初始激活项
-  useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash && toc.some((item) => item.id === hash)) {
-      setActiveId(hash);
-    }
-  }, [toc]);
 
   return (
     <aside className="hidden lg:block">

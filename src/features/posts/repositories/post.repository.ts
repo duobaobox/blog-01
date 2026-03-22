@@ -11,6 +11,65 @@ export type FindPostsOptions = {
   order?: "created" | "updated" | "published";
 };
 
+const postListSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  contentText: true,
+  status: true,
+  isFeatured: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+  readingTimeMinutes: true,
+  coverImageUrl: true,
+  categoryId: true,
+  category: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
+  tags: {
+    include: {
+      tag: true,
+    },
+  },
+} satisfies Prisma.postSelect;
+
+const editablePostSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  coverImageUrl: true,
+  contentJson: true,
+  contentText: true,
+  status: true,
+  categoryId: true,
+  seoTitle: true,
+  seoDescription: true,
+  canonicalUrl: true,
+  isFeatured: true,
+  publishedAt: true,
+  updatedAt: true,
+  readingTimeMinutes: true,
+  wordCount: true,
+  category: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  tags: {
+    include: {
+      tag: true,
+    },
+  },
+} satisfies Prisma.postSelect;
+
 export async function findPosts(options?: FindPostsOptions) {
   const where: Record<string, unknown> = {};
   const orderBy: Prisma.postOrderByWithRelationInput[] =
@@ -42,11 +101,7 @@ export async function findPosts(options?: FindPostsOptions) {
     orderBy,
     take: options?.take,
     skip: options?.skip,
-    include: {
-      category: true,
-      tags: { include: { tag: true } },
-      author: { select: { name: true } },
-    },
+    select: postListSelect,
   });
 }
 
@@ -64,10 +119,7 @@ export async function findPostBySlug(slug: string) {
 export async function findPostById(id: string) {
   return db.post.findUnique({
     where: { id },
-    include: {
-      category: true,
-      tags: { include: { tag: true } },
-    },
+    select: editablePostSelect,
   });
 }
 
@@ -80,8 +132,10 @@ export async function countPosts(status?: string) {
 export async function createPost(data: {
   title: string;
   slug: string;
-  contentJson: unknown | null;
-  contentMarkdown: string;
+  contentJson: unknown;
+  contentHtml: string;
+  contentText: string;
+  contentToc: unknown;
   excerpt: string | null;
   coverImageUrl: string | null;
   categoryId: string | null;
@@ -96,14 +150,13 @@ export async function createPost(data: {
   createdBy: string;
   tagIds: string[];
 }) {
-  const { tagIds, contentJson, ...postData } = data;
+  const { tagIds, contentJson, contentToc, ...postData } = data;
 
   return db.post.create({
     data: {
       ...postData,
-      contentJson: contentJson
-        ? (contentJson as Prisma.InputJsonValue)
-        : Prisma.DbNull,
+      contentJson: contentJson as Prisma.InputJsonValue,
+      contentToc: contentToc as Prisma.InputJsonValue,
       tags: {
         create: tagIds.map((tagId) => ({ tagId })),
       },
@@ -120,8 +173,10 @@ export async function updatePost(
   data: {
     title: string;
     slug: string;
-    contentJson: unknown | null;
-    contentMarkdown: string;
+    contentJson: unknown;
+    contentHtml: string;
+    contentText: string;
+    contentToc: unknown;
     excerpt: string | null;
     coverImageUrl: string | null;
     categoryId: string | null;
@@ -136,7 +191,7 @@ export async function updatePost(
     tagIds: string[];
   },
 ) {
-  const { tagIds, contentJson, ...postData } = data;
+  const { tagIds, contentJson, contentToc, ...postData } = data;
 
   return db.$transaction(async (tx) => {
     await tx.postTag.deleteMany({ where: { postId: id } });
@@ -145,9 +200,8 @@ export async function updatePost(
       where: { id },
       data: {
         ...postData,
-        contentJson: contentJson
-          ? (contentJson as Prisma.InputJsonValue)
-          : Prisma.DbNull,
+        contentJson: contentJson as Prisma.InputJsonValue,
+        contentToc: contentToc as Prisma.InputJsonValue,
         tags: {
           create: tagIds.map((tagId) => ({ tagId })),
         },
@@ -173,7 +227,7 @@ export async function findPublishedForFeed(take = 20) {
       title: true,
       slug: true,
       excerpt: true,
-      contentMarkdown: true,
+      contentText: true,
       publishedAt: true,
       author: { select: { name: true } },
     },

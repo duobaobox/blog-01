@@ -11,28 +11,12 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/```[\s\S]*?```/g, "")
-    .replace(/`[^`]*`/g, "")
-    .replace(/#{1,6}\s+/g, "")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/~~(.*?)~~/g, "$1")
-    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
-    .replace(/^>\s+/gm, "")
-    .replace(/^[-*+]\s+/gm, "")
-    .replace(/^\d+\.\s+/gm, "")
-    .replace(/\n+/g, " ")
-    .trim();
-}
-
 type PostListCardProps = {
   post: {
     slug: string;
     title: string;
     excerpt: string | null;
-    contentMarkdown: string;
+    contentText: string;
     coverImageUrl: string | null;
     publishedAt: Date | null;
     createdAt: Date;
@@ -53,8 +37,7 @@ type PostListCardProps = {
 };
 
 export function PostListCard({ post, showCategory = true }: PostListCardProps) {
-  const preview =
-    post.excerpt ?? `${stripMarkdown(post.contentMarkdown).slice(0, 120)}...`;
+  const preview = post.excerpt ?? `${post.contentText.slice(0, 120)}...`;
 
   return (
     <Link href={`/blog/${post.slug}`} className="block">

@@ -10,7 +10,7 @@ export async function GET() {
 
   const items = posts
     .map((post) => {
-      const description = post.excerpt ?? post.contentMarkdown.slice(0, 200);
+      const description = post.excerpt ?? post.contentText.slice(0, 200);
       const pubDate = post.publishedAt
         ? new Date(post.publishedAt).toUTCString()
         : new Date().toUTCString();

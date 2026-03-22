@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { getPosts } from "@/features/posts/queries/post.queries";
+import { getPostById, getPosts } from "@/features/posts/queries/post.queries";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { PostsWorkspace } from "@/components/admin/posts-workspace";
@@ -27,14 +27,17 @@ export default async function AdminPostsPage({
       ? undefined
       : posts.find((post) => post.id === requestedPostId)?.id ?? fallbackPostId;
   const mode = requestedView === "new" ? "new" : "edit";
+  const selectedPost = selectedPostId
+    ? await getPostById(selectedPostId)
+    : undefined;
 
   return (
     <PostsWorkspace
       posts={posts}
+      selectedPost={selectedPost ?? undefined}
       categories={categories}
       tags={tags}
       mode={mode}
-      selectedPostId={selectedPostId}
       showEmptyState={showEmptyState}
     />
   );

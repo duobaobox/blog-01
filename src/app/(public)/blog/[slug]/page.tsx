@@ -6,9 +6,9 @@ import Image from "next/image";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
+import { parseToc } from "@/features/editor/content-types";
 import { getPostBySlug } from "@/features/posts/queries/post.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
-import { renderMarkdown, extractToc } from "@/infrastructure/markdown";
 import { generateSeo } from "@/infrastructure/seo";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 
@@ -25,8 +25,7 @@ export async function generateMetadata({
 
   return generateSeo({
     title: post.seoTitle || post.title,
-    description:
-      post.seoDescription || post.excerpt || post.contentMarkdown.slice(0, 160),
+    description: post.seoDescription || post.excerpt || post.contentText.slice(0, 160),
     image: post.coverImageUrl ?? undefined,
     url: post.canonicalUrl || `/blog/${post.slug}`,
     type: "article",
@@ -44,8 +43,7 @@ export default async function PostPage({
 
   if (!post || post.status !== "published") notFound();
 
-  const html = await renderMarkdown(post.contentMarkdown);
-  const toc = extractToc(post.contentMarkdown);
+  const toc = parseToc(post.contentToc);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
@@ -114,7 +112,7 @@ export default async function PostPage({
 
           <div
             className="prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
-            dangerouslySetInnerHTML={{ __html: html }}
+            dangerouslySetInnerHTML={{ __html: post.contentHtml }}
           />
         </article>
 

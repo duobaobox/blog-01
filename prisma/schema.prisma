@@ -82,8 +82,10 @@ model post {
   slug                String    @unique
   excerpt             String?   @db.Text
   coverImageUrl       String?   @db.Text
-  contentJson         Json?
-  contentMarkdown     String    @db.Text
+  contentJson         Json
+  contentHtml         String    @db.Text
+  contentText         String    @db.Text
+  contentToc          Json
   status              String    @default("draft")
   publishedAt         DateTime?
   readingTimeMinutes  Int?

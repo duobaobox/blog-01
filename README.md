@@ -1,32 +1,33 @@
 # 个人博客系统 (Blog-01)
 
-一个现代化的全栈个人博客系统，采用 **Next.js + React + PostgreSQL + Prisma** 技术栈构建。支持自定义前台设计和标准博客后台管理。
+一个基于 **Next.js + React + PostgreSQL + Prisma** 的个人博客系统，包含自定义前台和后台内容管理。当前正文架构已经统一为 `Tiptap JSON -> 服务端物化 -> HTML / Text / TOC`，不再走 Markdown 作为主存储和主渲染链路。
 
 ## 项目特性
 
 - ✨ 自定义前台设计（首页、关于、项目等）
-- 📝 完整的博客内容管理系统
+- 📝 基于 Tiptap 的富文本后台编辑器
+- 📥 支持 Markdown 粘贴导入并转换为可二次编辑的 JSON
 - 🎨 深色/浅色主题切换
 - 📱 响应式设计
 - 🔐 管理员后台登录与内容发布
-- 📖 Markdown 编辑与代码高亮
 - 🏷️ 标签和分类系统
 - 🚀 SEO 优化（sitemap、robots.txt、RSS）
-- ⚡ 服务端渲染 (SSR) 与性能优化
+- ⚡ 服务端渲染与发布态内容物化
 
 ## 技术栈
 
-| 模块     | 技术               | 版本   |
-| -------- | ------------------ | ------ |
-| 框架     | Next.js            | 16.1.6 |
-| 语言     | TypeScript         | ^5     |
-| UI 库    | React              | 19.2.3 |
-| 样式     | Tailwind CSS       | ^4     |
-| ORM      | Prisma             | ^7.5.0 |
-| 数据库   | PostgreSQL         | -      |
-| 认证     | Better Auth        | ^1.5.5 |
-| Markdown | remark/rehype      | ^4.0.1 |
-| 组件库   | shadcn/ui, Base UI | -      |
+| 模块   | 技术                          | 版本   |
+| ------ | ----------------------------- | ------ |
+| 框架   | Next.js                       | 16.1.6 |
+| 语言   | TypeScript                    | ^5     |
+| UI     | React                         | 19.2.3 |
+| 样式   | Tailwind CSS                  | ^4     |
+| ORM    | Prisma                        | ^7.5.0 |
+| 数据库 | PostgreSQL                    | -      |
+| 认证   | Better Auth                   | ^1.5.5 |
+| 编辑器 | Tiptap                        | ^3.x   |
+| 组件库 | shadcn/ui, Base UI            | -      |
+| 内容后处理 | `@tiptap/html` + rehype-pretty-code | -      |
 
 ## 快速开始
 
@@ -114,41 +115,62 @@ npm run db:seed      # 填充示例数据
 npm run db:generate  # 生成Prisma客户端
 ```
 
+## 内容架构
+
+### 编辑态唯一事实源
+
+- 数据库主字段是 `post.contentJson`
+- 后台编辑器只读写 Tiptap JSON
+- Markdown 只作为“粘贴/导入边界”，不作为持久化正文
+
+### 保存/发布时的服务端物化
+
+服务端会基于 `contentJson` 统一生成：
+
+- `contentHtml`：前台直接渲染的 HTML
+- `contentText`：摘要、字数、阅读时长等纯文本来源
+- `contentToc`：目录数据
+- `wordCount` / `readingTimeMinutes`
+
+这样可以保证：
+
+- 编辑器 schema 和发布态语义一致
+- 前台不再运行第二套 Markdown 渲染链
+- 目录、SEO 摘要、Feed 描述都来自同一份内容投影
+
+### 关键模块
+
+- `src/features/editor/tiptap-extensions.ts`
+  统一定义编辑器与服务端物化使用的扩展
+- `src/features/editor/markdown-paste.ts`
+  Markdown 粘贴导入边界
+- `src/features/editor/content-materializer.ts`
+  `contentJson -> html/text/toc/stats`
+- `src/components/admin/post-rich-editor.tsx`
+  后台编辑器 UI
+- `src/features/posts/services/post.service.ts`
+  保存文章时统一物化内容
+
 ## 项目结构
 
 ```
 .
-├── app/                    # Next.js App Router
-│   ├── (public)/          # 公共前台页面
-│   │   ├── page.tsx       # 首页
-│   │   ├── about/         # 关于页
-│   │   ├── projects/      # 项目页
-│   │   └── blog/          # 博客系统
-│   ├── admin/             # 后台管理
-│   │   ├── login/         # 登录页
-│   │   ├── posts/         # 文章管理
-│   │   ├── categories/    # 分类管理
-│   │   ├── tags/          # 标签管理
-│   │   └── settings/      # 站点设置
-│   ├── api/               # API 路由
-│   └── (layout & meta)
-├── components/            # React 组件
-│   ├── site/             # 前台组件
-│   ├── blog/             # 博客组件
-│   ├── admin/            # 后台组件
-│   ├── shared/           # 共享组件
-│   └── ui/               # UI 基础组件
-├── lib/                   # 应用工具库
-│   ├── auth/             # 认证相关
-│   ├── db/               # 数据库工具
-│   ├── markdown/         # Markdown 处理
-│   ├── seo/              # SEO 工具
-│   └── utils/            # 通用工具
-├── actions/              # Server Actions
-├── prisma/               # Prisma 配置
-│   └── schema.prisma     # 数据模型定义
-├── styles/               # 全局样式
-└── public/               # 静态资源
+├── src/
+│   ├── app/                     # Next.js App Router
+│   ├── components/              # 页面与后台组件
+│   ├── features/
+│   │   ├── editor/              # 编辑器 schema / paste / materialize
+│   │   ├── posts/               # 文章领域
+│   │   ├── taxonomy/            # 分类与标签
+│   │   ├── media/               # 媒体资源
+│   │   └── settings/            # 站点设置
+│   ├── infrastructure/          # auth / db / seo 等基础设施
+│   ├── generated/               # Prisma 生成代码
+│   └── shared/                  # 通用 UI 与工具
+├── prisma/
+│   └── schema.prisma
+├── public/
+└── docs/
 ```
 
 ## 核心功能
@@ -171,7 +193,8 @@ npm run db:generate  # 生成Prisma客户端
 - 🏷️ 标签管理
 - ⚙️ 站点设置
 - 📋 草稿与发布管理
-- 👁️ 草稿实时预览
+- 🧱 标题、列表、任务列表、表格、链接、图片、代码块
+- 📥 Markdown 粘贴导入
 
 ## 数据模型
 
@@ -179,11 +202,18 @@ npm run db:generate  # 生成Prisma客户端
 
 - `user` - 用户（来自 Better Auth）
 - `session` - 用户会话
-- `posts` - 博客文章
-- `categories` - 文章分类
-- `tags` - 文章标签
-- `post_tags` - 文章-标签关系表
-- `site_settings` - 站点设置
+- `post` - 博客文章
+- `category` - 文章分类
+- `tag` - 文章标签
+- `postTag` - 文章-标签关系表
+- `siteSetting` - 站点设置
+
+当前文章核心字段：
+
+- `contentJson`：编辑态 JSON
+- `contentHtml`：发布态 HTML
+- `contentText`：纯文本投影
+- `contentToc`：目录投影
 
 ## 开发工作流
 
