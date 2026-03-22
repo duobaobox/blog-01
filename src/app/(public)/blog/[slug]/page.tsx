@@ -111,7 +111,7 @@ export default async function PostPage({
           <Separator className="mb-8" />
 
           <div
-            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
+            className="editor-prose prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
             dangerouslySetInnerHTML={{ __html: post.contentHtml }}
           />
         </article>

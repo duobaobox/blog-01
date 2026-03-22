@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import "./globals.css";
+import "./editor.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getResolvedSiteConfig();

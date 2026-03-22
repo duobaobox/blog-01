@@ -372,7 +372,7 @@ export function PostRichEditor({
     editorProps: {
       attributes: {
         class:
-          "tiptap prose prose-neutral dark:prose-invert max-w-none min-h-[60svh] focus:outline-none",
+          "editor-prose editor-prose-editable tiptap prose prose-neutral dark:prose-invert max-w-none min-h-[60svh] focus:outline-none",
       },
     },
     onCreate: ({ editor }) => {
