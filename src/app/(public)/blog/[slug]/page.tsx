@@ -46,7 +46,7 @@ export default async function PostPage({
   const toc = parseToc(post.contentToc);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -55,8 +55,8 @@ export default async function PostPage({
         返回博客
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_200px]">
-        <article>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_200px]">
+        <article className="min-w-0">
           <header className="mb-8">
             {post.coverImageUrl ? (
               <div className="mb-6 overflow-hidden rounded-2xl border bg-muted/30">
@@ -111,7 +111,7 @@ export default async function PostPage({
           <Separator className="mb-8" />
 
           <div
-            className="editor-prose prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
+            className="article-prose editor-prose prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
             dangerouslySetInnerHTML={{ __html: post.contentHtml }}
           />
         </article>

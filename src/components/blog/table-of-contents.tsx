@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { TocItem } from "@/features/editor/content-types";
+import { cn } from "@/shared/lib/utils";
 
 interface TableOfContentsProps {
   toc: TocItem[];
@@ -98,7 +99,7 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
     <aside className="hidden lg:block">
       <div className="sticky top-20">
         <h3 className="mb-3 text-sm font-semibold">目录</h3>
-        <nav className="relative max-h-[calc(100vh-8rem)] space-y-0.5 overflow-y-auto">
+        <nav className="relative flex max-h-[calc(100dvh-8rem)] flex-col gap-0.5 overflow-y-auto">
           {toc.map((item) => {
             const isActive = activeId === item.id;
             return (
@@ -106,13 +107,13 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
                 key={item.id}
                 href={`#${item.id}`}
                 onClick={(e) => handleClick(e, item.id)}
-                className={`relative block border-l-2 py-1 text-sm transition-all duration-200 ${
-                  item.level === 3 ? "pl-6" : "pl-3"
-                } ${
+                className={cn(
+                  "relative block border-l-2 py-1 text-sm transition-all duration-200",
+                  item.level === 3 ? "pl-6" : "pl-3",
                   isActive
                     ? "border-foreground font-medium text-foreground"
-                    : "border-transparent text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
-                }`}
+                    : "border-transparent text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground",
+                )}
               >
                 {item.title}
               </a>

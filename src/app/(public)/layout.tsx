@@ -19,12 +19,12 @@ export default async function PublicLayout({
   return (
     // 外层容器：使用 Flex 垂直布局，并设置最小高度为满屏幕 (min-h-screen)，
     // 确保当页面中间内容较少时，Footer 依然能保持在页面最底部而不会浮层悬空。
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip">
       {/* 网站顶部导航栏：展示 Logo、站点名称和各类导航菜单 */}
       <Header siteName={site.name} logoUrl={site.logoUrl} nav={site.nav} />
       
       {/* 网站主体内容：flex-1 会自适应撑满 Header 和 Footer 之间的全部剩余屏幕空间 */}
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1">{children}</main>
       
       {/* 网站底部信息栏：展示版权声明、社交账号链接等尾部文本 */}
       <Footer

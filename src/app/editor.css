@@ -14,6 +14,36 @@
 }
 
 @layer components {
+  .editor-prose {
+    min-width: 0;
+  }
+
+  .editor-prose :where(img, video, iframe, canvas, svg) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .editor-prose :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption, th, td, a) {
+    overflow-wrap: anywhere;
+  }
+
+  .editor-prose :where(code):not(pre code) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .editor-prose :where(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .editor-prose :where(pre code) {
+    overflow-wrap: normal;
+    word-break: normal;
+    white-space: pre;
+  }
+
   /* Editor-only placeholder styles. */
   .editor-prose-editable p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
@@ -143,5 +173,13 @@
   .editor-prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
     color: var(--muted-foreground);
     text-decoration-line: line-through;
+  }
+
+  .article-prose {
+    overflow-x: clip;
+  }
+
+  .article-prose table {
+    table-layout: fixed;
   }
 }
