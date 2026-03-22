@@ -96,8 +96,8 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
   };
 
   return (
-    <aside className="hidden lg:block">
-      <div className="sticky top-20">
+    <aside className="hidden lg:block sticky top-20">
+      <div>
         <h3 className="mb-3 text-sm font-semibold">目录</h3>
         <nav className="relative flex max-h-[calc(100dvh-8rem)] flex-col gap-0.5 overflow-y-auto">
           {toc.map((item) => {

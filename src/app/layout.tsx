@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased overflow-x-clip">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
