@@ -1,69 +1,50 @@
-# 个人博客系统 (Blog-01)
+# Blog-01
 
-一个基于 **Next.js + React + PostgreSQL + Prisma** 的个人博客系统，包含自定义前台和后台内容管理。当前正文架构已经统一为 `Tiptap JSON -> 服务端物化 -> HTML / Text / TOC`，不再走 Markdown 作为主存储和主渲染链路。
+一个基于 Next.js App Router、PostgreSQL、Prisma、Better Auth 和 Tiptap 的个人博客系统。
 
-## 项目特性
+当前项目有两条很明确的主线：
 
-- ✨ 自定义前台设计（首页、关于、项目等）
-- 📝 基于 Tiptap 的富文本后台编辑器
-- 📥 支持 Markdown 粘贴导入并转换为可二次编辑的 JSON
-- 🎨 深色/浅色主题切换
-- 📱 响应式设计
-- 🔐 管理员后台登录与内容发布
-- 🏷️ 标签和分类系统
-- 🚀 SEO 优化（sitemap、robots.txt、RSS）
-- ⚡ 服务端渲染与发布态内容物化
+- 博客正文走 `Tiptap JSON -> 服务端物化 -> HTML / Text / TOC`
+- About / Projects / 首页这类页面先走“代码维护的静态页骨架”，暂时不做后台页面管理
+
+这份 README 以“当前仓库真实状态”为准，重点说明项目结构、正文数据流、静态页面扩展方式和本地启动步骤。
+
+## 适用场景
+
+- 想要一个带后台的个人博客
+- 需要文章编辑、分类、标签、媒体上传、SEO 基础能力
+- 希望正文富文本可控，但静态展示页先用代码维护
+
+## 当前功能
+
+- 博客文章的创建、编辑、草稿、发布
+- 基于 Tiptap 的后台富文本编辑器
+- 支持 Markdown 粘贴导入并转换为可继续编辑的内容
+- 分类、标签、媒体库、站点设置
+- 首页、关于、项目等公开页面
+- RSS、robots.txt、sitemap
+- 深色 / 浅色主题切换
 
 ## 技术栈
 
-| 模块   | 技术                          | 版本   |
-| ------ | ----------------------------- | ------ |
-| 框架   | Next.js                       | 16.1.6 |
-| 语言   | TypeScript                    | ^5     |
-| UI     | React                         | 19.2.3 |
-| 样式   | Tailwind CSS                  | ^4     |
-| ORM    | Prisma                        | ^7.5.0 |
-| 数据库 | PostgreSQL                    | -      |
-| 认证   | Better Auth                   | ^1.5.5 |
-| 编辑器 | Tiptap                        | ^3.x   |
-| 组件库 | shadcn/ui, Base UI            | -      |
-| 内容后处理 | `@tiptap/html` + rehype-pretty-code | -      |
+- 框架：Next.js 16 + React 19
+- 语言：TypeScript
+- 样式：Tailwind CSS v4 + shadcn/ui
+- 数据库：PostgreSQL
+- ORM：Prisma
+- 认证：Better Auth
+- 编辑器：Tiptap
+- HTML 后处理：unified + rehype-pretty-code
+
+精确依赖版本以 [package.json](./package.json) 为准。
 
 ## 快速开始
 
-### 前置要求
+### 1. 环境要求
 
-- Node.js 18+ 和 npm/yarn/pnpm
-- PostgreSQL 数据库
-
-### 1. 环境配置
-
-复制环境变量文件：
-
-```bash
-cp .env.example .env.local
-```
-
-编辑 `.env.local` 配置以下变量：
-
-```env
-# 数据库连接
-DATABASE_URL="postgresql://user:password@localhost:5432/blog?schema=public"
-
-# Better Auth 认证配置
-BETTER_AUTH_SECRET="your-secret-key-here"
-BETTER_AUTH_URL="http://localhost:3000"
-ADMIN_SETUP_TOKEN=""
-
-# 站点 URL
-SITE_URL="http://localhost:3000"
-
-# 媒体存储：local | vercel-blob
-STORAGE_PROVIDER="local"
-
-# 仅 vercel-blob 模式需要
-BLOB_READ_WRITE_TOKEN=""
-```
+- 建议使用 Node.js 20+
+- PostgreSQL
+- npm
 
 ### 2. 安装依赖
 
@@ -71,276 +52,290 @@ BLOB_READ_WRITE_TOKEN=""
 npm install
 ```
 
-### 3. 数据库初始化
+### 3. 配置环境变量
 
-```bash
-# 推送 Prisma Schema 到数据库
-npm run db:push
-
-# （可选）填充示例数据
-npm run db:seed
-```
-
-说明：
-
-- 首次初始化管理员账号后，公开注册会被自动关闭。
-- 生产环境建议配置 `ADMIN_SETUP_TOKEN`，并在执行 `npm run db:seed` 时使用同一个值完成首次管理员创建。
-
-### 4. 启动开发服务器
-
-```bash
-npm run dev
-```
-
-打开浏览器访问 [http://localhost:3000](http://localhost:3000)
-
-## 可用的 npm 脚本
-
-```bash
-# 启动开发服务器
-npm run dev
-
-# 生产环境构建
-npm run build
-
-# 启动生产环境
-npm start
-
-# 代码检查
-npm run lint
-
-# 数据库操作
-npm run db:push      # 推送Schema变更
-npm run db:seed      # 填充示例数据
-npm run db:generate  # 生成Prisma客户端
-```
-
-## 内容架构
-
-### 编辑态唯一事实源
-
-- 数据库主字段是 `post.contentJson`
-- 后台编辑器只读写 Tiptap JSON
-- Markdown 只作为“粘贴/导入边界”，不作为持久化正文
-
-### 保存/发布时的服务端物化
-
-服务端会基于 `contentJson` 统一生成：
-
-- `contentHtml`：前台直接渲染的 HTML
-- `contentText`：摘要、字数、阅读时长等纯文本来源
-- `contentToc`：目录数据
-- `wordCount` / `readingTimeMinutes`
-
-这样可以保证：
-
-- 编辑器 schema 和发布态语义一致
-- 前台不再运行第二套 Markdown 渲染链
-- 目录、SEO 摘要、Feed 描述都来自同一份内容投影
-
-### 关键模块
-
-- `src/features/editor/tiptap-extensions.ts`
-  统一定义编辑器与服务端物化使用的扩展
-- `src/features/editor/markdown-paste.ts`
-  Markdown 粘贴导入边界
-- `src/features/editor/content-materializer.ts`
-  `contentJson -> html/text/toc/stats`
-- `src/components/admin/post-rich-editor.tsx`
-  后台编辑器 UI
-- `src/features/posts/services/post.service.ts`
-  保存文章时统一物化内容
-
-## 项目结构
-
-```
-.
-├── src/
-│   ├── app/                     # Next.js App Router
-│   ├── components/              # 页面与后台组件
-│   ├── features/
-│   │   ├── editor/              # 编辑器 schema / paste / materialize
-│   │   ├── posts/               # 文章领域
-│   │   ├── taxonomy/            # 分类与标签
-│   │   ├── media/               # 媒体资源
-│   │   └── settings/            # 站点设置
-│   ├── infrastructure/          # auth / db / seo 等基础设施
-│   ├── generated/               # Prisma 生成代码
-│   └── shared/                  # 通用 UI 与工具
-├── prisma/
-│   └── schema.prisma
-├── public/
-└── docs/
-```
-
-## 核心功能
-
-### 前台功能
-
-- 🏠 自定义首页展示
-- 👤 个人介绍页面
-- 🎯 项目展示页面
-- 📚 博客文章列表与搜索
-- 📄 文章详情页（含目录、代码高亮）
-- 🏷️ 按标签和分类浏览
-- 🌓 主题切换
-
-### 后台功能
-
-- 🔐 管理员登录
-- ✍️ 文章编辑与发布
-- 📋 文章分类管理
-- 🏷️ 标签管理
-- ⚙️ 站点设置
-- 📋 草稿与发布管理
-- 🧱 标题、列表、任务列表、表格、链接、图片、代码块
-- 📥 Markdown 粘贴导入
-
-## 数据模型
-
-主要数据表：
-
-- `user` - 用户（来自 Better Auth）
-- `session` - 用户会话
-- `post` - 博客文章
-- `category` - 文章分类
-- `tag` - 文章标签
-- `postTag` - 文章-标签关系表
-- `siteSetting` - 站点设置
-
-当前文章核心字段：
-
-- `contentJson`：编辑态 JSON
-- `contentHtml`：发布态 HTML
-- `contentText`：纯文本投影
-- `contentToc`：目录投影
-
-## 开发工作流
-
-1. **开发** → 修改代码并在本地测试
-2. **数据库** → 修改 schema 后运行 `npm run db:push`
-3. **提交** → Git 提交代码
-4. **部署** → 推送到 Vercel（或其他平台）
-
-## 部署
-
-详细运行手册见：
-
-- [Docker 构建与发版指导](/Users/duobao/个人/个人-网站搭建/blog-01/docs/docker-build-and-release-guide.md)
-- [阿里云 Docker + Nginx + HTTPS 上线手册](/Users/duobao/个人/个人-网站搭建/blog-01/docs/alicloud-docker-nginx-https-guide.md)
-- [离线镜像交付指南](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
-- [发版与回滚 Checklist](/Users/duobao/个人/个人-网站搭建/blog-01/docs/release-and-rollback-checklist.md)
-
-### 推荐：Docker Compose 部署（app + db + volume）
-
-这是当前项目最推荐的上线方式，部署模型接近 Typecho / WordPress 常见的容器化方案：应用、数据库、持久化存储一起由 Compose 管理。
-
-#### 1. 配置环境变量
-
-先复制环境变量：
+复制示例文件：
 
 ```bash
 cp .env.example .env
 ```
 
-如果你使用 Compose 自带的 PostgreSQL，可以保留下面这一组：
+常用变量如下：
 
 ```env
-POSTGRES_USER=blog
-POSTGRES_PASSWORD=change-me
-POSTGRES_DB=blog
-POSTGRES_PORT=5432
-```
+DATABASE_URL="postgresql://user:password@localhost:5432/blog?schema=public"
 
-然后把应用侧配置补齐：
+BETTER_AUTH_SECRET="your-secret-key-here"
+BETTER_AUTH_URL="http://localhost:3000"
+ADMIN_SETUP_TOKEN=""
 
-```env
-BETTER_AUTH_SECRET=your-production-secret
-BETTER_AUTH_URL=https://your-domain.com
-SITE_URL=https://your-domain.com
-ADMIN_SETUP_TOKEN=your-random-token
-STORAGE_PROVIDER=local
-```
+SITE_URL="http://localhost:3000"
 
-#### 2. 启动数据库和应用
+STORAGE_PROVIDER="local"
+BLOB_READ_WRITE_TOKEN=""
 
-```bash
-docker compose up -d --build
-```
-
-#### 3. 初始化数据库结构
-
-```bash
-docker compose run --rm --profile tools migrate
-```
-
-#### 4. 首次创建管理员
-
-```bash
-docker compose run --rm --profile tools seed
-```
-
-#### 5. 持久化说明
-
-- PostgreSQL 数据保存在 Compose volume `postgres_data`
-- 本地上传文件保存在项目根目录下的 `./media`
-- 如果你走 `STORAGE_PROVIDER=local`，数据库和 `./media` 都应该纳入备份方案
-
-### 部署到 Vercel
-
-```bash
-# 连接 GitHub 仓库后在 Vercel 上创建项目
-# 配置环境变量后自动部署
+SEED_ADMIN_NAME="Admin"
+SEED_ADMIN_EMAIL="admin@example.com"
+SEED_ADMIN_PASSWORD="admin123456"
 ```
 
 说明：
 
-- 如果部署到 Vercel，建议将 `STORAGE_PROVIDER` 设为 `vercel-blob`，并配置 `BLOB_READ_WRITE_TOKEN`
-- 当前上传接口走服务端路由，Vercel 环境下更适合较小文件；较大的媒体文件更推荐自托管或后续改为客户端直传方案
+- Prisma CLI 默认读取 `.env`，所以本项目本地开发也推荐直接使用 `.env`
+- `STORAGE_PROVIDER=local` 时，媒体文件走本地存储
+- `STORAGE_PROVIDER=vercel-blob` 时，需要额外配置 `BLOB_READ_WRITE_TOKEN`
 
-### ARM / x86 架构注意事项
+### 4. 初始化数据库
 
-- 你的本地电脑是 ARM，线上阿里云服务器是 Linux x86；Docker 方案可以直接在服务器上构建镜像，天然避开本地构建产物跨架构复用的问题
-- 如果你想在本地构建再推镜像，需要显式使用 `docker buildx build --platform linux/amd64`
-- 不要把本地 ARM 环境下生成的 `.next` 或 `node_modules` 直接拷到 x86 服务器运行
+```bash
+npm run db:generate
+npm run db:push
+```
 
-### 必要的环境变量
+如需初始化开发管理员：
 
-- `DATABASE_URL` - PostgreSQL 连接字符串
-- `BETTER_AUTH_SECRET` - 认证密钥
-- `BETTER_AUTH_URL` - 生产环境认证 URL
-- `ADMIN_SETUP_TOKEN` - 首次初始化管理员时使用的受控注册令牌
-- `SITE_URL` - 生产环境站点 URL
-- `STORAGE_PROVIDER` - 媒体存储提供方，`local` 或 `vercel-blob`
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob 读写令牌（仅 `vercel-blob` 模式）
-- `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` - Compose 内置 PostgreSQL 配置
-- `APP_PORT` / `POSTGRES_PORT` - Compose 暴露端口
+```bash
+npm run db:seed
+```
 
-## SEO 配置
+### 5. 启动开发环境
 
-项目已配置以下 SEO 功能：
+```bash
+npm run dev
+```
 
-- ✅ 动态 metadata（标题、描述）
-- ✅ Sitemap (`/sitemap.ts`)
-- ✅ Robots.txt (`/robots.ts`)
-- ✅ RSS Feed (`/feed.xml`)
-- ✅ Canonical URL
-- ✅ Open Graph 标签支持
+默认访问：
 
-## 学习资源
+- 前台首页：[http://localhost:3000](http://localhost:3000)
+- 后台登录：[http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
-关于本项目使用的技术，可参考以下文档：
+## npm Scripts
 
-- [Next.js 文档](https://nextjs.org/docs) - Next.js 功能和 API
-- [React 文档](https://react.dev) - React 学习资源
-- [Prisma 文档](https://www.prisma.io/docs/) - ORM 使用指南
-- [Tailwind CSS](https://tailwindcss.com/docs) - CSS 框架
-- [Better Auth](https://www.better-auth.com/) - 认证库
+```bash
+npm run dev                  # 启动开发服务器
+npm run build                # 生产构建
+npm start                    # 启动生产服务
+npm run lint                 # ESLint
 
-## 许可证
+npm run db:generate          # 生成 Prisma Client
+npm run db:push              # 推送 Prisma Schema
+npm run db:seed              # 初始化开发管理员和示例数据
 
-MIT
+npm run release:offline:build  # 生成离线交付包
+```
 
-## 支持
+## 正文数据流
 
-如有问题或建议，欢迎提出 Issue 或 Discussion。
+这是当前项目最关键的架构约束。
+
+### 唯一事实源
+
+文章编辑态唯一事实源是 `post.contentJson`。
+
+- 后台编辑器只读写 Tiptap JSON
+- Markdown 不再作为主存储格式
+- Markdown 只作为“粘贴 / 导入边界”
+
+### 保存时服务端物化
+
+保存或更新文章时，服务端会基于 `contentJson` 统一生成：
+
+- `contentHtml`：前台直接渲染
+- `contentText`：摘要、SEO 描述、阅读时长等纯文本来源
+- `contentToc`：目录数据
+- `wordCount`
+- `readingTimeMinutes`
+
+### 为什么这样做
+
+- 编辑器语义和前台渲染语义一致
+- 不再维护第二套 Markdown 主渲染链
+- 列表页、详情页、Feed、SEO 都消费同一份物化结果
+
+### 关键文件
+
+- [src/features/editor/tiptap-extensions.ts](./src/features/editor/tiptap-extensions.ts)
+- [src/features/editor/markdown-paste.ts](./src/features/editor/markdown-paste.ts)
+- [src/features/editor/content-materializer.ts](./src/features/editor/content-materializer.ts)
+- [src/components/admin/post-rich-editor.tsx](./src/components/admin/post-rich-editor.tsx)
+- [src/features/posts/services/post.service.ts](./src/features/posts/services/post.service.ts)
+
+## 编辑器与正文样式
+
+编辑器相关样式已经从全局样式中拆出来，单独收敛在：
+
+- [src/app/editor.css](./src/app/editor.css)
+
+约定如下：
+
+- `editor-prose`：编辑态和展示态共享的富文本结构样式
+- `editor-prose-editable`：只属于编辑器的交互样式
+
+对应接入点：
+
+- 后台编辑器：[src/components/admin/post-rich-editor.tsx](./src/components/admin/post-rich-editor.tsx)
+- 前台文章正文：[src/app/(public)/blog/[slug]/page.tsx](./src/app/(public)/blog/[slug]/page.tsx)
+
+如果后续要调整任务列表、表格、正文间距，优先改 `src/app/editor.css`，不要再往 `globals.css` 里堆补丁。
+
+## 静态页面骨架
+
+当前首页、关于、项目这些页面，仍然是代码维护，不在后台做页面管理。
+
+### 当前方式
+
+- 首页：代码维护
+- 关于页：代码维护
+- 项目页：代码维护
+
+这些页面已经统一到一套静态页骨架组件上：
+
+- [src/components/blog/static-page-shell.tsx](./src/components/blog/static-page-shell.tsx)
+
+里面有三层：
+
+- `StaticPageContainer`
+  - 统一外层宽度和留白
+  - 首页已经在用
+- `StaticPageShell`
+  - 标准静态页骨架
+  - 适合 about / projects / uses / contact
+- `StaticPageSection`
+  - 静态页里常规内容分段
+
+### 手工新增一个静态页面
+
+当前推荐流程：
+
+1. 新建 `src/app/(public)/<slug>/page.tsx`
+2. 复制 `about/page.tsx` 或 `projects/page.tsx`
+3. 保留 `generateMetadata()`
+4. 用 `StaticPageShell` 或 `StaticPageContainer` 组织页面内容
+5. 在 [src/shared/config/site.config.ts](./src/shared/config/site.config.ts) 里加导航
+6. 如果这是公开静态页，同时更新 [src/app/sitemap.ts](./src/app/sitemap.ts)
+
+### 什么时候再做后台页面管理
+
+目前不做后台页面管理，原因很直接：
+
+- 当前博客主线是文章系统
+- 静态页数量少，代码维护更简单
+- 先保持统一骨架，比提前做页面搭建器更稳
+
+如果后续真的有“频繁新增静态页、希望后台维护”的需求，再引入 `Page` 内容模型会更合适。
+
+## 目录结构
+
+```text
+.
+├── docs/                         # 部署文档、计划文档
+├── prisma/
+│   ├── schema.prisma
+│   └── seed.ts
+├── public/
+├── src/
+│   ├── app/                      # Next.js App Router
+│   │   ├── (public)/             # 前台页面
+│   │   ├── admin/                # 后台页面
+│   │   ├── api/                  # Route Handlers
+│   │   ├── editor.css            # 编辑器 / 正文共享样式
+│   │   └── globals.css           # 全站基础样式
+│   ├── components/
+│   │   ├── admin/                # 后台 UI 组件
+│   │   └── blog/                 # 前台博客 / 静态页组件
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── editor/
+│   │   ├── media/
+│   │   ├── posts/
+│   │   ├── settings/
+│   │   └── taxonomy/
+│   ├── infrastructure/           # db / auth / seo 等基础设施
+│   ├── shared/                   # 通用 UI、配置、工具
+│   └── generated/                # Prisma 生成代码
+├── .env.example
+├── package.json
+└── README.md
+```
+
+## 数据模型
+
+核心业务表：
+
+- `post`
+- `category`
+- `tag`
+- `postTag`
+- `siteSetting`
+- `media`
+
+认证相关表：
+
+- `user`
+- `session`
+- `account`
+- `verification`
+
+文章核心字段：
+
+- `contentJson`
+- `contentHtml`
+- `contentText`
+- `contentToc`
+
+完整定义见 [prisma/schema.prisma](./prisma/schema.prisma)。
+
+## 公开路由
+
+当前主要公开路由：
+
+- `/`
+- `/about`
+- `/projects`
+- `/blog`
+- `/blog/[slug]`
+- `/blog/categories/[slug]`
+- `/blog/tags/[slug]`
+- `/feed.xml`
+- `/robots.txt`
+- `/sitemap.xml`
+
+## 后台路由
+
+当前后台主要页面：
+
+- `/admin/login`
+- `/admin/setup`
+- `/admin`
+- `/admin/posts`
+- `/admin/categories`
+- `/admin/tags`
+- `/admin/media`
+- `/admin/settings`
+- `/admin/account`
+
+## 部署文档
+
+项目部署和交付文档见：
+
+- [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
+- [阿里云 Docker + Nginx + HTTPS 上线手册](./docs/alicloud-docker-nginx-https-guide.md)
+- [离线镜像交付指南](./docs/offline-image-delivery-guide.md)
+- [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
+
+## 当前约定
+
+- 正文主存储必须是 `contentJson`
+- 文章展示必须消费物化后的 `contentHtml`
+- 静态页先走代码维护，不在后台做页面管理
+- 新增编辑器 / 正文样式，优先改 `src/app/editor.css`
+- 新增静态页，优先复用 `StaticPageShell`
+
+## 后续演进建议
+
+如果后续继续迭代，这几个方向是自然的下一步：
+
+- 把静态页抽成可配置的 `Page` 数据模型
+- 把导航和 sitemap 从手工维护改成内容驱动
+- 为静态页增加后台维护能力
+- 继续细化编辑器工具栏和媒体能力
