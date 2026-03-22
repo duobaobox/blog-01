@@ -9,6 +9,7 @@ import { MediaGrid } from "./media-grid";
 import { MediaUploadZone } from "./media-upload-zone";
 import { Button } from "@/shared/ui/button";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
 type FilterType = "all" | "image" | "file";
 
@@ -67,21 +68,20 @@ export function MediaLibrary({ initialItems }: MediaLibraryProps) {
           </div>
         )}
 
-        <div className="mb-4 flex gap-1">
-          {filters.map((f) => (
-            <Button
-              key={f.value}
-              variant={filter === f.value ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setFilter(f.value)}
-            >
-              {f.label}
-            </Button>
-          ))}
-          <span className="ml-2 flex items-center text-xs text-muted-foreground">
-            {filteredItems.length} 项
-          </span>
-        </div>
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
+          <div className="mb-4 flex items-center gap-4">
+            <TabsList>
+              {filters.map((f) => (
+                <TabsTrigger key={f.value} value={f.value}>
+                  {f.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <span className="text-xs text-muted-foreground">
+              {filteredItems.length} 项
+            </span>
+          </div>
+        </Tabs>
 
         <MediaGrid items={filteredItems} onDelete={(id) => setConfirmId(id)} />
       </div>
