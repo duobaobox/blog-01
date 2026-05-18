@@ -156,7 +156,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b bg-background/95 px-3 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex shrink-0 items-center justify-center gap-1 overflow-x-auto border-b bg-background/95 px-3 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/80 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <ToolbarButton
           label="撤销"
           disabled={!editor?.can().chain().focus().undo().run()}

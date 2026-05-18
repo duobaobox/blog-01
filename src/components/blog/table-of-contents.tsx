@@ -9,18 +9,19 @@ interface TableOfContentsProps {
 }
 
 export function TableOfContents({ toc }: TableOfContentsProps) {
-  const [activeId, setActiveId] = useState<string>(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    const hash = window.location.hash.slice(1);
-    return toc.some((item) => item.id === hash) ? hash : "";
-  });
+  const [activeId, setActiveId] = useState<string>("");
   const observerRef = useRef<IntersectionObserver | null>(null);
   const headingElementsRef = useRef<Map<string, IntersectionObserverEntry>>(
     new Map()
   );
+
+  // 初始化时检查 URL hash
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && toc.some((item) => item.id === hash)) {
+      setActiveId(hash);
+    }
+  }, [toc]);
 
   // 根据可见标题确定当前激活的目录项
   const getActiveHeading = useCallback(() => {

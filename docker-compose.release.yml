@@ -1,0 +1,42 @@
+# 这是留给最终用户（部署者）的 docker-compose.yml 文件
+# 他们只需要下载这个文件，并配置好 .env 即可一键启动
+
+services:
+  blog:
+    # 这里的 image 请替换为你推送到 Docker Hub 上的实际地址，例如：
+    # image: your-dockerhub-username/blog-01:latest
+    image: blog-01:latest
+    container_name: blog-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://blog:userpassword@db:5432/blog?schema=public
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-请必须修改这串秘钥不要用默认值}
+      - BETTER_AUTH_URL=http://localhost:3000 # 部署到线上后请修改为真实的域名，比如 https://blog.example.com
+      - SITE_URL=http://localhost:3000 # 同上，必须为真实前台域名
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./media:/app/public/media # 本地挂载用户上传的图片附件等
+
+  db:
+    image: postgres:16
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: userpassword
+      POSTGRES_DB: blog
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db_data:

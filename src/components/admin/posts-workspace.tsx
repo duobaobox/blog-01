@@ -102,6 +102,11 @@ function formatRelativeDate(value: Date | string | null) {
   const hour = 60 * minute;
   const day = 24 * hour;
 
+  // 如果是在服务端或者日期比较久远，使用绝对日期
+  if (diff < 0 || diff > day * 7) {
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  }
+
   if (diff < hour) {
     const minutes = Math.max(1, Math.round(diff / minute));
     return `${minutes} 分钟前`;
@@ -112,15 +117,8 @@ function formatRelativeDate(value: Date | string | null) {
     return `${hours} 小时前`;
   }
 
-  if (diff < day * 7) {
-    const days = Math.max(1, Math.round(diff / day));
-    return `${days} 天前`;
-  }
-
-  return date.toLocaleDateString("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-  });
+  const days = Math.max(1, Math.round(diff / day));
+  return `${days} 天前`;
 }
 
 type NavigatorPanelProps = {

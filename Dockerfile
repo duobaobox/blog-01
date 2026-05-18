@@ -43,4 +43,5 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# 在启动应用前，执行一次数据库结构同步
+CMD ["sh", "-c", "npm run db:push && npm start"]

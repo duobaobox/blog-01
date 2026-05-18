@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Clock } from "lucide-react";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
+import { formatDate } from "@/shared/lib/date";
 import {
   Card,
   CardDescription,
@@ -73,8 +74,8 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               {post.publishedAt
-                ? new Date(post.publishedAt).toLocaleDateString("zh-CN")
-                : new Date(post.createdAt).toLocaleDateString("zh-CN")}
+                ? formatDate(post.publishedAt)
+                : formatDate(post.createdAt)}
             </span>
             {post.readingTimeMinutes && (
               <>

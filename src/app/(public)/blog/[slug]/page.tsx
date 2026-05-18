@@ -11,6 +11,7 @@ import { getPostBySlug } from "@/features/posts/queries/post.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { generateSeo } from "@/infrastructure/seo";
 import { TableOfContents } from "@/components/blog/table-of-contents";
+import { formatDate } from "@/shared/lib/date";
 
 export async function generateMetadata({
   params,
@@ -88,8 +89,8 @@ export default async function PostPage({
               <span className="inline-flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
                 {post.publishedAt
-                  ? new Date(post.publishedAt).toLocaleDateString("zh-CN")
-                  : new Date(post.createdAt).toLocaleDateString("zh-CN")}
+                  ? formatDate(post.publishedAt)
+                  : formatDate(post.createdAt)}
               </span>
               {post.readingTimeMinutes && (
                 <span className="inline-flex items-center gap-1">

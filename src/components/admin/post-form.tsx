@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import readingTime from "reading-time";
-import { SlidersHorizontal, Trash2 } from "lucide-react";
+import { HelpCircle, SlidersHorizontal, Trash2 } from "lucide-react";
 import {
   hasMeaningfulContent,
   parseStoredContentJson,
@@ -32,6 +32,12 @@ import {
   EditorToolbar,
   PostRichEditor,
 } from "@/components/admin/post-rich-editor";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -542,6 +548,7 @@ export function PostForm({
           <Button
             variant="outline"
             size="sm"
+            className="w-24"
             disabled={saving || !hasMeaningfulDraft(form)}
             onClick={() => handleSubmit(form.status)}
           >
@@ -550,6 +557,7 @@ export function PostForm({
 
           <Button
             size="sm"
+            className="w-24"
             disabled={saving || !form.title.trim()}
             onClick={() => handleSubmit("published")}
           >
@@ -746,8 +754,19 @@ export function PostForm({
               className="mt-5 flex flex-col gap-4"
               suppressHydrationWarning
             >
+            <TooltipProvider>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="seoTitle">SEO 标题</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="seoTitle">SEO 标题</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      搜索引擎结果中显示的标题，建议包含核心关键词。
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <Input
                   id="seoTitle"
                   value={form.seoTitle}
@@ -760,7 +779,17 @@ export function PostForm({
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="seoDescription">SEO 描述</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="seoDescription">SEO 描述</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      搜索结果页显示的摘要，建议控制在 160 字以内。
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <Textarea
                   id="seoDescription"
                   value={form.seoDescription}
@@ -774,7 +803,17 @@ export function PostForm({
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="canonicalUrl">Canonical URL</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      规范链接。告诉搜索引擎此文章的官方原始地址，防止权重分散。
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <Input
                   id="canonicalUrl"
                   value={form.canonicalUrl}
@@ -785,6 +824,7 @@ export function PostForm({
                   className="h-9 rounded-lg"
                 />
               </div>
+            </TooltipProvider>
             </TabsContent>
           </Tabs>
         </DialogContent>
