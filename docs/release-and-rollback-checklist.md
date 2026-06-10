@@ -5,6 +5,7 @@
 - [ ] 确认本次代码已经合并到目标分支
 - [ ] 确认 `.env` 或交付 compose 中不含 `localhost`
 - [ ] 确认 `BETTER_AUTH_URL` 和 `SITE_URL` 使用真实访问地址
+- [ ] 确认生产环境 `ADMIN_SETUP_TOKEN` 已设置为强随机值
 - [ ] 确认 `STORAGE_PROVIDER` 符合当前环境
 - [ ] 确认数据库有可用备份方案
 - [ ] 确认 `./media` 有可用备份方案
@@ -16,8 +17,9 @@
 
 ```bash
 git pull
-docker compose up -d --build
+docker compose up -d --build db
 docker compose run --rm --profile tools migrate
+docker compose up -d app
 ```
 
 离线交付：

@@ -1,7 +1,19 @@
-FROM --platform=linux/amd64 node:20-bookworm-slim AS deps
+ARG APT_MIRROR=http://mirrors.tuna.tsinghua.edu.cn
+ARG NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+
+FROM node:22-bookworm-slim AS deps
+
+ARG APT_MIRROR
+ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY
+
+RUN sed -i "s|http://deb.debian.org|${APT_MIRROR}|g; s|http://security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+  && apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -10,15 +22,22 @@ FROM deps AS builder
 
 COPY . .
 RUN npm run db:generate
-RUN npm run build
+RUN BETTER_AUTH_SECRET=6f8b9e1a25f7d4c0b3a91e7f2d5c8a0469b2e0f4a7c3d1e8f5b6a9c0d2e4f7a1 BETTER_AUTH_URL=http://localhost:3000 npm run build
 
-FROM --platform=linux/amd64 node:20-bookworm-slim AS runner
+FROM node:22-bookworm-slim AS runner
+
+ARG APT_MIRROR
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+
+RUN sed -i "s|http://deb.debian.org|${APT_MIRROR}|g; s|http://security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+  && apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1001 nodejs \
   && useradd --system --uid 1001 --gid nodejs nextjs
@@ -43,5 +62,4 @@ USER nextjs
 
 EXPOSE 3000
 
-# 在启动应用前，执行一次数据库结构同步
-CMD ["sh", "-c", "npm run db:push && npm start"]
+CMD ["npm", "start"]

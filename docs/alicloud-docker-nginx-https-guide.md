@@ -60,12 +60,15 @@ ADMIN_SETUP_TOKEN=replace-with-strong-random-token
 STORAGE_PROVIDER=local
 ```
 
+首次访问 `/admin/setup` 创建管理员时，需要填写这里配置的 `ADMIN_SETUP_TOKEN`。
+
 启动：
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build db
 docker compose run --rm --profile tools migrate
 docker compose run --rm --profile tools seed
+docker compose up -d app
 ```
 
 先验证应用本体：

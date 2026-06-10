@@ -80,9 +80,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           <div className="flex items-center gap-1.5">
             <Label htmlFor="siteDescription">站点描述</Label>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                }
+              />
               <TooltipContent>
                 网站的全局 SEO 描述，用于首页和未设置单独描述的页面。
               </TooltipContent>
@@ -100,9 +102,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             <div className="flex items-center gap-1.5">
               <Label htmlFor="siteUrl">站点 URL</Label>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
-                </TooltipTrigger>
+                <TooltipTrigger
+                  render={
+                    <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                  }
+                />
                 <TooltipContent>
                   网站的官方主域名，用于生成 SEO 规范链接、RSS 订阅和社交分享预览。
                 </TooltipContent>

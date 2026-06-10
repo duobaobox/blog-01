@@ -20,6 +20,7 @@ export function AdminSetupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [setupToken, setSetupToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +44,11 @@ export function AdminSetupForm() {
       name,
       email,
       password,
+      fetchOptions: {
+        headers: {
+          "x-admin-setup-token": setupToken.trim(),
+        },
+      },
     });
 
     if (signUpError) {
@@ -118,6 +124,16 @@ export function AdminSetupForm() {
                 onChange={(e) => setConfirm(e.target.value)}
                 required
                 placeholder="再次输入密码"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="setupToken">初始化口令</Label>
+              <Input
+                id="setupToken"
+                type="password"
+                value={setupToken}
+                onChange={(e) => setSetupToken(e.target.value)}
+                placeholder="生产环境必填"
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

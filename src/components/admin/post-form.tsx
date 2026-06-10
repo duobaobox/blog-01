@@ -759,9 +759,11 @@ export function PostForm({
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="seoTitle">SEO 标题</Label>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                      }
+                    />
                     <TooltipContent>
                       搜索引擎结果中显示的标题，建议包含核心关键词。
                     </TooltipContent>
@@ -782,9 +784,11 @@ export function PostForm({
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="seoDescription">SEO 描述</Label>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                      }
+                    />
                     <TooltipContent>
                       搜索结果页显示的摘要，建议控制在 160 字以内。
                     </TooltipContent>
@@ -806,9 +810,11 @@ export function PostForm({
                 <div className="flex items-center gap-1.5">
                   <Label htmlFor="canonicalUrl">Canonical URL</Label>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <HelpCircle className="size-3.5 cursor-help text-muted-foreground/60 transition-colors hover:text-muted-foreground" />
+                      }
+                    />
                     <TooltipContent>
                       规范链接。告诉搜索引擎此文章的官方原始地址，防止权重分散。
                     </TooltipContent>

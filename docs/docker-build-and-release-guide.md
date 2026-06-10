@@ -51,13 +51,18 @@ ADMIN_SETUP_TOKEN=replace-with-strong-random-token
 STORAGE_PROVIDER=local
 ```
 
+`ADMIN_SETUP_TOKEN` 是生产环境首次创建管理员账号的初始化口令。部署者访问 `/admin/setup` 时，需要在页面里填写同一个值。
+
 启动：
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build db
 docker compose run --rm --profile tools migrate
 docker compose run --rm --profile tools seed
+docker compose up -d app
 ```
+
+应用容器启动时只执行 `npm start`，不会自动修改数据库结构。数据库同步必须通过 `migrate` 工具服务显式执行。
 
 ## 二、离线交付
 

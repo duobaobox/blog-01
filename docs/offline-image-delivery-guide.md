@@ -108,6 +108,7 @@ vim config/docker-compose.yml
 注意：
 
 - `database-url` 里的数据库密码必须和 `postgres-password` 保持一致
+- `admin-setup-token` 是生产环境首次创建管理员账号的初始化口令，访问 `/admin/setup` 时需要填写同一个值
 - 只改顶部配置值，不要改下面服务名、挂载路径和命令
 
 如果你第一阶段只想用 IP 验证功能链路，可以先写成：
@@ -130,9 +131,10 @@ bash scripts/start-offline-stack.sh .
 这个脚本会：
 
 1. 创建 `media` 和 `data/postgres` 目录
-2. 启动 `app + db`
-3. 执行 `migrate`
+2. 启动 `db`
+3. 显式执行 `migrate`
 4. 自动执行 `seed`
+5. 启动 `app`
 
 ## 6. 验证
 

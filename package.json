@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "tsx --tsconfig tsconfig.test.json --test",
     "lint": "eslint",
     "release:offline:build": "bash scripts/release/build-offline-bundle.sh",
     "db:push": "prisma db push",

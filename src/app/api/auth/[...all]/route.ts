@@ -5,6 +5,10 @@ import {
   isBootstrapAllowed,
   promoteToAdmin,
 } from "@/infrastructure/auth/bootstrap";
+import {
+  isAdminBootstrapRequestAllowed,
+  parseBootstrapTokenFromHeaders,
+} from "@/infrastructure/auth/bootstrap-token";
 
 const authHandler = toNextJsHandler(auth);
 
@@ -34,6 +38,20 @@ export async function POST(request: NextRequest) {
     if (!(await isBootstrapAllowed())) {
       return NextResponse.json(
         { error: "Sign-up is disabled." },
+        { status: 403 },
+      );
+    }
+
+    const requestToken = parseBootstrapTokenFromHeaders(request.headers);
+    if (
+      !isAdminBootstrapRequestAllowed({
+        configuredToken: process.env.ADMIN_SETUP_TOKEN,
+        requestToken,
+        nodeEnv: process.env.NODE_ENV,
+      })
+    ) {
+      return NextResponse.json(
+        { error: "Invalid admin setup token." },
         { status: 403 },
       );
     }

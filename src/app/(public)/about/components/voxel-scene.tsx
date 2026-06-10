@@ -10,8 +10,30 @@ import {
 } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useTheme } from "next-themes";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
+
+const DARK_PARTICLE_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b"];
+const LIGHT_PARTICLE_COLORS = ["#60a5fa", "#a78bfa", "#34d399", "#fbbf24"];
+
+function seededRandom(seed: number) {
+  const value = Math.sin(seed) * 10000;
+  return value - Math.floor(value);
+}
+
+const PARTICLES = Array.from({ length: 20 }, (_, index) => {
+  const seed = index + 1;
+
+  return {
+    position: [
+      (seededRandom(seed * 3) - 0.5) * 25,
+      (seededRandom(seed * 5) - 0.5) * 15 + 5,
+      (seededRandom(seed * 7) - 0.5) * 20 - 5,
+    ] as [number, number, number],
+    colorIndex: Math.floor(seededRandom(seed * 11) * DARK_PARTICLE_COLORS.length),
+    scale: seededRandom(seed * 13) * 0.5 + 0.2,
+  };
+});
 
 // A utility to generate a box mesh easily
 const Voxel = ({
@@ -192,21 +214,7 @@ const VoxelCoffee = ({ position, theme }: { position: [number, number, number]; 
 // Floating bits and particles
 const Particles = ({ theme }: { theme: string }) => {
   const isDark = theme === "dark";
-  const colors = isDark 
-    ? ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b"] 
-    : ["#60a5fa", "#a78bfa", "#34d399", "#fbbf24"];
-    
-  const particles = useMemo(() => {
-    return Array.from({ length: 20 }).map(() => ({
-      position: [
-        (Math.random() - 0.5) * 25,
-        (Math.random() - 0.5) * 15 + 5,
-        (Math.random() - 0.5) * 20 - 5
-      ] as [number, number, number],
-      color: colors[Math.floor(Math.random() * colors.length)],
-      scale: Math.random() * 0.5 + 0.2
-    }));
-  }, [colors]);
+  const colors = isDark ? DARK_PARTICLE_COLORS : LIGHT_PARTICLE_COLORS;
 
   const groupRef = useRef<THREE.Group>(null);
   
@@ -219,10 +227,10 @@ const Particles = ({ theme }: { theme: string }) => {
 
   return (
     <group ref={groupRef}>
-      {particles.map((p, i) => (
+      {PARTICLES.map((p, i) => (
         <mesh key={i} position={p.position} scale={p.scale}>
           <boxGeometry />
-          <meshStandardMaterial color={p.color} />
+          <meshStandardMaterial color={colors[p.colorIndex]} />
           <Outlines thickness={0.05} color="#000000" />
         </mesh>
       ))}
@@ -232,24 +240,6 @@ const Particles = ({ theme }: { theme: string }) => {
 
 export function VoxelScene() {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="w-full h-[400px] flex items-center justify-center bg-muted/20 rounded-xl border border-border/50">
-        <div className="animate-pulse flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-primary/40 animate-bounce" />
-          <div className="w-4 h-4 rounded-full bg-primary/40 animate-bounce [animation-delay:-.15s]" />
-          <div className="w-4 h-4 rounded-full bg-primary/40 animate-bounce [animation-delay:-.3s]" />
-        </div>
-      </div>
-    );
-  }
-
   const theme = resolvedTheme || "light";
 
   return (

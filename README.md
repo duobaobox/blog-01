@@ -67,6 +67,7 @@ DATABASE_URL="postgresql://user:password@localhost:5432/blog?schema=public"
 
 BETTER_AUTH_SECRET="your-secret-key-here"
 BETTER_AUTH_URL="http://localhost:3000"
+# 生产环境必须设置；首次访问 /admin/setup 创建管理员时填写同一口令
 ADMIN_SETUP_TOKEN=""
 
 SITE_URL="http://localhost:3000"
@@ -82,6 +83,7 @@ SEED_ADMIN_PASSWORD="admin123456"
 说明：
 
 - Prisma CLI 默认读取 `.env`，所以本项目本地开发也推荐直接使用 `.env`
+- `NODE_ENV=production` 时，首次管理员注册必须设置并填写 `ADMIN_SETUP_TOKEN`
 - `STORAGE_PROVIDER=local` 时，媒体文件走本地存储
 - `STORAGE_PROVIDER=vercel-blob` 时，需要额外配置 `BLOB_READ_WRITE_TOKEN`
 

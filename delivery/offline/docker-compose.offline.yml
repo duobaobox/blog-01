@@ -1,0 +1,83 @@
+name: blog-01-offline
+
+x-install-config:
+  app-image: &app-image "__APP_IMAGE__"
+  postgres-image: &postgres-image "__POSTGRES_IMAGE__"
+  app-port: &app-port "3000"
+  postgres-user: &postgres-user "blog"
+  postgres-password: &postgres-password "change-this-password"
+  postgres-db: &postgres-db "blog"
+  database-url: &database-url "postgresql://blog:change-this-password@db:5432/blog?schema=public"
+  better-auth-secret: &better-auth-secret "replace-with-strong-random-secret"
+  better-auth-url: &better-auth-url "http://your-server-ip:3000"
+  site-url: &site-url "http://your-server-ip:3000"
+  admin-setup-token: &admin-setup-token "replace-with-strong-admin-setup-token"
+  storage-provider: &storage-provider "local"
+  blob-read-write-token: &blob-read-write-token ""
+  seed-admin-name: &seed-admin-name "Admin"
+  seed-admin-email: &seed-admin-email "admin@example.com"
+  seed-admin-password: &seed-admin-password "change-this-admin-password"
+
+x-app-environment: &app-environment
+  NODE_ENV: production
+  HOSTNAME: 0.0.0.0
+  PORT: 3000
+  DATABASE_URL: *database-url
+  BETTER_AUTH_SECRET: *better-auth-secret
+  BETTER_AUTH_URL: *better-auth-url
+  SITE_URL: *site-url
+  ADMIN_SETUP_TOKEN: *admin-setup-token
+  STORAGE_PROVIDER: *storage-provider
+  BLOB_READ_WRITE_TOKEN: *blob-read-write-token
+  SEED_ADMIN_NAME: *seed-admin-name
+  SEED_ADMIN_EMAIL: *seed-admin-email
+  SEED_ADMIN_PASSWORD: *seed-admin-password
+
+services:
+  app:
+    image: *app-image
+    restart: unless-stopped
+    environment: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - target: 3000
+        published: *app-port
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - ./media:/app/public/media
+
+  migrate:
+    image: *app-image
+    profiles: ["tools"]
+    environment: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npm", "run", "db:push"]
+
+  seed:
+    image: *app-image
+    profiles: ["tools"]
+    environment: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npm", "run", "db:seed"]
+
+  db:
+    image: *postgres-image
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: *postgres-user
+      POSTGRES_PASSWORD: *postgres-password
+      POSTGRES_DB: *postgres-db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
