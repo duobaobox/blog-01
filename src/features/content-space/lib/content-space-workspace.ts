@@ -370,6 +370,12 @@ export function buildContentSpaceUrl(
 
   if (query) {
     params.set("q", query);
+    if (nextState.view === "new") {
+      params.set("view", "new");
+    }
+
+    const queryString = params.toString();
+    return queryString ? `${pathname}?${queryString}` : pathname;
   }
 
   if (nextState.entry === "drafts") {

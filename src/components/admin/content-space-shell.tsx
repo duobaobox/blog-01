@@ -96,9 +96,9 @@ export function ContentSpaceShell({
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
   const leaveConfirm = useConfirm();
 
-  useEffect(() => {
+  if (search !== searchQuery) {
     setSearch(searchQuery);
-  }, [searchQuery]);
+  }
 
   useEffect(() => {
     if (hasExplicitLocationParam || mode === "new") return;
@@ -371,10 +371,13 @@ export function ContentSpaceShell({
             <ContentSpaceContextPanel
               entry={activeEntry}
               searchQuery={searchQuery}
+              search={search}
               topic={activeTopic}
               subtopic={activeSubtopic}
               posts={contextPosts}
               selectedPostId={selectedPostId}
+              onSearchChange={setSearch}
+              onSearchSubmit={handleSearchSubmit}
               onSelectPost={handleSelectPost}
               onCreateNew={handleCreateNew}
             />

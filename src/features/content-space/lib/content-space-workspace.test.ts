@@ -234,3 +234,23 @@ test("buildContentSpaceUrl rewrites context params when switching from a subtopi
 
   assert.equal(url, "/admin/posts?entry=drafts");
 });
+
+test("buildContentSpaceUrl clears post selection when submitting a search", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "subtopic",
+      topicId: "topic-1",
+      subtopicId: "subtopic-2",
+      postId: "post-2",
+      view: "edit",
+      q: "",
+    },
+    next: {
+      q: "docker",
+      postId: undefined,
+      view: "edit",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?q=docker");
+});

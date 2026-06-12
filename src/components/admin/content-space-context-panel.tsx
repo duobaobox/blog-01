@@ -6,6 +6,8 @@ import {
   FileSearch,
   FolderKanban,
   Layers3,
+  Search,
+  ArrowUpDown,
   NotebookPen,
   Sparkles,
 } from "lucide-react";
@@ -16,11 +18,13 @@ import { getPostDisplayTitle } from "@/features/posts/lib/post-title";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import type { ContentSpaceContextPost } from "./content-space-types";
 
 type ContentSpaceContextPanelProps = {
   entry: ContentSpaceEntry;
   searchQuery: string;
+  search: string;
   topic?: {
     id: string;
     name: string;
@@ -33,6 +37,8 @@ type ContentSpaceContextPanelProps = {
   };
   posts: ContentSpaceContextPost[];
   selectedPostId?: string;
+  onSearchChange: (value: string) => void;
+  onSearchSubmit: () => void | Promise<void>;
   onSelectPost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
 };
@@ -111,10 +117,13 @@ function getContextMeta(
 export function ContentSpaceContextPanel({
   entry,
   searchQuery,
+  search,
   topic,
   subtopic,
   posts,
   selectedPostId,
+  onSearchChange,
+  onSearchSubmit,
   onSelectPost,
   onCreateNew,
 }: ContentSpaceContextPanelProps) {
@@ -164,6 +173,42 @@ export function ContentSpaceContextPanel({
           >
             <ArrowUpRight className="size-3.5" />
             新建
+          </Button>
+        </div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <Input
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                void onSearchSubmit();
+              }
+            }}
+            placeholder="搜索文章"
+            aria-label="搜索文章"
+            className="h-9"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            onClick={() => void onSearchSubmit()}
+          >
+            <Search className="size-4" />
+            搜索
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            disabled
+          >
+            <ArrowUpDown className="size-4" />
+            排序
           </Button>
         </div>
 
