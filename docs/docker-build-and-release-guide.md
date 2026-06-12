@@ -64,6 +64,14 @@ docker compose up -d app
 
 应用容器启动时只执行 `npm start`，不会自动修改数据库结构。数据库同步必须通过 `migrate` 工具服务显式执行。
 
+如需补一批联调文章，便于测试前台分页和后台筛选，可额外执行：
+
+```bash
+docker compose run --rm app npm run db:seed:demo-posts
+```
+
+这条命令会向当前数据库补充演示分类、标签和文章，不影响正常启动流程。
+
 ## 二、离线交付
 
 适用场景：

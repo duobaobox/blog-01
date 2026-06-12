@@ -50,7 +50,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
               alt={post.title}
               width={1200}
               height={630}
-              unoptimized
+              sizes="(min-width: 1280px) 352px, (min-width: 768px) 50vw, 100vw"
               className="h-52 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
             />
           </div>

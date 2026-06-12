@@ -724,7 +724,7 @@ export function PostForm({
                       src={form.coverImageUrl}
                       alt="封面预览"
                       fill
-                      unoptimized
+                      sizes="(min-width: 1024px) 24rem, 100vw"
                       className="object-cover"
                     />
                   </div>

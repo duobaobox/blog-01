@@ -44,7 +44,7 @@ export function MediaGridItem({
             src={item.url}
             alt={item.alt || item.filename}
             fill
-            unoptimized
+            sizes="(min-width: 1280px) 16rem, (min-width: 768px) 20rem, 50vw"
             className="object-cover"
           />
         ) : (

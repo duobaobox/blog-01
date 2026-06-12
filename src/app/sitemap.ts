@@ -1,11 +1,11 @@
-export const dynamic = "force-dynamic";
-
 import type { MetadataRoute } from "next";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { getPublishedSlugs } from "@/features/posts/queries/post.queries";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { joinSiteUrl } from "@/shared/lib/url";
+
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = await getResolvedSiteConfig();

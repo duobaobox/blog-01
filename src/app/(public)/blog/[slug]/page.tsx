@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,11 +5,30 @@ import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { parseToc } from "@/features/editor/content-types";
-import { getPostBySlug } from "@/features/posts/queries/post.queries";
+import {
+  getPostBySlug,
+  getPublishedSlugs,
+} from "@/features/posts/queries/post.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { generateSeo } from "@/infrastructure/seo";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 import { formatDate } from "@/shared/lib/date";
+
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  let posts: Awaited<ReturnType<typeof getPublishedSlugs>> = [];
+
+  try {
+    posts = await getPublishedSlugs();
+  } catch {
+    return [];
+  }
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
 
 export async function generateMetadata({
   params,
@@ -66,7 +83,7 @@ export default async function PostPage({
                   alt={post.title}
                   width={1600}
                   height={900}
-                  unoptimized
+                  sizes="(min-width: 1024px) 896px, 100vw"
                   className="h-auto w-full object-cover"
                 />
               </div>

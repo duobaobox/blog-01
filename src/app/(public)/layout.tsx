@@ -2,6 +2,8 @@ import { Header } from "@/shared/ui/header";
 import { Footer } from "@/shared/ui/footer";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
+export const revalidate = 300;
+
 /**
  * 网站公共页面对应的通用布局模块
  * 所有属于 (public) 路由组的页面（如：首页、博客列表页、关于我等）都会自动套用此布局框架。

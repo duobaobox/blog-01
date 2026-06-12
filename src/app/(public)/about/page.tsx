@@ -4,6 +4,8 @@ import {
   StaticPageShell,
 } from "@/components/blog/static-page-shell";
 
+export const revalidate = 300;
+
 export async function generateMetadata() {
   return generateSeo({
     title: "关于",

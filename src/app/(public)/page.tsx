@@ -7,6 +7,8 @@ import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.q
 import { generateSeo } from "@/infrastructure/seo";
 import { StaticPageContainer } from "@/components/blog/static-page-shell";
 
+export const dynamic = "force-dynamic";
+
 /**
  * 动态生成首页的 SEO 元数据 (Meta Tags)
  * 提升网站在搜索引擎和社交分享中的展示效果和抓取权重。
@@ -87,7 +89,7 @@ export default async function HomePage() {
               alt={site.name}
               width={160}
               height={160}
-              unoptimized
+              sizes="(min-width: 640px) 160px, 128px"
               className="h-32 w-32 rounded-3xl border object-cover shadow-sm sm:h-40 sm:w-40"
             />
           ) : (

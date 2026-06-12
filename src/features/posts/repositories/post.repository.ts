@@ -1,6 +1,14 @@
 import { db } from "@/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
 
+export type PostFilters = {
+  status?: string;
+  categoryId?: string;
+  tagId?: string;
+  isFeatured?: boolean;
+  query?: string;
+};
+
 export type FindPostsOptions = {
   status?: string;
   categoryId?: string;
@@ -8,6 +16,7 @@ export type FindPostsOptions = {
   take?: number;
   skip?: number;
   isFeatured?: boolean;
+  query?: string;
   order?: "created" | "updated" | "published";
 };
 
@@ -70,8 +79,54 @@ const editablePostSelect = {
   },
 } satisfies Prisma.postSelect;
 
+function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
+  const where: Prisma.postWhereInput = {};
+
+  if (filters?.status) {
+    where.status = filters.status;
+  }
+
+  if (filters?.categoryId) {
+    where.categoryId = filters.categoryId;
+  }
+
+  if (filters?.tagId) {
+    where.tags = { some: { tagId: filters.tagId } };
+  }
+
+  if (typeof filters?.isFeatured === "boolean") {
+    where.isFeatured = filters.isFeatured;
+  }
+
+  const query = filters?.query?.trim();
+  if (query) {
+    where.OR = [
+      { title: { contains: query, mode: "insensitive" } },
+      { excerpt: { contains: query, mode: "insensitive" } },
+      { contentText: { contains: query, mode: "insensitive" } },
+      {
+        category: {
+          is: {
+            name: { contains: query, mode: "insensitive" },
+          },
+        },
+      },
+      {
+        tags: {
+          some: {
+            tag: {
+              name: { contains: query, mode: "insensitive" },
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  return where;
+}
+
 export async function findPosts(options?: FindPostsOptions) {
-  const where: Record<string, unknown> = {};
   const orderBy: Prisma.postOrderByWithRelationInput[] =
     options?.order === "published"
       ? [
@@ -83,21 +138,8 @@ export async function findPosts(options?: FindPostsOptions) {
         ? [{ updatedAt: "desc" }, { createdAt: "desc" }]
         : [{ createdAt: "desc" }];
 
-  if (options?.status) {
-    where.status = options.status;
-  }
-  if (options?.categoryId) {
-    where.categoryId = options.categoryId;
-  }
-  if (options?.tagId) {
-    where.tags = { some: { tagId: options.tagId } };
-  }
-  if (typeof options?.isFeatured === "boolean") {
-    where.isFeatured = options.isFeatured;
-  }
-
   return db.post.findMany({
-    where,
+    where: buildPostWhere(options),
     orderBy,
     take: options?.take,
     skip: options?.skip,
@@ -123,9 +165,14 @@ export async function findPostById(id: string) {
   });
 }
 
-export async function countPosts(status?: string) {
+export async function countPosts(filters?: string | PostFilters) {
+  const where =
+    typeof filters === "string"
+      ? buildPostWhere({ status: filters })
+      : buildPostWhere(filters);
+
   return db.post.count({
-    where: status ? { status } : undefined,
+    where: Object.keys(where).length > 0 ? where : undefined,
   });
 }
 

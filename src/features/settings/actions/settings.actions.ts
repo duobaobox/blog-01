@@ -47,4 +47,7 @@ export async function updateSiteSettings(formData: FormData) {
 
   revalidatePath("/admin/settings");
   revalidatePath("/", "layout");
+  revalidatePath("/feed.xml");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/robots.txt");
 }

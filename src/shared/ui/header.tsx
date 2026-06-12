@@ -46,7 +46,7 @@ export function Header({ siteName, logoUrl, nav }: HeaderProps) {
               alt={siteName}
               width={32}
               height={32}
-              unoptimized
+              sizes="32px"
               className="size-8 rounded-lg border object-cover"
             />
           ) : null}

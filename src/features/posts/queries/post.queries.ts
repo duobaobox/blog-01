@@ -12,8 +12,8 @@ export async function getPostById(id: string) {
   return postRepo.findPostById(id);
 }
 
-export async function getPostCount(status?: string) {
-  return postRepo.countPosts(status);
+export async function getPostCount(filters?: string | postRepo.PostFilters) {
+  return postRepo.countPosts(filters);
 }
 
 export async function getPublishedForFeed(take?: number) {

@@ -11,6 +11,7 @@
     "release:offline:build": "bash scripts/release/build-offline-bundle.sh",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:demo-posts": "tsx prisma/seed-demo-posts.ts",
     "db:generate": "prisma generate"
   },
   "dependencies": {

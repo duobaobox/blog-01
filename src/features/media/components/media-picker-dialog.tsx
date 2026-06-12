@@ -130,7 +130,7 @@ export function MediaPickerDialog({
                       src={justUploaded.url}
                       alt={justUploaded.filename}
                       fill
-                      unoptimized
+                      sizes="(min-width: 640px) 32rem, 100vw"
                       className="object-contain"
                     />
                   </div>

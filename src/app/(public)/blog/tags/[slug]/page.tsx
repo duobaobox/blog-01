@@ -1,14 +1,23 @@
-export const dynamic = "force-dynamic";
-
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
+import { PostsPagination } from "@/components/blog/posts-pagination";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import { getPosts } from "@/features/posts/queries/post.queries";
+import {
+  getPostCount,
+  getPosts,
+} from "@/features/posts/queries/post.queries";
+import {
+  getTotalPages,
+  parsePageParam,
+  PUBLIC_POSTS_PER_PAGE,
+} from "@/features/posts/lib/pagination";
 import { getTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { generateSeo } from "@/infrastructure/seo";
+
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -27,18 +36,34 @@ export async function generateMetadata({
 
 export default async function TagPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string | string[] }>;
 }) {
   const { slug } = await params;
+  const currentSearchParams = await searchParams;
+  const currentPage = parsePageParam(currentSearchParams.page);
+  if (!currentPage) notFound();
+
   const tag = await getTagBySlug(slug);
 
   if (!tag) notFound();
+
+  const totalPosts = await getPostCount({
+    status: "published",
+    tagId: tag.id,
+  });
+  const totalPages = getTotalPages(totalPosts, PUBLIC_POSTS_PER_PAGE);
+
+  if (currentPage > totalPages) notFound();
 
   const posts = await getPosts({
     status: "published",
     tagId: tag.id,
     order: "published",
+    take: PUBLIC_POSTS_PER_PAGE,
+    skip: (currentPage - 1) * PUBLIC_POSTS_PER_PAGE,
   });
 
   return (
@@ -61,7 +86,17 @@ export default async function TagPage({
             icon={null}
           />
         ) : (
-          posts.map((post) => <PostListCard key={post.slug} post={post} />)
+          <>
+            {posts.map((post) => (
+              <PostListCard key={post.slug} post={post} />
+            ))}
+            <PostsPagination
+              pathname={`/blog/tags/${tag.slug}`}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalPosts}
+            />
+          </>
         )}
       </div>
 

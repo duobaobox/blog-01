@@ -2,6 +2,8 @@ import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.q
 import { getPublishedForFeed } from "@/features/posts/queries/post.queries";
 import { joinSiteUrl } from "@/shared/lib/url";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const site = await getResolvedSiteConfig();
   const baseUrl = site.url;
@@ -41,7 +43,7 @@ ${items}
   return new Response(feed, {
     headers: {
       "Content-Type": "application/xml",
-      "Cache-Control": "no-store",
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
     },
   });
 }

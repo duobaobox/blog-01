@@ -18,6 +18,8 @@
 ## 当前功能
 
 - 博客文章的创建、编辑、草稿、发布
+- 前台博客列表 / 分类页 / 标签页分页
+- 后台文章列表分页、状态筛选、关键词搜索
 - 基于 Tiptap 的后台富文本编辑器
 - 支持 Markdown 粘贴导入并转换为可继续编辑的内容
 - 分类、标签、媒体库、站点设置
@@ -111,6 +113,26 @@ npm run dev
 - 前台首页：[http://localhost:3000](http://localhost:3000)
 - 后台登录：[http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
+### 6. Docker 启动
+
+如果你本地是通过 Docker 跑项目，当前推荐顺序是：
+
+```bash
+docker compose up -d --build db
+docker compose run --rm --profile tools migrate
+docker compose up -d app
+```
+
+如需初始化管理员和示例数据：
+
+```bash
+docker compose run --rm --profile tools seed
+```
+
+更多部署细节见：
+
+- [docs/docker-build-and-release-guide.md](./docs/docker-build-and-release-guide.md)
+
 ## npm Scripts
 
 ```bash
@@ -122,9 +144,36 @@ npm run lint                 # ESLint
 npm run db:generate          # 生成 Prisma Client
 npm run db:push              # 推送 Prisma Schema
 npm run db:seed              # 初始化开发管理员和示例数据
+npm run db:seed:demo-posts   # 灌入前后台联调用的演示文章、分类、标签
 
 npm run release:offline:build  # 生成离线交付包
 ```
+
+## 联调测试数据
+
+为了方便测试博客分页、后台筛选和分类 / 标签页，本项目提供了一套可重复执行的演示数据脚本：
+
+```bash
+npm run db:seed:demo-posts
+```
+
+这会执行：
+
+- 创建或更新演示分类
+- 创建或更新演示标签
+- 写入一批已发布 / 草稿混合的测试文章
+
+适合验证这些流程：
+
+- `/blog` 分页
+- `/blog/categories/[slug]` 分页
+- `/blog/tags/[slug]` 分页
+- `/admin/posts` 搜索、状态筛选、分页
+
+脚本文件：
+
+- [prisma/seed-demo-posts.ts](./prisma/seed-demo-posts.ts)
+- [scripts/dev/seed-demo-posts.md](./scripts/dev/seed-demo-posts.md)
 
 ## 正文数据流
 
@@ -190,6 +239,12 @@ npm run release:offline:build  # 生成离线交付包
 - 关于页：代码维护
 - 项目页：代码维护
 
+这些公开页面当前做了分层缓存处理：
+
+- About / Projects / 公共布局等稳定页面：`revalidate = 300`
+- 首页 / feed / sitemap 这类会直接读数据库的入口：按当前 Docker 构建约束保留动态处理
+- 文章详情页：支持 `generateStaticParams()`，数据库不可用时会优雅回退
+
 这些页面已经统一到一套静态页骨架组件上：
 
 - [src/components/blog/static-page-shell.tsx](./src/components/blog/static-page-shell.tsx)
@@ -234,7 +289,9 @@ npm run release:offline:build  # 生成离线交付包
 ├── prisma/
 │   ├── schema.prisma
 │   └── seed.ts
+│   └── seed-demo-posts.ts
 ├── public/
+├── media/                        # 本地上传目录（运行时使用，不提交到 Git）
 ├── src/
 │   ├── app/                      # Next.js App Router
 │   │   ├── (public)/             # 前台页面

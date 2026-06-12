@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { joinSiteUrl } from "@/shared/lib/url";
 
+export const revalidate = 300;
+
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const site = await getResolvedSiteConfig();
 

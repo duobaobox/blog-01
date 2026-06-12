@@ -1,15 +1,25 @@
-export const dynamic = "force-dynamic";
-
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import { getPosts } from "@/features/posts/queries/post.queries";
+import { PostsPagination } from "@/components/blog/posts-pagination";
+import {
+  getPostCount,
+  getPosts,
+} from "@/features/posts/queries/post.queries";
+import {
+  getTotalPages,
+  parsePageParam,
+  PUBLIC_POSTS_PER_PAGE,
+} from "@/features/posts/lib/pagination";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
 import { generateSeo } from "@/infrastructure/seo";
+
+export const revalidate = 300;
 
 export async function generateMetadata() {
   return generateSeo({
@@ -19,12 +29,35 @@ export async function generateMetadata() {
   });
 }
 
-export default async function BlogPage() {
-  const [posts, categories, tags] = await Promise.all([
-    getPosts({ status: "published", order: "published" }),
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const currentPage = parsePageParam(params.page);
+
+  if (!currentPage) {
+    notFound();
+  }
+
+  const [totalPosts, categories, tags] = await Promise.all([
+    getPostCount({ status: "published" }),
     getCategories("public"),
     getTags("public"),
   ]);
+  const totalPages = getTotalPages(totalPosts, PUBLIC_POSTS_PER_PAGE);
+
+  if (currentPage > totalPages) {
+    notFound();
+  }
+
+  const posts = await getPosts({
+    status: "published",
+    order: "published",
+    take: PUBLIC_POSTS_PER_PAGE,
+    skip: (currentPage - 1) * PUBLIC_POSTS_PER_PAGE,
+  });
   const hasSidebarContent = categories.length > 0 || tags.length > 0;
 
   return (
@@ -55,7 +88,17 @@ export default async function BlogPage() {
                 icon={null}
               />
             ) : (
-              posts.map((post) => <PostListCard key={post.slug} post={post} />)
+              <>
+                {posts.map((post) => (
+                  <PostListCard key={post.slug} post={post} />
+                ))}
+                <PostsPagination
+                  pathname="/blog"
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalPosts}
+                />
+              </>
             )}
           </div>
 
