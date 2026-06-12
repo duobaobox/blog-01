@@ -76,11 +76,17 @@ test("deriveSidebarExpansionState forces expansion during search mode", () => {
   assert.equal(state.subtopicExpanded, true);
 });
 
-test("content-space-sidebar-state only exposes folder expansion helpers", async () => {
-  const sidebarStateModule = await import("./content-space-sidebar-state");
-
-  assert.equal(
-    "getVisiblePostsForSidebarSubtopic" in sidebarStateModule,
-    false,
+test("deriveSidebarExpansionState keeps unrelated folders collapsed outside search mode", () => {
+  const state = deriveSidebarExpansionState(
+    createInput({
+      topicId: "topic-2",
+      subtopicId: "subtopic-2",
+      activeTopicId: "topic-1",
+      activeSubtopicId: "subtopic-1",
+      activePostId: undefined,
+    }),
   );
+
+  assert.equal(state.topicExpanded, false);
+  assert.equal(state.subtopicExpanded, false);
 });

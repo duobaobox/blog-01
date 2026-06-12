@@ -12,7 +12,6 @@ import {
   getSubtopicRowActionModel,
   getTopicRowActionModel,
 } from "@/features/content-space/lib/content-space-node-actions";
-import { buildContentTreeMetrics } from "@/features/content-space/lib/content-space-tree-metrics";
 import { deriveSidebarExpansionState } from "@/features/content-space/lib/content-space-sidebar-state";
 import type { ContentSpaceEntry } from "@/features/content-space/lib/content-space-workspace";
 import { cn } from "@/shared/lib/utils";
@@ -42,12 +41,6 @@ type ContentSpaceSidebarProps = {
   ) => void | Promise<void>;
 };
 
-function formatSidebarDate(value: string | null) {
-  if (!value) return "无更新";
-  const date = new Date(value);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-}
-
 export function ContentSpaceSidebar({
   onCreateNew,
   quickEntries,
@@ -65,7 +58,6 @@ export function ContentSpaceSidebar({
   const forceExpandAllForSearch = activeEntry === "search";
 
   const treeView = useMemo(() => tree, [tree]);
-  const treeMetrics = useMemo(() => buildContentTreeMetrics(treeView), [treeView]);
   const effectiveExpandedTopicIds = useMemo(
     () =>
       activeTopicId && !expandedTopicIds.includes(activeTopicId)
@@ -152,7 +144,6 @@ export function ContentSpaceSidebar({
               active: isTopicActive,
               subtopicCount: topic.subtopics.length,
             });
-            const topicMetrics = treeMetrics.topicById.get(topic.id);
 
             return (
               <div key={topic.id} className="space-y-1">
@@ -195,17 +186,8 @@ export function ContentSpaceSidebar({
                     )}
                   >
                     <FolderKanban className="size-4 shrink-0" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">
-                        {topic.name}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                        草稿 {topicMetrics?.draftPosts ?? 0} · 已发布{" "}
-                        {topicMetrics?.publishedPosts ?? 0} · {formatSidebarDate(topicMetrics?.lastUpdatedAt ?? null)}
-                      </span>
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {topicActionModel.badgeText}
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {topic.name}
                     </span>
                   </button>
                 </div>
@@ -224,7 +206,6 @@ export function ContentSpaceSidebar({
                       expandedSubtopicIds: effectiveExpandedSubtopicIds,
                       forceExpandAllForSearch,
                     });
-                    const subtopicMetrics = treeMetrics.subtopicById.get(subtopic.id);
                     const subtopicActionModel = getSubtopicRowActionModel({
                       expanded: subtopicExpansion.subtopicExpanded,
                       active: isSubtopicActive,
@@ -272,15 +253,8 @@ export function ContentSpaceSidebar({
                                 : "text-foreground/75 hover:bg-accent/50 hover:text-foreground",
                             )}
                           >
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate">{subtopic.name}</span>
-                              <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
-                                草稿 {subtopicMetrics?.draftPosts ?? 0} · 已发布{" "}
-                                {subtopicMetrics?.publishedPosts ?? 0} · {formatSidebarDate(subtopicMetrics?.lastUpdatedAt ?? null)}
-                              </span>
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {subtopicActionModel.badgeText}
+                            <span className="min-w-0 flex-1 truncate">
+                              {subtopic.name}
                             </span>
                           </button>
                         </div>
