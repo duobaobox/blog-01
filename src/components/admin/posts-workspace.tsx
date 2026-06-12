@@ -89,6 +89,16 @@ type SelectedPost = {
   wordCount?: number | null;
   tags: { tag: Tag }[];
   coverImageUrl: string | null;
+  subtopic: {
+    id: string;
+    name: string;
+    slug: string;
+    topic: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  } | null;
 };
 
 type StatusTab = "all" | "published" | "draft";

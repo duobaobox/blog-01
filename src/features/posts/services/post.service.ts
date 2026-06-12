@@ -16,6 +16,7 @@ export async function createPost(input: {
   excerpt: string | null;
   coverImageUrl: string | null;
   categoryId: string | null;
+  subtopicId: string | null;
   status: string;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -38,6 +39,7 @@ export async function createPost(input: {
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
     categoryId: input.categoryId || null,
+    subtopicId: input.subtopicId || null,
     status: input.status,
     publishedAt,
     readingTimeMinutes: materialized.readingTimeMinutes,
@@ -60,6 +62,7 @@ export async function updatePost(
     excerpt: string | null;
     coverImageUrl: string | null;
     categoryId: string | null;
+    subtopicId: string | null;
     status: string;
     seoTitle: string | null;
     seoDescription: string | null;
@@ -88,6 +91,7 @@ export async function updatePost(
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
     categoryId: input.categoryId || null,
+    subtopicId: input.subtopicId || null,
     status: input.status,
     publishedAt,
     readingTimeMinutes: materialized.readingTimeMinutes,

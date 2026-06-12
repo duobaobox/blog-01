@@ -220,6 +220,7 @@ export async function createPost(data: {
   excerpt: string | null;
   coverImageUrl: string | null;
   categoryId: string | null;
+  subtopicId: string | null;
   status: string;
   publishedAt: Date | null;
   readingTimeMinutes: number;
@@ -261,6 +262,7 @@ export async function updatePost(
     excerpt: string | null;
     coverImageUrl: string | null;
     categoryId: string | null;
+    subtopicId: string | null;
     status: string;
     publishedAt: Date | null;
     readingTimeMinutes: number;

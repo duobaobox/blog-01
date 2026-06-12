@@ -93,12 +93,31 @@ interface PostData {
   readingTimeMinutes?: number | null;
   wordCount?: number | null;
   tags: { tag: Tag }[];
+  subtopic: {
+    id: string;
+    name: string;
+    slug: string;
+    topic: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  } | null;
 }
 
 interface PostFormProps {
   post?: PostData;
   categories: Category[];
   tags: Tag[];
+  subtopicGroups?: Array<{
+    topicId: string;
+    topicName: string;
+    subtopics: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
+  defaultSubtopicId?: string;
   onDirtyChange?: (dirty: boolean) => void;
   registerBeforeLeave?: (handler: (() => Promise<boolean>) | null) => void;
 }
@@ -110,6 +129,7 @@ type FormState = {
   contentJson: string;
   contentText: string;
   categoryId: string;
+  subtopicId: string;
   selectedTagIds: string[];
   isFeatured: boolean;
   seoTitle: string;
@@ -133,6 +153,7 @@ function createFormState(post?: PostData): FormState {
     contentJson: stringifyContentJson(post?.contentJson),
     contentText: post?.contentText ?? "",
     categoryId: post?.categoryId ?? "",
+    subtopicId: post?.subtopic?.id ?? "",
     selectedTagIds: post?.tags.map((item) => item.tag.id) ?? [],
     isFeatured: post?.isFeatured ?? false,
     seoTitle: post?.seoTitle ?? "",
@@ -149,6 +170,7 @@ function createSnapshot(form: FormState) {
     coverImageUrl: form.coverImageUrl,
     contentJson: form.contentJson,
     categoryId: form.categoryId,
+    subtopicId: form.subtopicId,
     selectedTagIds: [...form.selectedTagIds].sort(),
     isFeatured: form.isFeatured,
     seoTitle: form.seoTitle,
@@ -166,6 +188,7 @@ function hasMeaningfulDraft(form: FormState) {
     form.contentText.trim() ||
     hasMeaningfulContent(parseStoredContentJson(form.contentJson)) ||
     form.categoryId ||
+    form.subtopicId ||
     form.selectedTagIds.length > 0 ||
     form.isFeatured ||
     form.seoTitle.trim() ||
@@ -203,6 +226,7 @@ function buildPostFormData(form: FormState, slug: string | null) {
   formData.set("coverImageUrl", form.coverImageUrl);
   formData.set("contentJson", form.contentJson);
   formData.set("categoryId", form.categoryId);
+  formData.set("subtopicId", form.subtopicId);
   formData.set("status", form.status);
   formData.set("isFeatured", form.isFeatured.toString());
   formData.set("seoTitle", form.seoTitle);
@@ -216,6 +240,8 @@ export function PostForm({
   post,
   categories,
   tags,
+  subtopicGroups = [],
+  defaultSubtopicId,
   onDirtyChange,
   registerBeforeLeave,
 }: PostFormProps) {
@@ -244,6 +270,9 @@ export function PostForm({
 
   useEffect(() => {
     const nextForm = createFormState(post);
+    if (!post?.subtopic?.id && defaultSubtopicId) {
+      nextForm.subtopicId = defaultSubtopicId;
+    }
     postIdRef.current = post?.id ?? null;
     postSlugRef.current = post?.slug ?? null;
     baselineRef.current = createSnapshot(nextForm);
@@ -252,7 +281,7 @@ export function PostForm({
     setForm(nextForm);
     setIsDirty(false);
     setSaveError(null);
-  }, [post]);
+  }, [defaultSubtopicId, post]);
 
   useEffect(() => {
     formRef.current = form;
@@ -668,6 +697,56 @@ export function PostForm({
                           {category.name}
                         </SelectItem>
                       ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="subtopic">归属子专题</Label>
+                <Select
+                  value={form.subtopicId || "__none__"}
+                  onValueChange={(value) =>
+                    patchForm({
+                      subtopicId: !value || value === "__none__" ? "" : value,
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    id="subtopic"
+                    className="h-9 rounded-lg"
+                    suppressHydrationWarning
+                  >
+                    <SelectValue placeholder="选择子专题">
+                      {(value) => {
+                        if (!value || value === "__none__") {
+                          return "未归属";
+                        }
+
+                        for (const group of subtopicGroups) {
+                          const matched = group.subtopics.find(
+                            (subtopic) => subtopic.id === value,
+                          );
+
+                          if (matched) {
+                            return `${group.topicName} / ${matched.name}`;
+                          }
+                        }
+
+                        return "选择子专题";
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectGroup>
+                      <SelectItem value="__none__">未归属</SelectItem>
+                      {subtopicGroups.flatMap((group) =>
+                        group.subtopics.map((subtopic) => (
+                          <SelectItem key={subtopic.id} value={subtopic.id}>
+                            {group.topicName} / {subtopic.name}
+                          </SelectItem>
+                        )),
+                      )}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
