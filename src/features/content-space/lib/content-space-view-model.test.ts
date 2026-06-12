@@ -61,3 +61,15 @@ test("buildContentSpaceViewModel changes helper copy for ready posts", () => {
   assert.equal(viewModel.emphasis, "适合做最后确认");
   assert.equal(viewModel.emptyTitle, "还没有待发布内容");
 });
+
+test("buildContentSpaceViewModel uses search-specific empty copy", () => {
+  const viewModel = buildContentSpaceViewModel(
+    createInput({
+      entry: "search",
+      posts: [],
+    }),
+  );
+
+  assert.equal(viewModel.sectionTitle, "搜索结果");
+  assert.equal(viewModel.emptyTitle, "换个关键词试试");
+});

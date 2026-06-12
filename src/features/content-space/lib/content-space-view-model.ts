@@ -34,7 +34,7 @@ export function buildContentSpaceViewModel(
     return {
       sectionTitle: "搜索结果",
       emphasis: "快速比对关键词命中内容",
-      emptyTitle: "没有搜索到相关内容",
+      emptyTitle: "换个关键词试试",
     };
   }
 

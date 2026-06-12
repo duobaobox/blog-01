@@ -65,7 +65,6 @@ function getContextMeta(
     topicName?: string;
     subtopicName?: string;
     searchQuery: string;
-    count: number;
   },
 ) {
   if (entry === "drafts") {
@@ -181,14 +180,20 @@ export function ContentSpaceContextPanel({
         {posts.length === 0 ? (
           <PostsEmptyState
             title={viewModel.emptyTitle}
-            description="先创建一篇文章，之后它会自动出现在对应专题里。"
+            description={
+              entry === "search"
+                ? "换个关键词或切换上下文试试。"
+                : "先创建一篇文章，之后它会自动出现在对应专题里。"
+            }
             className="px-4 pt-8"
             size="sm"
             icon={null}
           >
-            <Button size="sm" onClick={() => void onCreateNew()}>
-              创建文章
-            </Button>
+            {entry === "search" ? null : (
+              <Button size="sm" onClick={() => void onCreateNew()}>
+                创建文章
+              </Button>
+            )}
           </PostsEmptyState>
         ) : (
           <div className="space-y-1.5">
