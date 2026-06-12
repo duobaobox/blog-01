@@ -65,8 +65,28 @@ test("buildContentSpaceEditorOutline returns active position and ordered items f
   assert.equal(outline?.activeIndex, 1);
   assert.equal(outline?.total, 3);
   assert.deepEqual(
-    outline?.items.map((item) => item.id),
-    ["post-1", "post-2", "post-3"],
+    outline?.items.map((item) => ({
+      id: item.id,
+      status: item.status,
+      updatedAt: item.updatedAt,
+    })),
+    [
+      {
+        id: "post-1",
+        status: "draft",
+        updatedAt: "2026-06-13T12:00:00.000Z",
+      },
+      {
+        id: "post-2",
+        status: "draft",
+        updatedAt: "2026-06-13T11:00:00.000Z",
+      },
+      {
+        id: "post-3",
+        status: "published",
+        updatedAt: "2026-06-13T10:00:00.000Z",
+      },
+    ],
   );
 });
 

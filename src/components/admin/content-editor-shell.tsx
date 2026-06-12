@@ -54,6 +54,11 @@ export function ContentEditorShell({
   onSelectPost,
   onReturnToStructure,
 }: ContentEditorShellProps) {
+  function formatOutlineDate(value: Date | string) {
+    const date = new Date(value);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  }
+
   const activeTopic = selectedPost?.subtopic?.topic ?? contextTopic;
   const activeSubtopic = selectedPost?.subtopic ?? contextSubtopic;
   const navigation = buildContentSpaceEditorNavigation({
@@ -151,12 +156,24 @@ export function ContentEditorShell({
                     onClick={() => void onSelectPost(item.id)}
                     className={
                       active
-                        ? "max-w-[220px] truncate rounded-full border border-accent bg-accent/60 px-2.5 py-1 text-xs font-medium text-foreground"
-                        : "max-w-[220px] truncate rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                        ? "flex max-w-[260px] items-center gap-2 rounded-full border border-accent bg-accent/60 px-2.5 py-1 text-xs font-medium text-foreground"
+                        : "flex max-w-[260px] items-center gap-2 rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                     }
                     title={`${index + 1}. ${getPostDisplayTitle(item.title)}`}
                   >
-                    {index + 1}. {getPostDisplayTitle(item.title)}
+                    <span
+                      className={
+                        item.status === "published"
+                          ? "h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"
+                          : "h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"
+                      }
+                    />
+                    <span className="truncate">
+                      {index + 1}. {getPostDisplayTitle(item.title)}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground/80">
+                      {formatOutlineDate(item.updatedAt)}
+                    </span>
                   </button>
                 );
               })}
