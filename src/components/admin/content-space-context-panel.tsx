@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import {
   ArrowUpRight,
   Clock3,
@@ -24,7 +25,7 @@ import type { ContentSpaceContextPost } from "./content-space-types";
 type ContentSpaceContextPanelProps = {
   entry: ContentSpaceEntry;
   searchQuery: string;
-  search: string;
+  searchFormRef: RefObject<HTMLFormElement | null>;
   topic?: {
     id: string;
     name: string;
@@ -37,7 +38,6 @@ type ContentSpaceContextPanelProps = {
   };
   posts: ContentSpaceContextPost[];
   selectedPostId?: string;
-  onSearchChange: (value: string) => void;
   onSearchSubmit: () => void | Promise<void>;
   onSelectPost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
@@ -117,12 +117,11 @@ function getContextMeta(
 export function ContentSpaceContextPanel({
   entry,
   searchQuery,
-  search,
+  searchFormRef,
   topic,
   subtopic,
   posts,
   selectedPostId,
-  onSearchChange,
   onSearchSubmit,
   onSelectPost,
   onCreateNew,
@@ -176,26 +175,26 @@ export function ContentSpaceContextPanel({
           </Button>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <form
+          ref={searchFormRef}
+          className="mt-3 flex items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSearchSubmit();
+          }}
+        >
           <Input
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                void onSearchSubmit();
-              }
-            }}
+            name="search"
+            defaultValue={searchQuery}
             placeholder="搜索文章"
             aria-label="搜索文章"
             className="h-9"
           />
           <Button
-            type="button"
+            type="submit"
             size="sm"
             variant="outline"
             className="shrink-0"
-            onClick={() => void onSearchSubmit()}
           >
             <Search className="size-4" />
             搜索
@@ -210,7 +209,7 @@ export function ContentSpaceContextPanel({
             <ArrowUpDown className="size-4" />
             排序
           </Button>
-        </div>
+        </form>
 
         {entry !== "search" ? (
           <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">

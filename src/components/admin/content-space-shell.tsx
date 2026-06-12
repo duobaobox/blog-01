@@ -88,17 +88,13 @@ export function ContentSpaceShell({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [search, setSearch] = useState(searchQuery);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasExplicitLocationParam = Boolean(
     params.postId || params.topic || params.subtopic || params.entry || params.q,
   );
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
+  const searchFormRef = useRef<HTMLFormElement | null>(null);
   const leaveConfirm = useConfirm();
-
-  if (search !== searchQuery) {
-    setSearch(searchQuery);
-  }
 
   useEffect(() => {
     if (hasExplicitLocationParam || mode === "new") return;
@@ -308,14 +304,14 @@ export function ContentSpaceShell({
   }
 
   async function handleSearchSubmit() {
-    const normalizedSearch = search.trim();
+    const formData = new FormData(searchFormRef.current ?? undefined);
+    const normalizedSearch = String(formData.get("search") ?? "").trim();
     if (normalizedSearch === searchQuery.trim()) return;
     if (!(await confirmNavigation())) return;
 
     setSidebarOpen(false);
     navigate({
       postId: undefined,
-      view: "edit",
       q: normalizedSearch,
     });
   }
@@ -371,12 +367,11 @@ export function ContentSpaceShell({
             <ContentSpaceContextPanel
               entry={activeEntry}
               searchQuery={searchQuery}
-              search={search}
+              searchFormRef={searchFormRef}
               topic={activeTopic}
               subtopic={activeSubtopic}
               posts={contextPosts}
               selectedPostId={selectedPostId}
-              onSearchChange={setSearch}
               onSearchSubmit={handleSearchSubmit}
               onSelectPost={handleSelectPost}
               onCreateNew={handleCreateNew}

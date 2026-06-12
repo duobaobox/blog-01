@@ -254,3 +254,21 @@ test("buildContentSpaceUrl clears post selection when submitting a search", () =
 
   assert.equal(url, "/admin/posts?q=docker");
 });
+
+test("buildContentSpaceUrl keeps q and postId when selecting a search result", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "search",
+      postId: undefined,
+      view: "edit",
+      q: "docker",
+    },
+    next: {
+      q: "docker",
+      postId: "post-3",
+      view: "edit",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?q=docker&postId=post-3");
+});

@@ -370,8 +370,8 @@ export function buildContentSpaceUrl(
 
   if (query) {
     params.set("q", query);
-    if (nextState.view === "new") {
-      params.set("view", "new");
+    if (nextState.postId) {
+      params.set("postId", nextState.postId);
     }
 
     const queryString = params.toString();
