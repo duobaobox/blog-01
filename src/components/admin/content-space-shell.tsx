@@ -295,6 +295,18 @@ export function ContentSpaceShell({
     });
   }
 
+  async function handleReturnToStructure() {
+    if (!(await confirmNavigation())) return;
+
+    navigate({
+      entry: activeSubtopic ? "subtopic" : activeTopic ? "topic" : activeEntry,
+      topicId: activeTopic?.id,
+      subtopicId: activeSubtopic?.id,
+      postId: undefined,
+      view: "edit",
+    });
+  }
+
   async function handleSearchSubmit() {
     const normalizedSearch = search.trim();
     if (normalizedSearch === searchQuery.trim()) return;
@@ -386,7 +398,10 @@ export function ContentSpaceShell({
               }}
               contextTopic={activeTopic}
               contextSubtopic={activeSubtopic}
+              contextPosts={contextPosts}
               onCreateNew={handleCreateNew}
+              onSelectPost={handleSelectPost}
+              onReturnToStructure={handleReturnToStructure}
             />
           </div>
         </div>

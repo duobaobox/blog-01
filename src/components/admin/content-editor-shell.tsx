@@ -1,11 +1,13 @@
 "use client";
 
-import { FolderKanban, Layers3 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, FolderKanban, Layers3 } from "lucide-react";
 import { PostForm } from "@/components/admin/post-form";
+import { buildContentSpaceEditorNavigation } from "@/features/content-space/lib/content-space-editor-navigation";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { Button } from "@/shared/ui/button";
 import type {
   AdminCategory,
+  ContentSpaceContextPost,
   AdminTag,
   ContentSpaceSelectedPost,
   ContentSpaceSubtopicGroup,
@@ -29,7 +31,10 @@ type ContentEditorShellProps = {
     name: string;
     slug: string;
   };
+  contextPosts: ContentSpaceContextPost[];
   onCreateNew: () => void | Promise<void>;
+  onSelectPost: (postId: string) => void | Promise<void>;
+  onReturnToStructure: () => void | Promise<void>;
 };
 
 export function ContentEditorShell({
@@ -42,10 +47,17 @@ export function ContentEditorShell({
   registerBeforeLeave,
   contextTopic,
   contextSubtopic,
+  contextPosts,
   onCreateNew,
+  onSelectPost,
+  onReturnToStructure,
 }: ContentEditorShellProps) {
   const activeTopic = selectedPost?.subtopic?.topic ?? contextTopic;
   const activeSubtopic = selectedPost?.subtopic ?? contextSubtopic;
+  const navigation = buildContentSpaceEditorNavigation({
+    contextPosts,
+    selectedPostId: selectedPost?.id,
+  });
 
   if (!selectedPost && mode !== "new") {
     return (
@@ -66,15 +78,55 @@ export function ContentEditorShell({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b bg-muted/20 px-6 py-3">
-        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1">
-            <FolderKanban className="size-3.5" />
-            {activeTopic?.name ?? "未归属专题"}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1">
-            <Layers3 className="size-3.5" />
-            {activeSubtopic?.name ?? "未归属子专题"}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1">
+              <FolderKanban className="size-3.5" />
+              {activeTopic?.name ?? "未归属专题"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1">
+              <Layers3 className="size-3.5" />
+              {activeSubtopic?.name ?? "未归属子专题"}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {(activeSubtopic || activeTopic) && selectedPost ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => void onReturnToStructure()}
+              >
+                <ArrowLeft className="size-3.5" />
+                返回当前结构
+              </Button>
+            ) : null}
+            {navigation.previousPost ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 max-w-[220px] justify-start gap-1.5 px-2.5 text-xs"
+                onClick={() => void onSelectPost(navigation.previousPost!.id)}
+                title={`上一篇：${navigation.previousPost.title}`}
+              >
+                <ChevronLeft className="size-3.5" />
+                <span className="truncate">上一篇：{navigation.previousPost.title}</span>
+              </Button>
+            ) : null}
+            {navigation.nextPost ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 max-w-[220px] justify-start gap-1.5 px-2.5 text-xs"
+                onClick={() => void onSelectPost(navigation.nextPost!.id)}
+                title={`下一篇：${navigation.nextPost.title}`}
+              >
+                <span className="truncate">下一篇：{navigation.nextPost.title}</span>
+                <ChevronRight className="size-3.5" />
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
 
