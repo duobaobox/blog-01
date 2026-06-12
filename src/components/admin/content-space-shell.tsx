@@ -334,10 +334,6 @@ export function ContentSpaceShell({
 
   const sidebar = (
     <ContentSpaceSidebar
-      search={search}
-      onSearchChange={setSearch}
-      onSearchSubmit={handleSearchSubmit}
-      onCreateNew={handleCreateNew}
       quickEntries={[
         { key: "recent", label: "最近编辑", count: quickEntryCounts.recent },
         { key: "drafts", label: "草稿", count: quickEntryCounts.drafts },
@@ -351,7 +347,6 @@ export function ContentSpaceShell({
       onSelectEntry={handleSelectEntry}
       onSelectTopic={handleSelectTopic}
       onSelectSubtopic={handleSelectSubtopic}
-      onSelectPost={handleSelectPost}
     />
   );
 

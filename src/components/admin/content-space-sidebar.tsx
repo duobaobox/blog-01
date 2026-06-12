@@ -25,7 +25,6 @@ type QuickEntry = {
 };
 
 type ContentSpaceSidebarProps = {
-  onCreateNew: () => void | Promise<void>;
   quickEntries: QuickEntry[];
   tree: ContentTreeTopic[];
   activeEntry: ContentSpaceEntry;
@@ -35,14 +34,9 @@ type ContentSpaceSidebarProps = {
   onSelectEntry: (entry: QuickEntry["key"]) => void | Promise<void>;
   onSelectTopic: (topicId: string) => void | Promise<void>;
   onSelectSubtopic: (topicId: string, subtopicId: string) => void | Promise<void>;
-  onSelectPost: (
-    postId: string,
-    options?: { topicId?: string; subtopicId?: string },
-  ) => void | Promise<void>;
 };
 
 export function ContentSpaceSidebar({
-  onCreateNew,
   quickEntries,
   tree,
   activeEntry,
@@ -56,6 +50,9 @@ export function ContentSpaceSidebar({
   const [expandedTopicIds, setExpandedTopicIds] = useState<string[]>([]);
   const [expandedSubtopicIds, setExpandedSubtopicIds] = useState<string[]>([]);
   const forceExpandAllForSearch = activeEntry === "search";
+  const activeQuickEntry = quickEntries.some((entry) => entry.key === activeEntry)
+    ? activeEntry
+    : undefined;
 
   const treeView = useMemo(() => tree, [tree]);
   const effectiveExpandedTopicIds = useMemo(
@@ -82,7 +79,6 @@ export function ContentSpaceSidebar({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => void onCreateNew()}
             disabled
             aria-disabled="true"
             title="文件夹创建能力即将提供"
@@ -93,15 +89,15 @@ export function ContentSpaceSidebar({
           </Button>
         </div>
         <Tabs
-          value={
-            quickEntries.some((entry) => entry.key === activeEntry)
-              ? activeEntry
-              : quickEntries[0]?.key
-          }
+          value={activeQuickEntry}
           onValueChange={(value) => void onSelectEntry(value as QuickEntry["key"])}
           suppressHydrationWarning
         >
-          <TabsList className="grid w-full grid-cols-3" suppressHydrationWarning>
+          <TabsList
+            className="grid w-full"
+            style={{ gridTemplateColumns: `repeat(${quickEntries.length}, minmax(0, 1fr))` }}
+            suppressHydrationWarning
+          >
             {quickEntries.map((entry) => (
               <TabsTrigger
                 key={entry.key}
