@@ -30,6 +30,7 @@
 
 # AI agent configurations
 .agents
+.superpowers
 .claude/skills
 skills
 skills-lock.json
