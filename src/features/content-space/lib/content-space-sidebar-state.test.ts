@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   deriveSidebarExpansionState,
-  getVisiblePostsForSidebarSubtopic,
   type SidebarExpansionInput,
 } from "./content-space-sidebar-state";
 
@@ -22,15 +21,19 @@ function createInput(
   };
 }
 
-test("deriveSidebarExpansionState expands the active topic and subtopic", () => {
-  const state = deriveSidebarExpansionState(createInput());
+test("deriveSidebarExpansionState expands the active topic and active subtopic", () => {
+  const state = deriveSidebarExpansionState(
+    createInput({
+      activePostId: undefined,
+    }),
+  );
 
   assert.equal(state.topicExpanded, true);
   assert.equal(state.subtopicExpanded, true);
 });
 
-test("deriveSidebarExpansionState respects user-expanded topics even when inactive", () => {
-  const state = deriveSidebarExpansionState(
+test("deriveSidebarExpansionState respects user-expanded topics and subtopics even when inactive", () => {
+  const topicState = deriveSidebarExpansionState(
     createInput({
       topicId: "topic-2",
       subtopicId: "subtopic-2",
@@ -40,9 +43,21 @@ test("deriveSidebarExpansionState respects user-expanded topics even when inacti
       expandedTopicIds: ["topic-2"],
     }),
   );
+  const subtopicState = deriveSidebarExpansionState(
+    createInput({
+      topicId: "topic-2",
+      subtopicId: "subtopic-2",
+      activeTopicId: "topic-1",
+      activeSubtopicId: "subtopic-1",
+      activePostId: undefined,
+      expandedSubtopicIds: ["subtopic-2"],
+    }),
+  );
 
-  assert.equal(state.topicExpanded, true);
-  assert.equal(state.subtopicExpanded, false);
+  assert.equal(topicState.topicExpanded, true);
+  assert.equal(topicState.subtopicExpanded, false);
+  assert.equal(subtopicState.topicExpanded, false);
+  assert.equal(subtopicState.subtopicExpanded, true);
 });
 
 test("deriveSidebarExpansionState forces expansion during search mode", () => {
@@ -61,16 +76,11 @@ test("deriveSidebarExpansionState forces expansion during search mode", () => {
   assert.equal(state.subtopicExpanded, true);
 });
 
-test("getVisiblePostsForSidebarSubtopic caps items until expanded", () => {
-  const posts = Array.from({ length: 8 }, (_, index) => ({
-    id: `post-${index + 1}`,
-  }));
+test("content-space-sidebar-state only exposes folder expansion helpers", async () => {
+  const sidebarStateModule = await import("./content-space-sidebar-state");
 
-  const collapsed = getVisiblePostsForSidebarSubtopic(posts, false, 5);
-  const expanded = getVisiblePostsForSidebarSubtopic(posts, true, 5);
-
-  assert.equal(collapsed.items.length, 5);
-  assert.equal(collapsed.hiddenCount, 3);
-  assert.equal(expanded.items.length, 8);
-  assert.equal(expanded.hiddenCount, 0);
+  assert.equal(
+    "getVisiblePostsForSidebarSubtopic" in sidebarStateModule,
+    false,
+  );
 });
