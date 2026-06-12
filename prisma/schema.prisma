@@ -100,15 +100,48 @@ model post {
   categoryId String?
   category   category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
+  subtopicId String?
+  subtopic   subtopic? @relation(fields: [subtopicId], references: [id], onDelete: SetNull)
+
   createdBy String
   author    user   @relation(fields: [createdBy], references: [id])
 
   tags postTag[]
 
   @@index([categoryId])
+  @@index([subtopicId])
   @@index([createdBy])
   @@index([status])
   @@index([publishedAt])
+}
+
+model topic {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subtopics subtopic[]
+}
+
+model subtopic {
+  id          String   @id @default(uuid())
+  topicId     String
+  name        String
+  slug        String
+  description String?  @db.Text
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topic topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  posts post[]
+
+  @@unique([topicId, slug])
+  @@index([topicId, sortOrder])
 }
 
 model category {

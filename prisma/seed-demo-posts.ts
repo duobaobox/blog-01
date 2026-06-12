@@ -8,6 +8,8 @@ type DemoPostSeed = {
   slug: string;
   excerpt: string;
   categorySlug: string;
+  topicSlug: string;
+  subtopicSlug: string;
   tagSlugs: string[];
   status: "published" | "draft";
   isFeatured: boolean;
@@ -25,6 +27,49 @@ const adapter = new PrismaPg({
 });
 
 const db = new PrismaClient({ adapter });
+
+const topics = [
+  {
+    name: "内容系统",
+    slug: "content-system",
+    description: "围绕写作、发布和增长建立的内容知识体系。",
+    sortOrder: 1,
+    subtopics: [
+      {
+        name: "发布流程",
+        slug: "publishing-flow",
+        description: "草稿、校对、发布与前台回归相关内容。",
+        sortOrder: 1,
+      },
+      {
+        name: "增长策略",
+        slug: "growth-strategy",
+        description: "SEO、摘要、专题组织和内容增长。",
+        sortOrder: 2,
+      },
+    ],
+  },
+  {
+    name: "工程实践",
+    slug: "engineering-practice",
+    description: "博客工程实现、部署和前端技术实践。",
+    sortOrder: 2,
+    subtopics: [
+      {
+        name: "Next.js 博客",
+        slug: "nextjs-blog",
+        description: "围绕博客前台、渲染和分页的工程实践。",
+        sortOrder: 1,
+      },
+      {
+        name: "Docker 部署",
+        slug: "docker-delivery",
+        description: "容器化部署、发布检查与运维实践。",
+        sortOrder: 2,
+      },
+    ],
+  },
+] as const;
 
 const categories = [
   { name: "产品设计", slug: "product-design", description: "产品体验、界面策略与交互设计。" },
@@ -50,6 +95,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-admin-publishing-workflow",
     excerpt: "从草稿、预览到发布，梳理最影响效率的后台动作，方便测试文章管理流。",
     categorySlug: "product-design",
+    topicSlug: "content-system",
+    subtopicSlug: "publishing-flow",
     tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
     status: "published",
     isFeatured: true,
@@ -77,6 +124,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-homepage-featured-layout",
     excerpt: "精选文章不只是放三篇内容，更需要验证排序、封面和文案节奏。",
     categorySlug: "product-design",
+    topicSlug: "content-system",
+    subtopicSlug: "growth-strategy",
     tagSlugs: ["content-strategy", "seo", "demo-data"],
     status: "published",
     isFeatured: true,
@@ -103,6 +152,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-category-browsing-entry",
     excerpt: "分类页不只是一个过滤结果页，它应该有足够清晰的浏览结构。",
     categorySlug: "content-ops",
+    topicSlug: "content-system",
+    subtopicSlug: "growth-strategy",
     tagSlugs: ["content-strategy", "seo", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -128,6 +179,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-tag-filter-value",
     excerpt: "标签是跨分类组织内容的方式，测试时要刻意制造交叉内容。",
     categorySlug: "content-ops",
+    topicSlug: "content-system",
+    subtopicSlug: "growth-strategy",
     tagSlugs: ["content-strategy", "admin-ux", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -148,6 +201,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-nextjs-blog-pagination",
     excerpt: "分页不是单纯把数据切开，更重要的是保留位置感和继续浏览的意愿。",
     categorySlug: "frontend-engineering",
+    topicSlug: "engineering-practice",
+    subtopicSlug: "nextjs-blog",
     tagSlugs: ["nextjs", "react", "performance", "demo-data"],
     status: "published",
     isFeatured: true,
@@ -174,6 +229,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-react-longform-rendering",
     excerpt: "长内容最容易出现的是标题层级、段落节奏和代码块渲染问题。",
     categorySlug: "frontend-engineering",
+    topicSlug: "engineering-practice",
+    subtopicSlug: "nextjs-blog",
     tagSlugs: ["react", "performance", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -200,6 +257,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-admin-search-behavior",
     excerpt: "搜索命中不稳定时，后台体验会明显下降，这篇文章方便你测试标题和标签搜索。",
     categorySlug: "product-design",
+    topicSlug: "content-system",
+    subtopicSlug: "publishing-flow",
     tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -225,6 +284,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-seo-excerpt-structure",
     excerpt: "摘要和 SEO 描述虽然短，但会同时影响站内浏览和搜索入口的点击率。",
     categorySlug: "content-ops",
+    topicSlug: "content-system",
+    subtopicSlug: "growth-strategy",
     tagSlugs: ["seo", "content-strategy", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -244,6 +305,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-docker-bootstrap-flow",
     excerpt: "在容器化环境里，数据库、迁移和种子数据的顺序比构建本身更容易出问题。",
     categorySlug: "devops",
+    topicSlug: "engineering-practice",
+    subtopicSlug: "docker-delivery",
     tagSlugs: ["docker", "nextjs", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -269,6 +332,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-build-log-debugging",
     excerpt: "构建失败时，最有效的方式通常不是反复重试，而是先把日志层次读清楚。",
     categorySlug: "devops",
+    topicSlug: "engineering-practice",
+    subtopicSlug: "docker-delivery",
     tagSlugs: ["docker", "performance", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -288,6 +353,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-release-checklist",
     excerpt: "发版前检查不应该只是“能打开”，而要覆盖页面、数据和后台操作。",
     categorySlug: "devops",
+    topicSlug: "engineering-practice",
+    subtopicSlug: "docker-delivery",
     tagSlugs: ["docker", "seo", "demo-data"],
     status: "published",
     isFeatured: false,
@@ -308,6 +375,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-draft-review-checklist",
     excerpt: "草稿文章适合用来测试后台状态筛选、编辑回填和保存行为。",
     categorySlug: "content-ops",
+    topicSlug: "content-system",
+    subtopicSlug: "publishing-flow",
     tagSlugs: ["content-strategy", "admin-ux", "demo-data"],
     status: "draft",
     isFeatured: false,
@@ -333,6 +402,8 @@ const demoPosts: DemoPostSeed[] = [
     slug: "demo-draft-topic-page",
     excerpt: "另一篇草稿，用来验证多草稿场景下的分页和搜索表现。",
     categorySlug: "product-design",
+    topicSlug: "content-system",
+    subtopicSlug: "publishing-flow",
     tagSlugs: ["admin-ux", "demo-data"],
     status: "draft",
     isFeatured: false,
@@ -456,6 +527,51 @@ async function main() {
 
   console.log(`Using admin author: ${adminUser.email}`);
 
+  const subtopicMap = new Map<string, string>();
+  for (const topic of topics) {
+    const savedTopic = await db.topic.upsert({
+      where: { slug: topic.slug },
+      update: {
+        name: topic.name,
+        description: topic.description,
+        sortOrder: topic.sortOrder,
+      },
+      create: {
+        name: topic.name,
+        slug: topic.slug,
+        description: topic.description,
+        sortOrder: topic.sortOrder,
+      },
+      select: { id: true, slug: true },
+    });
+
+    for (const subtopic of topic.subtopics) {
+      const savedSubtopic = await db.subtopic.upsert({
+        where: {
+          topicId_slug: {
+            topicId: savedTopic.id,
+            slug: subtopic.slug,
+          },
+        },
+        update: {
+          name: subtopic.name,
+          description: subtopic.description,
+          sortOrder: subtopic.sortOrder,
+        },
+        create: {
+          topicId: savedTopic.id,
+          name: subtopic.name,
+          slug: subtopic.slug,
+          description: subtopic.description,
+          sortOrder: subtopic.sortOrder,
+        },
+        select: { id: true, slug: true },
+      });
+
+      subtopicMap.set(`${savedTopic.slug}/${savedSubtopic.slug}`, savedSubtopic.id);
+    }
+  }
+
   const categoryMap = new Map<string, string>();
   for (const category of categories) {
     const saved = await db.category.upsert({
@@ -510,6 +626,13 @@ async function main() {
       throw new Error(`Missing category mapping for ${seed.categorySlug}`);
     }
 
+    const subtopicId = subtopicMap.get(`${seed.topicSlug}/${seed.subtopicSlug}`);
+    if (!subtopicId) {
+      throw new Error(
+        `Missing subtopic mapping for ${seed.topicSlug}/${seed.subtopicSlug}`,
+      );
+    }
+
     const createdAt = daysAgo(seed.createdDaysAgo);
     const publishedAt =
       seed.status === "published" && seed.publishedDaysAgo !== null
@@ -535,6 +658,7 @@ async function main() {
         canonicalUrl: null,
         isFeatured: seed.isFeatured,
         categoryId,
+        subtopicId,
         createdBy: adminUser.id,
         createdAt,
         tags: {
@@ -560,6 +684,7 @@ async function main() {
         canonicalUrl: null,
         isFeatured: seed.isFeatured,
         categoryId,
+        subtopicId,
         createdBy: adminUser.id,
         createdAt,
         tags: {
