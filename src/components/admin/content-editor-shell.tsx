@@ -3,7 +3,9 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, FolderKanban, Layers3 } from "lucide-react";
 import { PostForm } from "@/components/admin/post-form";
 import { buildContentSpaceEditorNavigation } from "@/features/content-space/lib/content-space-editor-navigation";
+import { buildContentSpaceEditorOutline } from "@/features/content-space/lib/content-space-editor-outline";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
+import { getPostDisplayTitle } from "@/features/posts/lib/post-title";
 import { Button } from "@/shared/ui/button";
 import type {
   AdminCategory,
@@ -55,6 +57,10 @@ export function ContentEditorShell({
   const activeTopic = selectedPost?.subtopic?.topic ?? contextTopic;
   const activeSubtopic = selectedPost?.subtopic ?? contextSubtopic;
   const navigation = buildContentSpaceEditorNavigation({
+    contextPosts,
+    selectedPostId: selectedPost?.id,
+  });
+  const outline = buildContentSpaceEditorOutline({
     contextPosts,
     selectedPostId: selectedPost?.id,
   });
@@ -128,6 +134,35 @@ export function ContentEditorShell({
             ) : null}
           </div>
         </div>
+
+        {outline && outline.total > 1 ? (
+          <div className="mt-3 rounded-lg border bg-background/80 px-3 py-2">
+            <div className="mb-2 text-[11px] font-medium text-muted-foreground">
+              当前分支 · 第 {outline.activeIndex + 1} / 共 {outline.total} 篇
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {outline.items.map((item, index) => {
+                const active = item.id === selectedPost?.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => void onSelectPost(item.id)}
+                    className={
+                      active
+                        ? "max-w-[220px] truncate rounded-full border border-accent bg-accent/60 px-2.5 py-1 text-xs font-medium text-foreground"
+                        : "max-w-[220px] truncate rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                    }
+                    title={`${index + 1}. ${getPostDisplayTitle(item.title)}`}
+                  >
+                    {index + 1}. {getPostDisplayTitle(item.title)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <PostForm
