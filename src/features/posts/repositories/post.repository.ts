@@ -4,6 +4,7 @@ import { Prisma } from "@/generated/prisma/client";
 export type PostFilters = {
   status?: string;
   categoryId?: string;
+  subtopicId?: string;
   tagId?: string;
   isFeatured?: boolean;
   query?: string;
@@ -12,6 +13,7 @@ export type PostFilters = {
 export type FindPostsOptions = {
   status?: string;
   categoryId?: string;
+  subtopicId?: string;
   tagId?: string;
   take?: number;
   skip?: number;
@@ -39,6 +41,20 @@ const postListSelect = {
       id: true,
       name: true,
       slug: true,
+    },
+  },
+  subtopic: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      topic: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
     },
   },
   tags: {
@@ -72,6 +88,20 @@ const editablePostSelect = {
       name: true,
     },
   },
+  subtopic: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      topic: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  },
   tags: {
     include: {
       tag: true,
@@ -88,6 +118,10 @@ function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
 
   if (filters?.categoryId) {
     where.categoryId = filters.categoryId;
+  }
+
+  if (filters?.subtopicId) {
+    where.subtopicId = filters.subtopicId;
   }
 
   if (filters?.tagId) {
@@ -286,5 +320,46 @@ export async function findPublishedSlugs() {
     where: { status: "published" },
     orderBy: { publishedAt: "desc" },
     select: { slug: true, updatedAt: true },
+  });
+}
+
+export async function findPostsBySubtopic(
+  subtopicId: string,
+  options?: Omit<FindPostsOptions, "subtopicId">,
+) {
+  return findPosts({
+    ...options,
+    subtopicId,
+  });
+}
+
+export async function findRecentlyUpdatedPosts(take = 12) {
+  return db.post.findMany({
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    take,
+    select: postListSelect,
+  });
+}
+
+export async function findDraftPosts(take = 20) {
+  return db.post.findMany({
+    where: { status: "draft" },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    take,
+    select: postListSelect,
+  });
+}
+
+export async function findReadyToPublishPosts(take = 20) {
+  return db.post.findMany({
+    where: {
+      status: "draft",
+      title: {
+        not: "",
+      },
+    },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    take,
+    select: postListSelect,
   });
 }
