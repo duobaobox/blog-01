@@ -34,6 +34,10 @@ function toWorkspacePostSummary(post: Awaited<ReturnType<typeof getRecentEditedP
     title: post.title,
     status: post.status,
     updatedAt: post.updatedAt,
+    excerpt: post.excerpt,
+    coverImageUrl: post.coverImageUrl,
+    seoTitle: post.seoTitle ?? null,
+    seoDescription: post.seoDescription ?? null,
     subtopic: post.subtopic
       ? {
           id: post.subtopic.id,
@@ -103,14 +107,18 @@ export default async function AdminPostsPage({
     readyToPublishPosts: readyToPublishPosts.map(toWorkspacePostSummary),
     searchResults: searchResults.map(toWorkspacePostSummary),
     requestedPost: requestedPost
-      ? {
-          id: requestedPost.id,
-          title: requestedPost.title,
-          status: requestedPost.status,
-          updatedAt: requestedPost.updatedAt ?? new Date().toISOString(),
-          subtopic: requestedPost.subtopic
-            ? {
-                id: requestedPost.subtopic.id,
+        ? {
+            id: requestedPost.id,
+            title: requestedPost.title,
+            status: requestedPost.status,
+            updatedAt: requestedPost.updatedAt ?? new Date().toISOString(),
+            excerpt: requestedPost.excerpt,
+            coverImageUrl: requestedPost.coverImageUrl,
+            seoTitle: requestedPost.seoTitle,
+            seoDescription: requestedPost.seoDescription,
+            subtopic: requestedPost.subtopic
+              ? {
+                  id: requestedPost.subtopic.id,
                 name: requestedPost.subtopic.name,
                 slug: requestedPost.subtopic.slug,
                 topic: {

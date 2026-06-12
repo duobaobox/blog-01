@@ -35,6 +35,8 @@ const postListSelect = {
   publishedAt: true,
   readingTimeMinutes: true,
   coverImageUrl: true,
+  seoTitle: true,
+  seoDescription: true,
   categoryId: true,
   category: {
     select: {

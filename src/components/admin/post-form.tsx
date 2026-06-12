@@ -26,6 +26,7 @@ import {
   UNTITLED_POST_TITLE,
   getPostDisplayTitle,
 } from "@/features/posts/lib/post-title";
+import { buildPostWorkflowTasks } from "@/features/posts/lib/post-workflow-tasks";
 import { TagMultiSelect } from "@/features/taxonomy/components/tag-multi-select";
 import type { Editor } from "@tiptap/core";
 import {
@@ -318,6 +319,16 @@ export function PostForm({
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
+  const workflowTasks = buildPostWorkflowTasks({
+    title: form.title,
+    excerpt: form.excerpt,
+    coverImageUrl: form.coverImageUrl,
+    seoTitle: form.seoTitle,
+    seoDescription: form.seoDescription,
+    subtopicId: form.subtopicId,
+    contentText: form.contentText,
+    status: form.status,
+  });
 
   function patchForm(next: Partial<FormState>) {
     setSaveError(null);
@@ -605,6 +616,47 @@ export function PostForm({
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-8 py-10">
+          {workflowTasks.length > 0 ? (
+            <div className="mb-6 rounded-xl border bg-muted/20 p-3">
+              <div className="mb-2 text-xs font-medium text-muted-foreground">
+                当前建议先处理
+              </div>
+              <div className="space-y-2">
+                {workflowTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="rounded-lg border bg-background px-3 py-2.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          task.tone === "publish"
+                            ? "default"
+                            : task.tone === "structure"
+                              ? "outline"
+                              : "secondary"
+                        }
+                        className="rounded-full px-2 py-0 text-[11px]"
+                      >
+                        {task.tone === "publish"
+                          ? "发布"
+                          : task.tone === "structure"
+                            ? "结构"
+                            : "草稿"}
+                      </Badge>
+                      <span className="text-sm font-medium text-foreground">
+                        {task.title}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {task.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <Input
             value={form.title}
             onChange={(event) => patchForm({ title: event.target.value })}

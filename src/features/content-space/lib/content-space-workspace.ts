@@ -5,6 +5,10 @@ export type WorkspacePostSummary = {
   title: string;
   status: string;
   updatedAt: Date | string;
+  excerpt?: string | null;
+  coverImageUrl?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
   subtopic: {
     id: string;
     name: string;

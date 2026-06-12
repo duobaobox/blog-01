@@ -12,6 +12,7 @@ import {
 import { buildContentContextSummary } from "@/features/content-space/lib/content-space-context";
 import { buildContentSpaceListSections } from "@/features/content-space/lib/content-space-list-sections";
 import { buildContentSpaceViewModel } from "@/features/content-space/lib/content-space-view-model";
+import { buildContentSpaceWorkflowModel } from "@/features/content-space/lib/content-space-workflow";
 import type { ContentSpaceEntry } from "@/features/content-space/lib/content-space-workspace";
 import { getPostDisplayTitle } from "@/features/posts/lib/post-title";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
@@ -147,6 +148,10 @@ export function ContentSpaceContextPanel({
     entry,
     posts,
   });
+  const workflow = buildContentSpaceWorkflowModel({
+    entry,
+    posts,
+  });
   const Icon = meta.icon;
 
   return (
@@ -209,6 +214,34 @@ export function ContentSpaceContextPanel({
         </div>
 
         <div className="mt-3 text-xs text-muted-foreground">{summary.hint}</div>
+
+        {workflow.cards.length > 0 && viewModel.workflowLabel ? (
+          <div className="mt-4 space-y-2">
+            <div className="text-[11px] font-medium tracking-wide text-muted-foreground">
+              {viewModel.workflowLabel}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              {workflow.cards.map((card) => (
+                <div
+                  key={card.title}
+                  className="rounded-lg border bg-muted/20 px-3 py-2.5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs font-medium text-foreground">
+                      {card.title}
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {card.count}
+                    </div>
+                  </div>
+                  <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                    {card.description}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3">

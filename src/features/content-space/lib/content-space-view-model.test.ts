@@ -36,6 +36,7 @@ test("buildContentSpaceViewModel uses recency-oriented helper copy for recent vi
   assert.equal(viewModel.emptyTitle, "还没有最近内容");
   assert.equal(viewModel.sectionTitle, "最近编辑");
   assert.equal(viewModel.emphasis, "继续上次工作");
+  assert.equal(viewModel.workflowLabel, undefined);
 });
 
 test("buildContentSpaceViewModel changes helper copy for drafts", () => {
@@ -47,6 +48,7 @@ test("buildContentSpaceViewModel changes helper copy for drafts", () => {
 
   assert.equal(viewModel.sectionTitle, "草稿整理");
   assert.equal(viewModel.emphasis, "优先补全未完成内容");
+  assert.equal(viewModel.workflowLabel, "当前写作焦点");
 });
 
 test("buildContentSpaceViewModel changes helper copy for ready posts", () => {
@@ -58,4 +60,5 @@ test("buildContentSpaceViewModel changes helper copy for ready posts", () => {
 
   assert.equal(viewModel.sectionTitle, "发布前检查");
   assert.equal(viewModel.emphasis, "适合做最后确认");
+  assert.equal(viewModel.workflowLabel, "发布前检查");
 });
