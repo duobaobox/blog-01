@@ -1,7 +1,6 @@
 export type WorkspaceSession = {
-  activeEntry: "recent" | "drafts" | "ready" | "topic" | "subtopic" | "post";
-  topicId?: string;
-  subtopicId?: string;
+  activeEntry: "all" | "drafts" | "ready" | "folder" | "post";
+  folderId?: string;
   postId?: string;
 };
 
@@ -19,19 +18,17 @@ function isWorkspaceSession(value: unknown): value is WorkspaceSession {
   const candidate = value as Record<string, unknown>;
 
   if (
-    candidate.activeEntry !== "recent" &&
+    candidate.activeEntry !== "all" &&
     candidate.activeEntry !== "drafts" &&
     candidate.activeEntry !== "ready" &&
-    candidate.activeEntry !== "topic" &&
-    candidate.activeEntry !== "subtopic" &&
+    candidate.activeEntry !== "folder" &&
     candidate.activeEntry !== "post"
   ) {
     return false;
   }
 
   return (
-    isOptionalString(candidate.topicId) &&
-    isOptionalString(candidate.subtopicId) &&
+    isOptionalString(candidate.folderId) &&
     isOptionalString(candidate.postId)
   );
 }

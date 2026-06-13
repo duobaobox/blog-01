@@ -3,8 +3,7 @@ import type { WorkspacePostSummary } from "./content-space-workspace";
 
 export type ContentContextInput = {
   entry: ContentSpaceEntry;
-  topicName?: string;
-  subtopicName?: string;
+  folderName?: string;
   searchQuery: string;
   posts: WorkspacePostSummary[];
 };
@@ -21,10 +20,9 @@ export type ContentContextSummary = {
 function getContextLabel(input: ContentContextInput) {
   if (input.entry === "drafts") return "草稿箱";
   if (input.entry === "ready") return "待发布";
-  if (input.entry === "topic") return input.topicName ?? "专题";
-  if (input.entry === "subtopic") return input.subtopicName ?? "子专题";
+  if (input.entry === "folder") return input.folderName ?? "文件夹";
   if (input.entry === "search") return "搜索结果";
-  return "最近编辑";
+  return "全部文章";
 }
 
 function getHint(input: ContentContextInput) {
@@ -40,15 +38,11 @@ function getHint(input: ContentContextInput) {
     return "适合做发布前检查和最终确认";
   }
 
-  if (input.entry === "topic" && input.topicName) {
-    return `围绕 ${input.topicName} 统一整理内容结构`;
+  if (input.entry === "folder" && input.folderName) {
+    return `围绕 ${input.folderName} 持续整理和写作`;
   }
 
-  if (input.entry === "subtopic" && input.subtopicName) {
-    return `聚焦 ${input.subtopicName} 这一条写作分支`;
-  }
-
-  return "从最近动过的内容继续，减少上下文切换";
+  return "按统一列表浏览全部内容，再进入具体文件夹细化整理";
 }
 
 export function buildContentContextSummary(

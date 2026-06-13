@@ -8,9 +8,8 @@ import {
 
 test("serializeWorkspaceSession writes a stable JSON payload", () => {
   const session: WorkspaceSession = {
-    activeEntry: "subtopic",
-    topicId: "topic-1",
-    subtopicId: "subtopic-2",
+    activeEntry: "folder",
+    folderId: "folder-2",
     postId: "post-9",
   };
 
@@ -40,7 +39,7 @@ test("deserializeWorkspaceSession returns null for invalid payloads", () => {
     null,
   );
   assert.equal(
-    deserializeWorkspaceSession(JSON.stringify({ activeEntry: "topic", topicId: 123 })),
+    deserializeWorkspaceSession(JSON.stringify({ activeEntry: "folder", folderId: 123 })),
     null,
   );
 });

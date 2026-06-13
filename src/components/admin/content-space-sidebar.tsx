@@ -1,269 +1,187 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
-  ChevronDown,
-  ChevronRight,
+  Ellipsis,
   FolderKanban,
-  FolderPlus,
+  Plus,
 } from "lucide-react";
-import type { ContentTreeTopic } from "@/features/content-space/lib/content-space-tree";
-import {
-  getSubtopicRowActionModel,
-  getTopicRowActionModel,
-} from "@/features/content-space/lib/content-space-node-actions";
-import { deriveSidebarExpansionState } from "@/features/content-space/lib/content-space-sidebar-state";
+import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
+import { buildContentSpaceFolderView } from "@/features/content-space/lib/content-space-folder-view";
 import type { ContentSpaceEntry } from "@/features/content-space/lib/content-space-workspace";
+import { deleteFolder } from "@/features/content-space/actions/folder.actions";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-
-type QuickEntry = {
-  key: Extract<ContentSpaceEntry, "recent" | "drafts" | "ready">;
-  label: string;
-  count?: number;
-};
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
+import { FolderCreateDialog } from "./folder-create-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 
 type ContentSpaceSidebarProps = {
-  quickEntries: QuickEntry[];
-  tree: ContentTreeTopic[];
+  tree: ContentTreeFolder[];
   activeEntry: ContentSpaceEntry;
-  activeTopicId?: string;
-  activeSubtopicId?: string;
-  activePostId?: string;
-  onSelectEntry: (entry: QuickEntry["key"]) => void | Promise<void>;
-  onSelectTopic: (topicId: string) => void | Promise<void>;
-  onSelectSubtopic: (topicId: string, subtopicId: string) => void | Promise<void>;
+  activeFolderId?: string;
+  onSelectFolder: (folderId: string) => void | Promise<void>;
 };
 
 export function ContentSpaceSidebar({
-  quickEntries,
   tree,
   activeEntry,
-  activeTopicId,
-  activeSubtopicId,
-  activePostId,
-  onSelectEntry,
-  onSelectTopic,
-  onSelectSubtopic,
+  activeFolderId,
+  onSelectFolder,
 }: ContentSpaceSidebarProps) {
-  const [expandedTopicIds, setExpandedTopicIds] = useState<string[]>([]);
-  const [expandedSubtopicIds, setExpandedSubtopicIds] = useState<string[]>([]);
-  const forceExpandAllForSearch = activeEntry === "search";
-  const activeQuickEntry = quickEntries.some((entry) => entry.key === activeEntry)
-    ? activeEntry
-    : undefined;
+  const router = useRouter();
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const folderView = useMemo(() => buildContentSpaceFolderView(tree), [tree]);
 
-  const treeView = useMemo(() => tree, [tree]);
-  const effectiveExpandedTopicIds = useMemo(
-    () =>
-      activeTopicId && !expandedTopicIds.includes(activeTopicId)
-        ? [...expandedTopicIds, activeTopicId]
-        : expandedTopicIds,
-    [activeTopicId, expandedTopicIds],
-  );
-  const effectiveExpandedSubtopicIds = useMemo(
-    () =>
-      activeSubtopicId && !expandedSubtopicIds.includes(activeSubtopicId)
-        ? [...expandedSubtopicIds, activeSubtopicId]
-        : expandedSubtopicIds,
-    [activeSubtopicId, expandedSubtopicIds],
-  );
+
+  async function handleDeleteFolder(folderId: string) {
+    await deleteFolder(folderId);
+  }
 
   return (
-    <div className="flex h-full flex-col bg-muted/10">
-      <div className="border-b px-3 py-3">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <div className="text-sm font-semibold text-foreground">内容空间</div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled
-            aria-disabled="true"
-            title="文件夹创建能力即将提供"
-            className="gap-1.5 px-2 text-xs text-muted-foreground"
-          >
-            <FolderPlus className="size-3.5" />
-            添加文件夹
-          </Button>
-        </div>
-        <Tabs
-          value={activeQuickEntry}
-          onValueChange={(value) => void onSelectEntry(value as QuickEntry["key"])}
-          suppressHydrationWarning
-        >
-          <TabsList
-            className="grid w-full"
-            style={{ gridTemplateColumns: `repeat(${quickEntries.length}, minmax(0, 1fr))` }}
-            suppressHydrationWarning
-          >
-            {quickEntries.map((entry) => (
-              <TabsTrigger
-                key={entry.key}
-                value={entry.key}
-                suppressHydrationWarning
-                className="gap-1 text-xs"
+    <>
+      <TooltipProvider delay={1000}>
+        <div className="flex h-full flex-col bg-muted/10">
+          <div className="flex-1 overflow-y-auto px-1 py-3">
+            <div className="mb-2 flex items-center justify-between px-2">
+              <div className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                文件夹
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label="添加文件夹"
+                onClick={() => setFolderDialogOpen(true)}
               >
-                <span>{entry.label}</span>
-                {typeof entry.count === "number" ? (
-                  <span className="text-[11px] text-muted-foreground">
-                    {entry.count}
-                  </span>
-                ) : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+                <Plus className="size-3.5" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {folderView.map((folder) => {
+                const isFolderActive = activeFolderId === folder.id;
 
-      <div className="flex-1 overflow-y-auto px-2 py-3">
-        <div className="mb-2 px-2 text-[11px] font-medium tracking-wide text-muted-foreground">
-          专题树
-        </div>
-        <div className="space-y-2">
-          {treeView.map((topic) => {
-            const isTopicActive =
-              activeTopicId === topic.id && (activeEntry === "topic" || activeEntry === "subtopic");
-            const topicExpansion = deriveSidebarExpansionState({
-              topicId: topic.id,
-              subtopicId: "",
-              activeTopicId,
-              activeSubtopicId,
-              activePostId,
-              expandedTopicIds: effectiveExpandedTopicIds,
-              expandedSubtopicIds: effectiveExpandedSubtopicIds,
-              forceExpandAllForSearch,
-            });
-            const topicActionModel = getTopicRowActionModel({
-              expanded: topicExpansion.topicExpanded,
-              active: isTopicActive,
-              subtopicCount: topic.subtopics.length,
-            });
-
-            return (
-              <div key={topic.id} className="space-y-1">
-                <div
-                  className={cn(
-                    "flex items-center gap-1 rounded-md px-1",
-                    isTopicActive ? "bg-accent/70" : "",
-                  )}
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    className="shrink-0"
-                    onClick={() =>
-                      setExpandedTopicIds((current) =>
-                        current.includes(topic.id)
-                          ? current.filter((id) => id !== topic.id)
-                          : [...current, topic.id],
-                        )
-                    }
-                    aria-label={topicActionModel.toggleLabel}
-                    title={topicActionModel.toggleLabel}
-                  >
-                    {topicExpansion.topicExpanded ? (
-                      <ChevronDown className="size-3.5" />
-                    ) : (
-                      <ChevronRight className="size-3.5" />
-                    )}
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => void onSelectTopic(topic.id)}
-                    aria-label={`${topicActionModel.selectLabel}：${topic.name}`}
+                return (
+                  <div
+                    key={folder.id}
                     className={cn(
-                      "flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left text-sm transition-colors",
-                      isTopicActive
-                        ? "text-accent-foreground"
-                        : "text-foreground/85 hover:bg-accent/60 hover:text-foreground",
+                      "group flex items-center gap-1 rounded-lg border border-transparent transition-colors",
+                      isFolderActive
+                        ? "border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "hover:border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-within:border-sidebar-ring/60 focus-within:bg-sidebar-accent focus-within:text-sidebar-accent-foreground",
                     )}
                   >
-                    <FolderKanban className="size-4 shrink-0" />
-                    <span className="min-w-0 flex-1 truncate font-medium">
-                      {topic.name}
-                    </span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => void onSelectFolder(folder.id)}
+                      className={cn(
+                        "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
+                        isFolderActive
+                          ? "text-sidebar-accent-foreground"
+                          : "text-foreground/85 hover:text-foreground",
+                      )}
+                    >
+                      <FolderKanban
+                        className={cn(
+                          "size-4 shrink-0",
+                          isFolderActive
+                            ? "text-sidebar-accent-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      />
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <span className="min-w-0 flex-1 truncate font-medium">
+                              {folder.name}
+                            </span>
+                          }
+                        />
+                        <TooltipContent>{folder.name}</TooltipContent>
+                      </Tooltip>
+                      <span
+                        className={cn(
+                          "shrink-0 text-[11px]",
+                          isFolderActive
+                            ? "text-sidebar-accent-foreground/80"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {folder.postCount}
+                      </span>
+                    </button>
 
-                {topicExpansion.topicExpanded ? (
-                  <div className="space-y-1 pl-3">
-                  {topic.subtopics.map((subtopic) => {
-                    const isSubtopicActive = activeSubtopicId === subtopic.id;
-                    const subtopicExpansion = deriveSidebarExpansionState({
-                      topicId: topic.id,
-                      subtopicId: subtopic.id,
-                      activeTopicId,
-                      activeSubtopicId,
-                      activePostId,
-                      expandedTopicIds: effectiveExpandedTopicIds,
-                      expandedSubtopicIds: effectiveExpandedSubtopicIds,
-                      forceExpandAllForSearch,
-                    });
-                    const subtopicActionModel = getSubtopicRowActionModel({
-                      expanded: subtopicExpansion.subtopicExpanded,
-                      active: isSubtopicActive,
-                      postCount: subtopic.posts.length,
-                      hiddenPostCount: 0,
-                    });
-
-                    return (
-                      <div key={subtopic.id} className="space-y-1">
-                        <div
-                          className={cn(
-                            "flex items-center gap-1 rounded-md px-1",
-                            isSubtopicActive ? "bg-secondary/90" : "",
-                          )}
-                        >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        id={`folder-actions-${folder.id}`}
+                        render={
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon-xs"
-                            className="shrink-0"
-                            onClick={() =>
-                              setExpandedSubtopicIds((current) =>
-                                current.includes(subtopic.id)
-                                  ? current.filter((id) => id !== subtopic.id)
-                                  : [...current, subtopic.id],
-                              )
-                            }
-                            aria-label={subtopicActionModel.toggleLabel}
-                            title={subtopicActionModel.toggleLabel}
-                          >
-                            {subtopicExpansion.subtopicExpanded ? (
-                              <ChevronDown className="size-3.5 opacity-70" />
-                            ) : (
-                              <ChevronRight className="size-3.5 opacity-70" />
-                            )}
-                          </Button>
-                          <button
-                            type="button"
-                            onClick={() => void onSelectSubtopic(topic.id, subtopic.id)}
-                            aria-label={`${subtopicActionModel.selectLabel}：${subtopic.name}`}
-                            className={cn(
-                              "flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left text-sm transition-colors",
-                              isSubtopicActive
-                                ? "text-secondary-foreground"
-                                : "text-foreground/75 hover:bg-accent/50 hover:text-foreground",
-                            )}
-                          >
-                            <span className="min-w-0 flex-1 truncate">
-                              {subtopic.name}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                            className="mr-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-sidebar-accent-foreground"
+                          />
+                        }
+                      >
+                        <Ellipsis className="size-3.5" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-28">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditingFolder({
+                              id: folder.id,
+                              name: folder.name,
+                            });
+                            setFolderDialogOpen(true);
+                          }}
+                        >
+                          重命名
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => void handleDeleteFolder(folder.id)}
+                        >
+                          删除
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                ) : null}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </TooltipProvider>
+
+      <FolderCreateDialog
+        open={folderDialogOpen}
+        onOpenChange={(open) => {
+          setFolderDialogOpen(open);
+          if (!open) {
+            setEditingFolder(null);
+          }
+        }}
+        onCreated={(folder) => {
+          void onSelectFolder(folder.id);
+          router.refresh();
+        }}
+        folder={editingFolder ?? undefined}
+      />
+    </>
   );
 }

@@ -33,25 +33,16 @@ export type ContentSpaceSelectedPost = {
   wordCount?: number | null;
   tags: { tag: AdminTag }[];
   coverImageUrl: string | null;
-  subtopic: {
+  folder: {
     id: string;
     name: string;
     slug: string;
-    topic: {
-      id: string;
-      name: string;
-      slug: string;
-    };
   } | null;
 };
 
-export type ContentSpaceSubtopicGroup = {
-  topicId: string;
-  topicName: string;
-  subtopics: Array<{
-    id: string;
-    name: string;
-  }>;
+export type ContentSpaceFolderOption = {
+  id: string;
+  name: string;
 };
 
 export type ContentSpaceContextPost = WorkspacePostSummary;

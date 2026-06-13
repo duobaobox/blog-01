@@ -9,9 +9,8 @@ function createInput(
   overrides?: Partial<ContentContextInput>,
 ): ContentContextInput {
   return {
-    entry: "subtopic",
-    topicName: "工程实践",
-    subtopicName: "Docker 部署",
+    entry: "folder",
+    folderName: "工程实践",
     searchQuery: "",
     posts: [
       {
@@ -19,15 +18,10 @@ function createInput(
         title: "A",
         status: "draft",
         updatedAt: "2026-06-13T10:00:00.000Z",
-        subtopic: {
-          id: "subtopic-1",
-          name: "Docker 部署",
-          slug: "docker-delivery",
-          topic: {
-            id: "topic-1",
-            name: "工程实践",
-            slug: "engineering-practice",
-          },
+        folder: {
+          id: "folder-1",
+          name: "工程实践",
+          slug: "engineering-practice",
         },
       },
       {
@@ -35,15 +29,10 @@ function createInput(
         title: "B",
         status: "published",
         updatedAt: "2026-06-13T11:00:00.000Z",
-        subtopic: {
-          id: "subtopic-1",
-          name: "Docker 部署",
-          slug: "docker-delivery",
-          topic: {
-            id: "topic-1",
-            name: "工程实践",
-            slug: "engineering-practice",
-          },
+        folder: {
+          id: "folder-1",
+          name: "工程实践",
+          slug: "engineering-practice",
         },
       },
     ],
@@ -65,8 +54,7 @@ test("buildContentContextSummary produces contextual label for search views", ()
     createInput({
       entry: "search",
       searchQuery: "docker",
-      topicName: undefined,
-      subtopicName: undefined,
+      folderName: undefined,
     }),
   );
 
@@ -79,8 +67,7 @@ test("buildContentContextSummary treats empty panels as empty state", () => {
     createInput({
       posts: [],
       entry: "drafts",
-      topicName: undefined,
-      subtopicName: undefined,
+      folderName: undefined,
     }),
   );
 

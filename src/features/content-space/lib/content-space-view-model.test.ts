@@ -9,33 +9,33 @@ function createInput(
   overrides?: Partial<ContentSpaceViewModelInput>,
 ): ContentSpaceViewModelInput {
   return {
-    entry: "recent",
+    entry: "all",
     posts: [
       {
         id: "post-1",
         title: "最近更新的文章",
         status: "published",
         updatedAt: "2026-06-13T11:00:00.000Z",
-        subtopic: null,
+        folder: null,
       },
       {
         id: "post-2",
         title: "一篇草稿",
         status: "draft",
         updatedAt: "2026-06-13T10:00:00.000Z",
-        subtopic: null,
+        folder: null,
       },
     ],
     ...overrides,
   };
 }
 
-test("buildContentSpaceViewModel uses recency-oriented helper copy for recent view", () => {
+test("buildContentSpaceViewModel uses all-post helper copy for all view", () => {
   const viewModel = buildContentSpaceViewModel(createInput());
 
-  assert.equal(viewModel.emptyTitle, "还没有最近内容");
-  assert.equal(viewModel.sectionTitle, "最近编辑");
-  assert.equal(viewModel.emphasis, "继续上次工作");
+  assert.equal(viewModel.emptyTitle, "还没有文章");
+  assert.equal(viewModel.sectionTitle, "全部文章");
+  assert.equal(viewModel.emphasis, "先从全局浏览，再进入具体结构");
 });
 
 test("buildContentSpaceViewModel changes helper copy for drafts", () => {
@@ -72,4 +72,15 @@ test("buildContentSpaceViewModel uses search-specific empty copy", () => {
 
   assert.equal(viewModel.sectionTitle, "搜索结果");
   assert.equal(viewModel.emptyTitle, "换个关键词试试");
+});
+
+test("buildContentSpaceViewModel hides contextual helper copy in the compact middle-column header", () => {
+  const viewModel = buildContentSpaceViewModel(
+    createInput({
+      entry: "folder",
+    }),
+  );
+
+  assert.equal(viewModel.showContextHint, false);
+  assert.equal(viewModel.showContextPath, false);
 });

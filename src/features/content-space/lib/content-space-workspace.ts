@@ -1,4 +1,4 @@
-import type { ContentTreeTopic } from "./content-space-tree";
+import type { ContentTreeFolder } from "./content-space-tree";
 
 export type WorkspacePostSummary = {
   id: string;
@@ -9,30 +9,23 @@ export type WorkspacePostSummary = {
   coverImageUrl?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
-  subtopic: {
+  folder: {
     id: string;
     name: string;
     slug: string;
-    topic: {
-      id: string;
-      name: string;
-      slug: string;
-    };
   } | null;
 };
 
 export type ContentSpaceEntry =
-  | "recent"
+  | "all"
   | "drafts"
   | "ready"
-  | "topic"
-  | "subtopic"
+  | "folder"
   | "search";
 
 export type ContentSpaceParams = {
   entry?: string;
-  topic?: string;
-  subtopic?: string;
+  folder?: string;
   postId?: string;
   view?: string;
   q?: string;
@@ -42,12 +35,7 @@ export type ResolvedContentSpaceState = {
   mode: "new" | "edit";
   entry: ContentSpaceEntry;
   searchQuery: string;
-  activeTopic?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  activeSubtopic?: {
+  activeFolder?: {
     id: string;
     name: string;
     slug: string;
@@ -58,8 +46,8 @@ export type ResolvedContentSpaceState = {
 
 type ResolveContentSpaceStateOptions = {
   params: ContentSpaceParams;
-  contentTree: ContentTreeTopic[];
-  recentEdited: WorkspacePostSummary[];
+  contentTree: ContentTreeFolder[];
+  allPosts: WorkspacePostSummary[];
   draftPosts: WorkspacePostSummary[];
   readyToPublishPosts: WorkspacePostSummary[];
   searchResults: WorkspacePostSummary[];
@@ -69,32 +57,28 @@ type ResolveContentSpaceStateOptions = {
 type BuildContentSpaceUrlInput = {
   current: {
     entry: ContentSpaceEntry;
-    topicId?: string;
-    subtopicId?: string;
+    folderId?: string;
     postId?: string;
     view: "new" | "edit";
     q?: string;
   };
   next: Partial<{
     entry: ContentSpaceEntry;
-    topicId?: string;
-    subtopicId?: string;
+    folderId?: string;
     postId?: string;
     view: "new" | "edit";
     q?: string;
   }>;
 };
 
-type TopicNode = ContentTreeTopic;
-type SubtopicNode = ContentTreeTopic["subtopics"][number];
+type FolderNode = ContentTreeFolder;
 
 function normalizeEntry(value: string | undefined): ContentSpaceEntry | undefined {
   if (
-    value === "recent" ||
+    value === "all" ||
     value === "drafts" ||
     value === "ready" ||
-    value === "topic" ||
-    value === "subtopic" ||
+    value === "folder" ||
     value === "search"
   ) {
     return value;
@@ -103,66 +87,36 @@ function normalizeEntry(value: string | undefined): ContentSpaceEntry | undefine
   return undefined;
 }
 
-function findTopic(contentTree: ContentTreeTopic[], topicId?: string) {
-  if (!topicId) return undefined;
-  return contentTree.find((topic) => topic.id === topicId);
+function findFolder(contentTree: ContentTreeFolder[], folderId?: string) {
+  if (!folderId) return undefined;
+  return contentTree.find((folder) => folder.id === folderId);
 }
 
-function findSubtopic(
-  contentTree: ContentTreeTopic[],
-  subtopicId?: string,
-): { topic: TopicNode; subtopic: SubtopicNode } | undefined {
-  if (!subtopicId) return undefined;
-
-  for (const topic of contentTree) {
-    const subtopic = topic.subtopics.find((item) => item.id === subtopicId);
-    if (subtopic) {
-      return { topic, subtopic };
-    }
-  }
-
-  return undefined;
-}
-
-function findPostInTree(contentTree: ContentTreeTopic[], postId?: string) {
+function findPostInTree(contentTree: ContentTreeFolder[], postId?: string) {
   if (!postId) return undefined;
 
-  for (const topic of contentTree) {
-    for (const subtopic of topic.subtopics) {
-      const post = subtopic.posts.find((item) => item.id === postId);
-      if (post) {
-        return { topic, subtopic, post };
-      }
+  for (const folder of contentTree) {
+    const post = folder.posts.find((item) => item.id === postId);
+    if (post) {
+      return { folder, post };
     }
   }
 
   return undefined;
 }
 
-function summarizeTreePosts(
-  subtopic: SubtopicNode,
-  topic: TopicNode,
-): WorkspacePostSummary[] {
-  return subtopic.posts.map((post) => ({
+function summarizeFolderPosts(folder: FolderNode): WorkspacePostSummary[] {
+  return folder.posts.map((post) => ({
     id: post.id,
     title: post.title,
     status: post.status,
     updatedAt: post.updatedAt,
-    subtopic: {
-      id: subtopic.id,
-      name: subtopic.name,
-      slug: subtopic.slug,
-      topic: {
-        id: topic.id,
-        name: topic.name,
-        slug: topic.slug,
-      },
+    folder: {
+      id: folder.id,
+      name: folder.name,
+      slug: folder.slug,
     },
   }));
-}
-
-function summarizeTopicPosts(topic: TopicNode): WorkspacePostSummary[] {
-  return topic.subtopics.flatMap((subtopic) => summarizeTreePosts(subtopic, topic));
 }
 
 function dedupePosts(posts: WorkspacePostSummary[]) {
@@ -193,10 +147,26 @@ function selectPostId(
   return contextPosts[0]?.id;
 }
 
+function resolveSearchContext(
+  contentTree: ContentTreeFolder[],
+  params: ContentSpaceParams,
+) {
+  const explicitFolder = findFolder(contentTree, params.folder);
+  if (!explicitFolder) return { activeFolder: undefined };
+
+  return {
+    activeFolder: {
+      id: explicitFolder.id,
+      name: explicitFolder.name,
+      slug: explicitFolder.slug,
+    },
+  };
+}
+
 export function resolveContentSpaceState({
   params,
   contentTree,
-  recentEdited,
+  allPosts,
   draftPosts,
   readyToPublishPosts,
   searchResults,
@@ -207,10 +177,13 @@ export function resolveContentSpaceState({
   const requestedEntry = normalizeEntry(params.entry);
 
   if (searchQuery) {
+    const searchContext = resolveSearchContext(contentTree, params);
+
     return {
       mode,
       entry: "search",
       searchQuery,
+      activeFolder: searchContext.activeFolder,
       selectedPostId: selectPostId(searchResults, params.postId, mode),
       contextPosts: dedupePosts(searchResults),
     };
@@ -229,61 +202,29 @@ export function resolveContentSpaceState({
     };
   }
 
-  const postContext =
-    requestedPost?.subtopic
-      ? {
-          topic: {
-            id: requestedPost.subtopic.topic.id,
-            name: requestedPost.subtopic.topic.name,
-            slug: requestedPost.subtopic.topic.slug,
-            subtopics: [],
-          },
-          subtopic: {
-            id: requestedPost.subtopic.id,
-            name: requestedPost.subtopic.name,
-            slug: requestedPost.subtopic.slug,
-            posts: [],
-          },
-        }
-      : findPostInTree(contentTree, params.postId);
+  const postContext = requestedPost?.folder
+    ? {
+        folder: {
+          id: requestedPost.folder.id,
+          name: requestedPost.folder.name,
+          slug: requestedPost.folder.slug,
+          posts: [],
+        },
+      }
+    : findPostInTree(contentTree, params.postId);
 
-  const explicitSubtopic = findSubtopic(contentTree, params.subtopic);
-  if (explicitSubtopic) {
-    const contextPosts = dedupePosts(
-      summarizeTreePosts(explicitSubtopic.subtopic, explicitSubtopic.topic),
-    );
+  const explicitFolder = findFolder(contentTree, params.folder);
+  if (explicitFolder) {
+    const contextPosts = dedupePosts(summarizeFolderPosts(explicitFolder));
 
     return {
       mode,
-      entry: "subtopic",
+      entry: "folder",
       searchQuery,
-      activeTopic: {
-        id: explicitSubtopic.topic.id,
-        name: explicitSubtopic.topic.name,
-        slug: explicitSubtopic.topic.slug,
-      },
-      activeSubtopic: {
-        id: explicitSubtopic.subtopic.id,
-        name: explicitSubtopic.subtopic.name,
-        slug: explicitSubtopic.subtopic.slug,
-      },
-      selectedPostId: selectPostId(contextPosts, params.postId, mode),
-      contextPosts,
-    };
-  }
-
-  const explicitTopic = findTopic(contentTree, params.topic);
-  if (explicitTopic) {
-    const contextPosts = dedupePosts(summarizeTopicPosts(explicitTopic));
-
-    return {
-      mode,
-      entry: "topic",
-      searchQuery,
-      activeTopic: {
-        id: explicitTopic.id,
-        name: explicitTopic.name,
-        slug: explicitTopic.slug,
+      activeFolder: {
+        id: explicitFolder.id,
+        name: explicitFolder.name,
+        slug: explicitFolder.slug,
       },
       selectedPostId: selectPostId(contextPosts, params.postId, mode),
       contextPosts,
@@ -292,29 +233,22 @@ export function resolveContentSpaceState({
 
   if (postContext) {
     const contextPosts = dedupePosts(
-      requestedPost?.subtopic
-        ? recentEdited.filter(
-            (post) => post.subtopic?.id === requestedPost.subtopic?.id,
-          )
-        : summarizeTreePosts(postContext.subtopic, postContext.topic),
+      requestedPost?.folder
+        ? allPosts.filter((post) => post.folder?.id === requestedPost.folder?.id)
+        : summarizeFolderPosts(postContext.folder),
     );
 
     return {
       mode,
-      entry: "subtopic",
+      entry: "folder",
       searchQuery,
-      activeTopic: {
-        id: postContext.topic.id,
-        name: postContext.topic.name,
-        slug: postContext.topic.slug,
-      },
-      activeSubtopic: {
-        id: postContext.subtopic.id,
-        name: postContext.subtopic.name,
-        slug: postContext.subtopic.slug,
+      activeFolder: {
+        id: postContext.folder.id,
+        name: postContext.folder.name,
+        slug: postContext.folder.slug,
       },
       selectedPostId: selectPostId(
-        contextPosts.length > 0 ? contextPosts : recentEdited,
+        contextPosts.length > 0 ? contextPosts : allPosts,
         params.postId ?? requestedPost?.id,
         mode,
       ),
@@ -327,9 +261,9 @@ export function resolveContentSpaceState({
     };
   }
 
-  const entry: Extract<ContentSpaceEntry, "recent" | "topic" | "subtopic" | "search"> =
-    requestedEntry ?? "recent";
-  const contextPosts = recentEdited;
+  const entry: Extract<ContentSpaceEntry, "all" | "folder" | "search"> =
+    requestedEntry === "folder" ? "folder" : "all";
+  const contextPosts = allPosts;
 
   return {
     mode,
@@ -346,14 +280,10 @@ export function buildContentSpaceUrl(
 ) {
   const nextState = {
     entry: input.next.entry ?? input.current.entry,
-    topicId:
-      Object.prototype.hasOwnProperty.call(input.next, "topicId")
-        ? input.next.topicId
-        : input.current.topicId,
-    subtopicId:
-      Object.prototype.hasOwnProperty.call(input.next, "subtopicId")
-        ? input.next.subtopicId
-        : input.current.subtopicId,
+    folderId:
+      Object.prototype.hasOwnProperty.call(input.next, "folderId")
+        ? input.next.folderId
+        : input.current.folderId,
     postId:
       Object.prototype.hasOwnProperty.call(input.next, "postId")
         ? input.next.postId
@@ -370,6 +300,10 @@ export function buildContentSpaceUrl(
 
   if (query) {
     params.set("q", query);
+    if (nextState.entry === "folder" && nextState.folderId) {
+      params.set("folder", nextState.folderId);
+    }
+
     if (nextState.postId) {
       params.set("postId", nextState.postId);
     }
@@ -386,12 +320,8 @@ export function buildContentSpaceUrl(
     params.set("entry", "ready");
   }
 
-  if (nextState.entry === "topic" && nextState.topicId) {
-    params.set("topic", nextState.topicId);
-  }
-
-  if (nextState.entry === "subtopic" && nextState.subtopicId) {
-    params.set("subtopic", nextState.subtopicId);
+  if (nextState.entry === "folder" && nextState.folderId) {
+    params.set("folder", nextState.folderId);
   }
 
   if (nextState.view === "new") {

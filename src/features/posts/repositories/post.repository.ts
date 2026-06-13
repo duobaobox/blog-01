@@ -4,7 +4,7 @@ import { Prisma } from "@/generated/prisma/client";
 export type PostFilters = {
   status?: string;
   categoryId?: string;
-  subtopicId?: string;
+  folderId?: string;
   tagId?: string;
   isFeatured?: boolean;
   query?: string;
@@ -13,7 +13,7 @@ export type PostFilters = {
 export type FindPostsOptions = {
   status?: string;
   categoryId?: string;
-  subtopicId?: string;
+  folderId?: string;
   tagId?: string;
   take?: number;
   skip?: number;
@@ -45,18 +45,11 @@ const postListSelect = {
       slug: true,
     },
   },
-  subtopic: {
+  folder: {
     select: {
       id: true,
       name: true,
       slug: true,
-      topic: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
     },
   },
   tags: {
@@ -90,18 +83,11 @@ const editablePostSelect = {
       name: true,
     },
   },
-  subtopic: {
+  folder: {
     select: {
       id: true,
       name: true,
       slug: true,
-      topic: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
     },
   },
   tags: {
@@ -122,8 +108,8 @@ function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
     where.categoryId = filters.categoryId;
   }
 
-  if (filters?.subtopicId) {
-    where.subtopicId = filters.subtopicId;
+  if (filters?.folderId) {
+    where.folderId = filters.folderId;
   }
 
   if (filters?.tagId) {
@@ -222,7 +208,7 @@ export async function createPost(data: {
   excerpt: string | null;
   coverImageUrl: string | null;
   categoryId: string | null;
-  subtopicId: string | null;
+  folderId: string | null;
   status: string;
   publishedAt: Date | null;
   readingTimeMinutes: number;
@@ -264,7 +250,7 @@ export async function updatePost(
     excerpt: string | null;
     coverImageUrl: string | null;
     categoryId: string | null;
-    subtopicId: string | null;
+    folderId: string | null;
     status: string;
     publishedAt: Date | null;
     readingTimeMinutes: number;
@@ -327,13 +313,13 @@ export async function findPublishedSlugs() {
   });
 }
 
-export async function findPostsBySubtopic(
-  subtopicId: string,
-  options?: Omit<FindPostsOptions, "subtopicId">,
+export async function findPostsByFolder(
+  folderId: string,
+  options?: Omit<FindPostsOptions, "folderId">,
 ) {
   return findPosts({
     ...options,
-    subtopicId,
+    folderId,
   });
 }
 

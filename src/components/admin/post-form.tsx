@@ -26,7 +26,6 @@ import {
   UNTITLED_POST_TITLE,
   getPostDisplayTitle,
 } from "@/features/posts/lib/post-title";
-import { buildPostWorkflowTasks } from "@/features/posts/lib/post-workflow-tasks";
 import { TagMultiSelect } from "@/features/taxonomy/components/tag-multi-select";
 import type { Editor } from "@tiptap/core";
 import {
@@ -94,15 +93,10 @@ interface PostData {
   readingTimeMinutes?: number | null;
   wordCount?: number | null;
   tags: { tag: Tag }[];
-  subtopic: {
+  folder: {
     id: string;
     name: string;
     slug: string;
-    topic: {
-      id: string;
-      name: string;
-      slug: string;
-    };
   } | null;
 }
 
@@ -110,15 +104,11 @@ interface PostFormProps {
   post?: PostData;
   categories: Category[];
   tags: Tag[];
-  subtopicGroups?: Array<{
-    topicId: string;
-    topicName: string;
-    subtopics: Array<{
-      id: string;
-      name: string;
-    }>;
+  folderOptions?: Array<{
+    id: string;
+    name: string;
   }>;
-  defaultSubtopicId?: string;
+  defaultFolderId?: string;
   onDirtyChange?: (dirty: boolean) => void;
   registerBeforeLeave?: (handler: (() => Promise<boolean>) | null) => void;
 }
@@ -130,7 +120,7 @@ type FormState = {
   contentJson: string;
   contentText: string;
   categoryId: string;
-  subtopicId: string;
+  folderId: string;
   selectedTagIds: string[];
   isFeatured: boolean;
   seoTitle: string;
@@ -146,7 +136,12 @@ type SaveOptions = {
   silent?: boolean;
 };
 
-function createFormState(post?: PostData): FormState {
+function createFormState(
+  post?: PostData,
+  options?: {
+    defaultFolderId?: string;
+  },
+): FormState {
   return {
     title: post?.title ?? "",
     excerpt: post?.excerpt ?? "",
@@ -154,7 +149,7 @@ function createFormState(post?: PostData): FormState {
     contentJson: stringifyContentJson(post?.contentJson),
     contentText: post?.contentText ?? "",
     categoryId: post?.categoryId ?? "",
-    subtopicId: post?.subtopic?.id ?? "",
+    folderId: post?.folder?.id ?? options?.defaultFolderId ?? "",
     selectedTagIds: post?.tags.map((item) => item.tag.id) ?? [],
     isFeatured: post?.isFeatured ?? false,
     seoTitle: post?.seoTitle ?? "",
@@ -171,7 +166,7 @@ function createSnapshot(form: FormState) {
     coverImageUrl: form.coverImageUrl,
     contentJson: form.contentJson,
     categoryId: form.categoryId,
-    subtopicId: form.subtopicId,
+    folderId: form.folderId,
     selectedTagIds: [...form.selectedTagIds].sort(),
     isFeatured: form.isFeatured,
     seoTitle: form.seoTitle,
@@ -189,7 +184,7 @@ function hasMeaningfulDraft(form: FormState) {
     form.contentText.trim() ||
     hasMeaningfulContent(parseStoredContentJson(form.contentJson)) ||
     form.categoryId ||
-    form.subtopicId ||
+    form.folderId ||
     form.selectedTagIds.length > 0 ||
     form.isFeatured ||
     form.seoTitle.trim() ||
@@ -227,7 +222,7 @@ function buildPostFormData(form: FormState, slug: string | null) {
   formData.set("coverImageUrl", form.coverImageUrl);
   formData.set("contentJson", form.contentJson);
   formData.set("categoryId", form.categoryId);
-  formData.set("subtopicId", form.subtopicId);
+  formData.set("folderId", form.folderId);
   formData.set("status", form.status);
   formData.set("isFeatured", form.isFeatured.toString());
   formData.set("seoTitle", form.seoTitle);
@@ -241,13 +236,15 @@ export function PostForm({
   post,
   categories,
   tags,
-  subtopicGroups = [],
-  defaultSubtopicId,
+  folderOptions = [],
+  defaultFolderId,
   onDirtyChange,
   registerBeforeLeave,
 }: PostFormProps) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(() => createFormState(post));
+  const [form, setForm] = useState<FormState>(() =>
+    createFormState(post, { defaultFolderId }),
+  );
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -261,7 +258,9 @@ export function PostForm({
     handleConfirm: handleLeaveConfirm,
   } = useConfirm();
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
-  const baselineRef = useRef(createSnapshot(createFormState(post)));
+  const baselineRef = useRef(
+    createSnapshot(createFormState(post, { defaultFolderId })),
+  );
   const formRef = useRef(form);
   const postIdRef = useRef<string | null>(post?.id ?? null);
   const postSlugRef = useRef<string | null>(post?.slug ?? null);
@@ -270,10 +269,7 @@ export function PostForm({
   const displayTitle = getPostDisplayTitle(form.title);
 
   useEffect(() => {
-    const nextForm = createFormState(post);
-    if (!post?.subtopic?.id && defaultSubtopicId) {
-      nextForm.subtopicId = defaultSubtopicId;
-    }
+    const nextForm = createFormState(post, { defaultFolderId });
     postIdRef.current = post?.id ?? null;
     postSlugRef.current = post?.slug ?? null;
     baselineRef.current = createSnapshot(nextForm);
@@ -282,7 +278,7 @@ export function PostForm({
     setForm(nextForm);
     setIsDirty(false);
     setSaveError(null);
-  }, [defaultSubtopicId, post]);
+  }, [defaultFolderId, post]);
 
   useEffect(() => {
     formRef.current = form;
@@ -319,16 +315,6 @@ export function PostForm({
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
-  const workflowTasks = buildPostWorkflowTasks({
-    title: form.title,
-    excerpt: form.excerpt,
-    coverImageUrl: form.coverImageUrl,
-    seoTitle: form.seoTitle,
-    seoDescription: form.seoDescription,
-    subtopicId: form.subtopicId,
-    contentText: form.contentText,
-    status: form.status,
-  });
 
   function patchForm(next: Partial<FormState>) {
     setSaveError(null);
@@ -432,8 +418,13 @@ export function PostForm({
           }
 
           if (startedAsNewDraft && redirectAfterCreate) {
+            const nextFolderId = savedForm.folderId || currentForm.folderId;
+            const nextUrl = nextFolderId
+              ? `/admin/posts?folder=${nextFolderId}&postId=${savedPost.id}`
+              : `/admin/posts?postId=${savedPost.id}`;
+
             startTransition(() => {
-              router.replace(`/admin/posts?postId=${savedPost.id}`);
+              router.replace(nextUrl);
               if (refreshAfterCreate) {
                 router.refresh();
               }
@@ -616,52 +607,11 @@ export function PostForm({
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-8 py-10">
-          {workflowTasks.length > 0 ? (
-            <div className="mb-6 rounded-xl border bg-muted/20 p-3">
-              <div className="mb-2 text-xs font-medium text-muted-foreground">
-                当前建议先处理
-              </div>
-              <div className="space-y-2">
-                {workflowTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="rounded-lg border bg-background px-3 py-2.5"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          task.tone === "publish"
-                            ? "default"
-                            : task.tone === "structure"
-                              ? "outline"
-                              : "secondary"
-                        }
-                        className="rounded-full px-2 py-0 text-[11px]"
-                      >
-                        {task.tone === "publish"
-                          ? "发布"
-                          : task.tone === "structure"
-                            ? "结构"
-                            : "草稿"}
-                      </Badge>
-                      <span className="text-sm font-medium text-foreground">
-                        {task.title}
-                      </span>
-                    </div>
-                    <div className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {task.description}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
           <Input
             value={form.title}
             onChange={(event) => patchForm({ title: event.target.value })}
             placeholder="文章标题"
-            className="h-auto border-0 bg-transparent px-0 py-0 text-4xl font-bold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-5xl"
+            className="h-auto border-0 bg-transparent px-0 py-0 text-2xl font-semibold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-3xl"
             suppressHydrationWarning
           />
 
@@ -755,50 +705,41 @@ export function PostForm({
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="subtopic">归属子专题</Label>
+                <Label htmlFor="folder">归属文件夹</Label>
                 <Select
-                  value={form.subtopicId || "__none__"}
+                  value={form.folderId || "__none__"}
                   onValueChange={(value) =>
                     patchForm({
-                      subtopicId: !value || value === "__none__" ? "" : value,
+                      folderId: !value || value === "__none__" ? "" : value,
                     })
                   }
                 >
                   <SelectTrigger
-                    id="subtopic"
+                    id="folder"
                     className="h-9 rounded-lg"
                     suppressHydrationWarning
                   >
-                    <SelectValue placeholder="选择子专题">
+                    <SelectValue placeholder="选择文件夹">
                       {(value) => {
                         if (!value || value === "__none__") {
                           return "未归属";
                         }
 
-                        for (const group of subtopicGroups) {
-                          const matched = group.subtopics.find(
-                            (subtopic) => subtopic.id === value,
-                          );
-
-                          if (matched) {
-                            return `${group.topicName} / ${matched.name}`;
-                          }
-                        }
-
-                        return "选择子专题";
+                        return (
+                          folderOptions.find((folder) => folder.id === value)
+                            ?.name ?? "选择文件夹"
+                        );
                       }}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent align="start">
                     <SelectGroup>
                       <SelectItem value="__none__">未归属</SelectItem>
-                      {subtopicGroups.flatMap((group) =>
-                        group.subtopics.map((subtopic) => (
-                          <SelectItem key={subtopic.id} value={subtopic.id}>
-                            {group.topicName} / {subtopic.name}
-                          </SelectItem>
-                        )),
-                      )}
+                      {folderOptions.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

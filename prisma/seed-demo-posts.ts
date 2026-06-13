@@ -527,49 +527,34 @@ async function main() {
 
   console.log(`Using admin author: ${adminUser.email}`);
 
-  const subtopicMap = new Map<string, string>();
-  for (const topic of topics) {
-    const savedTopic = await db.topic.upsert({
-      where: { slug: topic.slug },
+  const folderMap = new Map<string, string>();
+  const folderSeeds = topics.flatMap((topic) =>
+    topic.subtopics.map((subtopic) => ({
+      name: subtopic.name,
+      slug: subtopic.slug,
+      description: subtopic.description,
+      sortOrder: topic.sortOrder * 10 + subtopic.sortOrder,
+    })),
+  );
+
+  for (const folder of folderSeeds) {
+    const savedFolder = await db.folder.upsert({
+      where: { slug: folder.slug },
       update: {
-        name: topic.name,
-        description: topic.description,
-        sortOrder: topic.sortOrder,
+        name: folder.name,
+        description: folder.description,
+        sortOrder: folder.sortOrder,
       },
       create: {
-        name: topic.name,
-        slug: topic.slug,
-        description: topic.description,
-        sortOrder: topic.sortOrder,
+        name: folder.name,
+        slug: folder.slug,
+        description: folder.description,
+        sortOrder: folder.sortOrder,
       },
       select: { id: true, slug: true },
     });
 
-    for (const subtopic of topic.subtopics) {
-      const savedSubtopic = await db.subtopic.upsert({
-        where: {
-          topicId_slug: {
-            topicId: savedTopic.id,
-            slug: subtopic.slug,
-          },
-        },
-        update: {
-          name: subtopic.name,
-          description: subtopic.description,
-          sortOrder: subtopic.sortOrder,
-        },
-        create: {
-          topicId: savedTopic.id,
-          name: subtopic.name,
-          slug: subtopic.slug,
-          description: subtopic.description,
-          sortOrder: subtopic.sortOrder,
-        },
-        select: { id: true, slug: true },
-      });
-
-      subtopicMap.set(`${savedTopic.slug}/${savedSubtopic.slug}`, savedSubtopic.id);
-    }
+    folderMap.set(savedFolder.slug, savedFolder.id);
   }
 
   const categoryMap = new Map<string, string>();
@@ -626,10 +611,10 @@ async function main() {
       throw new Error(`Missing category mapping for ${seed.categorySlug}`);
     }
 
-    const subtopicId = subtopicMap.get(`${seed.topicSlug}/${seed.subtopicSlug}`);
-    if (!subtopicId) {
+    const folderId = folderMap.get(seed.subtopicSlug);
+    if (!folderId) {
       throw new Error(
-        `Missing subtopic mapping for ${seed.topicSlug}/${seed.subtopicSlug}`,
+        `Missing folder mapping for ${seed.subtopicSlug}`,
       );
     }
 
@@ -658,7 +643,7 @@ async function main() {
         canonicalUrl: null,
         isFeatured: seed.isFeatured,
         categoryId,
-        subtopicId,
+        folderId,
         createdBy: adminUser.id,
         createdAt,
         tags: {
@@ -684,7 +669,7 @@ async function main() {
         canonicalUrl: null,
         isFeatured: seed.isFeatured,
         categoryId,
-        subtopicId,
+        folderId,
         createdBy: adminUser.id,
         createdAt,
         tags: {

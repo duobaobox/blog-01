@@ -3,13 +3,13 @@ export const dynamic = "force-dynamic";
 import { ContentSpaceShell } from "@/components/admin/content-space-shell";
 import type {
   ContentSpaceContextPost,
-  ContentSpaceSubtopicGroup,
+  ContentSpaceFolderOption,
 } from "@/components/admin/content-space-types";
 import {
   getContentTree,
+  getAllPosts,
   getDraftPosts,
   getReadyToPublishPosts,
-  getRecentEditedPosts,
 } from "@/features/content-space/queries/content-space.query";
 import {
   resolveContentSpaceState,
@@ -28,7 +28,7 @@ function parseSingleParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function toWorkspacePostSummary(post: Awaited<ReturnType<typeof getRecentEditedPosts>>[number]): WorkspacePostSummary {
+function toWorkspacePostSummary(post: Awaited<ReturnType<typeof getAllPosts>>[number]): WorkspacePostSummary {
   return {
     id: post.id,
     title: post.title,
@@ -38,16 +38,11 @@ function toWorkspacePostSummary(post: Awaited<ReturnType<typeof getRecentEditedP
     coverImageUrl: post.coverImageUrl,
     seoTitle: post.seoTitle ?? null,
     seoDescription: post.seoDescription ?? null,
-    subtopic: post.subtopic
+    folder: post.folder
       ? {
-          id: post.subtopic.id,
-          name: post.subtopic.name,
-          slug: post.subtopic.slug,
-          topic: {
-            id: post.subtopic.topic.id,
-            name: post.subtopic.topic.name,
-            slug: post.subtopic.topic.slug,
-          },
+          id: post.folder.id,
+          name: post.folder.name,
+          slug: post.folder.slug,
         }
       : null,
   };
@@ -61,19 +56,19 @@ export default async function AdminPostsPage({
     view?: string;
     page?: string | string[];
     entry?: string | string[];
-    topic?: string | string[];
-    subtopic?: string | string[];
+    folder?: string | string[];
     q?: string | string[];
   }>;
 }) {
   const params = await searchParams;
   const query = parseQueryParam(params.q);
   const requestedPostId = parseSingleParam(params.postId);
+  const requestedFolderId = parseSingleParam(params.folder);
 
-  const [contentTree, recentEdited, draftPosts, readyToPublishPosts, categories, tags] =
+  const [contentTree, allPosts, draftPosts, readyToPublishPosts, categories, tags] =
     await Promise.all([
       getContentTree(),
-      getRecentEditedPosts(12),
+      getAllPosts(200),
       getDraftPosts(20),
       getReadyToPublishPosts(20),
       getCategories(),
@@ -85,6 +80,7 @@ export default async function AdminPostsPage({
         query,
         take: 20,
         order: "updated",
+        folderId: requestedFolderId || undefined,
       })
     : [];
 
@@ -93,16 +89,15 @@ export default async function AdminPostsPage({
     : undefined;
 
   const state = resolveContentSpaceState({
-    params: {
-      entry: parseSingleParam(params.entry),
-      topic: parseSingleParam(params.topic),
-      subtopic: parseSingleParam(params.subtopic),
-      postId: requestedPostId,
-      view: parseSingleParam(params.view),
-      q: query,
+      params: {
+        entry: parseSingleParam(params.entry),
+        folder: requestedFolderId,
+        postId: requestedPostId,
+        view: parseSingleParam(params.view),
+        q: query,
     },
     contentTree,
-    recentEdited: recentEdited.map(toWorkspacePostSummary),
+    allPosts: allPosts.map(toWorkspacePostSummary),
     draftPosts: draftPosts.map(toWorkspacePostSummary),
     readyToPublishPosts: readyToPublishPosts.map(toWorkspacePostSummary),
     searchResults: searchResults.map(toWorkspacePostSummary),
@@ -116,17 +111,12 @@ export default async function AdminPostsPage({
             coverImageUrl: requestedPost.coverImageUrl,
             seoTitle: requestedPost.seoTitle,
             seoDescription: requestedPost.seoDescription,
-            subtopic: requestedPost.subtopic
+            folder: requestedPost.folder
               ? {
-                  id: requestedPost.subtopic.id,
-                name: requestedPost.subtopic.name,
-                slug: requestedPost.subtopic.slug,
-                topic: {
-                  id: requestedPost.subtopic.topic.id,
-                  name: requestedPost.subtopic.topic.name,
-                  slug: requestedPost.subtopic.topic.slug,
-                },
-              }
+                  id: requestedPost.folder.id,
+                  name: requestedPost.folder.name,
+                  slug: requestedPost.folder.slug,
+                }
             : null,
         }
       : undefined,
@@ -139,13 +129,9 @@ export default async function AdminPostsPage({
         : await getPostById(state.selectedPostId)
       : undefined;
 
-  const subtopicGroups: ContentSpaceSubtopicGroup[] = contentTree.map((topic) => ({
-    topicId: topic.id,
-    topicName: topic.name,
-    subtopics: topic.subtopics.map((subtopic) => ({
-      id: subtopic.id,
-      name: subtopic.name,
-    })),
+  const folderOptions: ContentSpaceFolderOption[] = contentTree.map((folder) => ({
+    id: folder.id,
+    name: folder.name,
   }));
 
   const contextPosts: ContentSpaceContextPost[] = state.contextPosts;
@@ -154,27 +140,25 @@ export default async function AdminPostsPage({
     <ContentSpaceShell
       params={{
         entry: parseSingleParam(params.entry),
-        topic: parseSingleParam(params.topic),
-        subtopic: parseSingleParam(params.subtopic),
+        folder: requestedFolderId,
         postId: requestedPostId,
         view: parseSingleParam(params.view),
         q: query,
       }}
       tree={contentTree}
       quickEntryCounts={{
-        recent: recentEdited.length,
+        all: allPosts.length,
         drafts: draftPosts.length,
         ready: readyToPublishPosts.length,
       }}
       activeEntry={state.entry}
-      activeTopic={state.activeTopic}
-      activeSubtopic={state.activeSubtopic}
+      activeFolder={state.activeFolder}
       selectedPost={selectedPost ?? undefined}
       selectedPostId={state.selectedPostId}
       contextPosts={contextPosts}
       categories={categories}
       tags={tags}
-      subtopicGroups={subtopicGroups}
+      folderOptions={folderOptions}
       searchQuery={state.searchQuery}
       mode={state.mode}
     />

@@ -100,8 +100,8 @@ model post {
   categoryId String?
   category   category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  subtopicId String?
-  subtopic   subtopic? @relation(fields: [subtopicId], references: [id], onDelete: SetNull)
+  folderId String?
+  folder   folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   createdBy String
   author    user   @relation(fields: [createdBy], references: [id])
@@ -109,13 +109,13 @@ model post {
   tags postTag[]
 
   @@index([categoryId])
-  @@index([subtopicId])
+  @@index([folderId])
   @@index([createdBy])
   @@index([status])
   @@index([publishedAt])
 }
 
-model topic {
+model folder {
   id          String   @id @default(uuid())
   name        String
   slug        String   @unique
@@ -124,24 +124,7 @@ model topic {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  subtopics subtopic[]
-}
-
-model subtopic {
-  id          String   @id @default(uuid())
-  topicId     String
-  name        String
-  slug        String
-  description String?  @db.Text
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  topic topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
   posts post[]
-
-  @@unique([topicId, slug])
-  @@index([topicId, sortOrder])
 }
 
 model category {

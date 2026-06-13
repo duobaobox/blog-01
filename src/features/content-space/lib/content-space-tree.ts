@@ -3,18 +3,10 @@ export type ContentTreePost = {
   title: string;
   status: string;
   updatedAt: Date | string;
-  subtopicId: string | null;
+  folderId: string | null;
 };
 
-export type ContentTreeSubtopicInput = {
-  id: string;
-  topicId: string;
-  name: string;
-  slug: string;
-  sortOrder: number;
-};
-
-export type ContentTreeTopicInput = {
+export type ContentTreeFolderInput = {
   id: string;
   name: string;
   slug: string;
@@ -22,26 +14,20 @@ export type ContentTreeTopicInput = {
 };
 
 export type ContentTreeInput = {
-  topics: ContentTreeTopicInput[];
-  subtopics: ContentTreeSubtopicInput[];
+  folders: ContentTreeFolderInput[];
   posts: ContentTreePost[];
 };
 
-export type ContentTreeTopic = {
+export type ContentTreeFolder = {
   id: string;
   name: string;
   slug: string;
-  subtopics: Array<{
+  posts: Array<{
     id: string;
-    name: string;
-    slug: string;
-    posts: Array<{
-      id: string;
-      title: string;
-      status: string;
-      updatedAt: Date | string;
-      subtopicId: string | null;
-    }>;
+    title: string;
+    status: string;
+    updatedAt: Date | string;
+    folderId: string | null;
   }>;
 };
 
@@ -61,42 +47,27 @@ function comparePostsByUpdatedAtDesc(a: ContentTreePost, b: ContentTreePost) {
   );
 }
 
-export function buildContentTree(input: ContentTreeInput): ContentTreeTopic[] {
-  const postsBySubtopicId = new Map<string, ContentTreePost[]>();
+export function buildContentTree(input: ContentTreeInput): ContentTreeFolder[] {
+  const postsByFolderId = new Map<string, ContentTreePost[]>();
 
   for (const post of input.posts) {
-    if (!post.subtopicId) {
+    if (!post.folderId) {
       continue;
     }
 
-    const current = postsBySubtopicId.get(post.subtopicId) ?? [];
+    const current = postsByFolderId.get(post.folderId) ?? [];
     current.push(post);
-    postsBySubtopicId.set(post.subtopicId, current);
+    postsByFolderId.set(post.folderId, current);
   }
 
-  const subtopicsByTopicId = new Map<string, ContentTreeSubtopicInput[]>();
-
-  for (const subtopic of input.subtopics) {
-    const current = subtopicsByTopicId.get(subtopic.topicId) ?? [];
-    current.push(subtopic);
-    subtopicsByTopicId.set(subtopic.topicId, current);
-  }
-
-  return [...input.topics]
+  return [...input.folders]
     .sort(compareBySortOrderThenName)
-    .map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-      slug: topic.slug,
-      subtopics: [...(subtopicsByTopicId.get(topic.id) ?? [])]
-        .sort(compareBySortOrderThenName)
-        .map((subtopic) => ({
-          id: subtopic.id,
-          name: subtopic.name,
-          slug: subtopic.slug,
-          posts: [...(postsBySubtopicId.get(subtopic.id) ?? [])].sort(
-            comparePostsByUpdatedAtDesc,
-          ),
-        })),
+    .map((folder) => ({
+      id: folder.id,
+      name: folder.name,
+      slug: folder.slug,
+      posts: [...(postsByFolderId.get(folder.id) ?? [])].sort(
+        comparePostsByUpdatedAtDesc,
+      ),
     }));
 }

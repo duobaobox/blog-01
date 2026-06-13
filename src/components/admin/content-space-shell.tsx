@@ -9,7 +9,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutPanelLeft, Menu } from "lucide-react";
-import type { ContentTreeTopic } from "@/features/content-space/lib/content-space-tree";
+import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
 import {
   buildContentSpaceUrl,
   type ContentSpaceEntry,
@@ -36,25 +36,20 @@ import type {
   AdminCategory,
   AdminTag,
   ContentSpaceContextPost,
+  ContentSpaceFolderOption,
   ContentSpaceSelectedPost,
-  ContentSpaceSubtopicGroup,
 } from "./content-space-types";
 
 type ContentSpaceShellProps = {
   params: ContentSpaceParams;
-  tree: ContentTreeTopic[];
+  tree: ContentTreeFolder[];
   quickEntryCounts: {
-    recent: number;
+    all: number;
     drafts: number;
     ready: number;
   };
   activeEntry: ContentSpaceEntry;
-  activeTopic?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  activeSubtopic?: {
+  activeFolder?: {
     id: string;
     name: string;
     slug: string;
@@ -64,7 +59,7 @@ type ContentSpaceShellProps = {
   contextPosts: ContentSpaceContextPost[];
   categories: AdminCategory[];
   tags: AdminTag[];
-  subtopicGroups: ContentSpaceSubtopicGroup[];
+  folderOptions: ContentSpaceFolderOption[];
   searchQuery: string;
   mode: "new" | "edit";
 };
@@ -74,14 +69,13 @@ export function ContentSpaceShell({
   tree,
   quickEntryCounts,
   activeEntry,
-  activeTopic,
-  activeSubtopic,
+  activeFolder,
   selectedPost,
   selectedPostId,
   contextPosts,
   categories,
   tags,
-  subtopicGroups,
+  folderOptions,
   searchQuery,
   mode,
 }: ContentSpaceShellProps) {
@@ -90,22 +84,28 @@ export function ContentSpaceShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasExplicitLocationParam = Boolean(
-    params.postId || params.topic || params.subtopic || params.entry || params.q,
+    params.postId || params.folder || params.entry || params.q,
   );
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
   const searchFormRef = useRef<HTMLFormElement | null>(null);
+
   const leaveConfirm = useConfirm();
 
   useEffect(() => {
     if (hasExplicitLocationParam || mode === "new") return;
+
+    /* When URL has no explicit params and the server already resolved
+       activeEntry to "all", the user deliberately chose this view.
+       Do not override with saved session — that would cause an infinite reload. */
+    if (activeEntry === "all") return;
+
 
     const savedSession = loadWorkspaceSession();
     if (!savedSession) return;
 
     const next: Partial<{
       entry: ContentSpaceEntry;
-      topicId?: string;
-      subtopicId?: string;
+      folderId?: string;
       postId?: string;
       view: "new" | "edit";
       q?: string;
@@ -113,21 +113,15 @@ export function ContentSpaceShell({
 
     if (savedSession.activeEntry === "drafts" || savedSession.activeEntry === "ready") {
       next.entry = savedSession.activeEntry;
-      next.topicId = undefined;
-      next.subtopicId = undefined;
-    } else if (savedSession.activeEntry === "topic" && savedSession.topicId) {
-      next.entry = "topic";
-      next.topicId = savedSession.topicId;
-      next.subtopicId = undefined;
+      next.folderId = undefined;
     } else if (
-      (savedSession.activeEntry === "subtopic" || savedSession.activeEntry === "post") &&
-      savedSession.subtopicId
+      (savedSession.activeEntry === "folder" || savedSession.activeEntry === "post") &&
+      savedSession.folderId
     ) {
-      next.entry = "subtopic";
-      next.topicId = savedSession.topicId;
-      next.subtopicId = savedSession.subtopicId;
+      next.entry = "folder";
+      next.folderId = savedSession.folderId;
     } else {
-      next.entry = "recent";
+      next.entry = "all";
     }
 
     if (savedSession.postId) {
@@ -137,8 +131,7 @@ export function ContentSpaceShell({
     const nextUrl = buildContentSpaceUrl(pathname, {
       current: {
         entry: activeEntry,
-        topicId: activeTopic?.id,
-        subtopicId: activeSubtopic?.id,
+        folderId: activeFolder?.id,
         postId: selectedPostId,
         view: mode,
         q: searchQuery,
@@ -153,8 +146,7 @@ export function ContentSpaceShell({
     });
   }, [
     activeEntry,
-    activeSubtopic?.id,
-    activeTopic?.id,
+    activeFolder?.id,
     hasExplicitLocationParam,
     mode,
     pathname,
@@ -166,18 +158,17 @@ export function ContentSpaceShell({
   useEffect(() => {
     const session: WorkspaceSession = {
       activeEntry:
-        selectedPostId && activeSubtopic?.id
+        selectedPostId && activeFolder?.id
           ? "post"
           : activeEntry === "search"
-            ? "recent"
+            ? "all"
             : activeEntry,
-      topicId: activeTopic?.id,
-      subtopicId: activeSubtopic?.id,
+      folderId: activeFolder?.id,
       postId: selectedPostId,
     };
 
     saveWorkspaceSession(session);
-  }, [activeEntry, activeSubtopic?.id, activeTopic?.id, selectedPostId]);
+  }, [activeEntry, activeFolder?.id, selectedPostId]);
 
   async function confirmNavigation() {
     if (beforeLeaveHandlerRef.current) {
@@ -191,8 +182,7 @@ export function ContentSpaceShell({
 
   function navigate(next: Partial<{
     entry: ContentSpaceEntry;
-    topicId?: string;
-    subtopicId?: string;
+    folderId?: string;
     postId?: string;
     view: "new" | "edit";
     q?: string;
@@ -200,8 +190,7 @@ export function ContentSpaceShell({
     const url = buildContentSpaceUrl(pathname, {
       current: {
         entry: activeEntry,
-        topicId: activeTopic?.id,
-        subtopicId: activeSubtopic?.id,
+        folderId: activeFolder?.id,
         postId: selectedPostId,
         view: mode,
         q: searchQuery,
@@ -219,52 +208,31 @@ export function ContentSpaceShell({
     setSidebarOpen(false);
 
     navigate({
-      entry:
-        activeSubtopic || activeTopic
-          ? activeSubtopic
-            ? "subtopic"
-            : "topic"
-          : activeEntry,
-      topicId: activeTopic?.id,
-      subtopicId: activeSubtopic?.id,
+      entry: activeFolder ? "folder" : activeEntry,
+      folderId: activeFolder?.id,
       postId: undefined,
       view: "new",
     });
   }
 
-  async function handleSelectEntry(entry: Extract<ContentSpaceEntry, "recent" | "drafts" | "ready">) {
+  async function handleSelectEntry(entry: Extract<ContentSpaceEntry, "all" | "drafts" | "ready">) {
     if (!(await confirmNavigation())) return;
     setSidebarOpen(false);
     navigate({
       entry,
-      topicId: undefined,
-      subtopicId: undefined,
+      folderId: undefined,
       postId: undefined,
       view: "edit",
       q: "",
     });
   }
 
-  async function handleSelectTopic(topicId: string) {
+  async function handleSelectFolder(folderId: string) {
     if (!(await confirmNavigation())) return;
     setSidebarOpen(false);
     navigate({
-      entry: "topic",
-      topicId,
-      subtopicId: undefined,
-      postId: undefined,
-      view: "edit",
-      q: "",
-    });
-  }
-
-  async function handleSelectSubtopic(topicId: string, subtopicId: string) {
-    if (!(await confirmNavigation())) return;
-    setSidebarOpen(false);
-    navigate({
-      entry: "subtopic",
-      topicId,
-      subtopicId,
+      entry: "folder",
+      folderId,
       postId: undefined,
       view: "edit",
       q: "",
@@ -273,32 +241,14 @@ export function ContentSpaceShell({
 
   async function handleSelectPost(
     postId: string,
-    options?: { topicId?: string; subtopicId?: string },
+    options?: { folderId?: string },
   ) {
     if (!(await confirmNavigation())) return;
     setSidebarOpen(false);
     navigate({
-      entry:
-        options?.subtopicId || activeSubtopic
-          ? "subtopic"
-          : options?.topicId || activeTopic
-            ? "topic"
-            : activeEntry,
-      topicId: options?.topicId ?? activeTopic?.id,
-      subtopicId: options?.subtopicId ?? activeSubtopic?.id,
+      entry: options?.folderId || activeFolder ? "folder" : activeEntry,
+      folderId: options?.folderId ?? activeFolder?.id,
       postId,
-      view: "edit",
-    });
-  }
-
-  async function handleReturnToStructure() {
-    if (!(await confirmNavigation())) return;
-
-    navigate({
-      entry: activeSubtopic ? "subtopic" : activeTopic ? "topic" : activeEntry,
-      topicId: activeTopic?.id,
-      subtopicId: activeSubtopic?.id,
-      postId: undefined,
       view: "edit",
     });
   }
@@ -330,25 +280,16 @@ export function ContentSpaceShell({
 
   const sidebar = (
     <ContentSpaceSidebar
-      quickEntries={[
-        { key: "recent", label: "最近编辑", count: quickEntryCounts.recent },
-        { key: "drafts", label: "草稿", count: quickEntryCounts.drafts },
-        { key: "ready", label: "待发布", count: quickEntryCounts.ready },
-      ]}
       tree={tree}
       activeEntry={activeEntry}
-      activeTopicId={activeTopic?.id}
-      activeSubtopicId={activeSubtopic?.id}
-      activePostId={selectedPostId}
-      onSelectEntry={handleSelectEntry}
-      onSelectTopic={handleSelectTopic}
-      onSelectSubtopic={handleSelectSubtopic}
+      activeFolderId={selectedPost?.folder?.id ?? activeFolder?.id}
+      onSelectFolder={handleSelectFolder}
     />
   );
 
   return (
     <div className="flex flex-1 overflow-hidden bg-background">
-      <div className="hidden w-[300px] shrink-0 border-r lg:block">{sidebar}</div>
+      <div className="hidden w-[184px] shrink-0 border-r lg:block">{sidebar}</div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between border-b px-3 py-2 lg:hidden">
@@ -362,16 +303,21 @@ export function ContentSpaceShell({
           </Button>
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[220px_minmax(0,1fr)]">
           <div className="min-h-0 border-r bg-background">
             <ContentSpaceContextPanel
               entry={activeEntry}
               searchQuery={searchQuery}
               searchFormRef={searchFormRef}
-              topic={activeTopic}
-              subtopic={activeSubtopic}
+              folder={activeFolder}
+              quickEntries={[
+                { key: "all", label: "全部", count: quickEntryCounts.all },
+                { key: "drafts", label: "草稿", count: quickEntryCounts.drafts },
+                { key: "ready", label: "待发布", count: quickEntryCounts.ready },
+              ]}
               posts={contextPosts}
               selectedPostId={selectedPostId}
+              onSelectEntry={handleSelectEntry}
               onSearchSubmit={handleSearchSubmit}
               onSelectPost={handleSelectPost}
               onCreateNew={handleCreateNew}
@@ -382,26 +328,22 @@ export function ContentSpaceShell({
             <ContentEditorShell
               selectedPost={selectedPost}
               mode={mode}
+              activeFolderId={activeFolder?.id}
               categories={categories}
               tags={tags}
-              subtopicGroups={subtopicGroups}
+              folderOptions={folderOptions}
               onDirtyChange={setHasUnsavedChanges}
               registerBeforeLeave={(handler) => {
                 beforeLeaveHandlerRef.current = handler;
               }}
-              contextTopic={activeTopic}
-              contextSubtopic={activeSubtopic}
-              contextPosts={contextPosts}
               onCreateNew={handleCreateNew}
-              onSelectPost={handleSelectPost}
-              onReturnToStructure={handleReturnToStructure}
             />
           </div>
         </div>
       </div>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[320px] p-0">
+        <SheetContent side="left" className="w-[240px] p-0">
           <SheetHeader className="sr-only">
             <SheetTitle>内容空间导航</SheetTitle>
           </SheetHeader>
