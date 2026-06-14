@@ -4,6 +4,7 @@ import {
   startTransition,
   useEffect,
   useEffectEvent,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -82,6 +83,7 @@ export function ContentSpaceShell({
 }: ContentSpaceShellProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [localTree, setLocalTree] = useState(tree);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasExplicitLocationParam = Boolean(
@@ -91,6 +93,21 @@ export function ContentSpaceShell({
   const searchFormRef = useRef<HTMLFormElement | null>(null);
 
   const leaveConfirm = useConfirm();
+
+  useEffect(() => {
+    setLocalTree(tree);
+  }, [tree]);
+
+  const effectiveTree = localTree;
+  const hasFolders = effectiveTree.length > 0;
+  const effectiveFolderOptions = useMemo(
+    () =>
+      effectiveTree.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+      })),
+    [effectiveTree],
+  );
 
   useEffect(() => {
     if (hasExplicitLocationParam || mode === "new") return;
@@ -211,6 +228,10 @@ export function ContentSpaceShell({
 
   async function handleCreateNew() {
     if (!(await confirmNavigation())) return;
+    if (!hasFolders) {
+      window.alert("请先创建文件夹，再新建文章。");
+      return;
+    }
     setSidebarOpen(false);
     const nextEntry = activeFolder ? "folder" : activeEntry;
 
@@ -301,10 +322,33 @@ export function ContentSpaceShell({
 
   const sidebar = (
     <ContentSpaceSidebar
-      tree={tree}
+      tree={effectiveTree}
       activeEntry={activeEntry}
       activeFolderId={selectedPost?.folder?.id ?? activeFolder?.id}
       onSelectFolder={handleSelectFolder}
+      onSelectEntry={handleSelectEntry}
+      onFolderCreated={(folder) => {
+        setLocalTree((current) => {
+          if (current.some((item) => item.id === folder.id)) {
+            return current;
+          }
+
+          return [
+            ...current,
+            {
+              id: folder.id,
+              name: folder.name,
+              slug: folder.slug,
+              posts: [],
+            },
+          ];
+        });
+      }}
+      onFolderDeleted={(folderId) => {
+        setLocalTree((current) =>
+          current.filter((folder) => folder.id !== folderId),
+        );
+      }}
     />
   );
 
@@ -360,6 +404,7 @@ export function ContentSpaceShell({
               onSearchSubmit={handleSearchSubmit}
               onSelectPost={handleSelectPost}
               onCreateNew={handleCreateNew}
+              canCreatePost={hasFolders}
             />
           </div>
 
@@ -368,9 +413,10 @@ export function ContentSpaceShell({
               selectedPost={selectedPost}
               mode={mode}
               activeFolderId={activeFolder?.id}
+              hasFolders={hasFolders}
               categories={categories}
               tags={tags}
-              folderOptions={folderOptions}
+              folderOptions={effectiveFolderOptions}
               onDirtyChange={setHasUnsavedChanges}
               registerBeforeLeave={(handler) => {
                 beforeLeaveHandlerRef.current = handler;

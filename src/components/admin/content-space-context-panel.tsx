@@ -52,6 +52,7 @@ type ContentSpaceContextPanelProps = {
   onSearchSubmit: () => void | Promise<void>;
   onSelectPost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
+  canCreatePost?: boolean;
 };
 
 function formatRelativeDate(value: Date | string) {
@@ -114,6 +115,7 @@ export function ContentSpaceContextPanel({
   onSearchSubmit,
   onSelectPost,
   onCreateNew,
+  canCreatePost = true,
 }: ContentSpaceContextPanelProps) {
   const router = useRouter();
   const deleteConfirm = useConfirm();
@@ -181,6 +183,8 @@ export function ContentSpaceContextPanel({
                 variant="outline"
                 className="shrink-0"
                 onClick={() => void onCreateNew()}
+                disabled={!canCreatePost}
+                title={!canCreatePost ? "请先创建文件夹" : undefined}
                 aria-label="添加文档"
               >
                 <FilePlus2 className="size-3.5" />
@@ -203,7 +207,12 @@ export function ContentSpaceContextPanel({
                   icon={null}
                 >
                   {entry === "search" ? null : (
-                    <Button size="sm" onClick={() => void onCreateNew()}>
+                    <Button
+                      size="sm"
+                      onClick={() => void onCreateNew()}
+                      disabled={!canCreatePost}
+                      title={!canCreatePost ? "请先创建文件夹" : undefined}
+                    >
                       创建文章
                     </Button>
                   )}

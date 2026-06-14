@@ -28,6 +28,15 @@ type ContentSpaceSidebarProps = {
   activeEntry: ContentSpaceEntry;
   activeFolderId?: string;
   onSelectFolder: (folderId: string) => void | Promise<void>;
+  onSelectEntry?: (
+    entry: Extract<ContentSpaceEntry, "all" | "drafts" | "ready">,
+  ) => void | Promise<void>;
+  onFolderCreated?: (folder: {
+    id: string;
+    name: string;
+    slug: string;
+  }) => void | Promise<void>;
+  onFolderDeleted?: (folderId: string) => void | Promise<void>;
 };
 
 export function ContentSpaceSidebar({
@@ -35,6 +44,9 @@ export function ContentSpaceSidebar({
   activeEntry,
   activeFolderId,
   onSelectFolder,
+  onSelectEntry,
+  onFolderCreated,
+  onFolderDeleted,
 }: ContentSpaceSidebarProps) {
   const router = useRouter();
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
@@ -47,6 +59,25 @@ export function ContentSpaceSidebar({
 
   async function handleDeleteFolder(folderId: string) {
     await deleteFolder(folderId);
+    await onFolderDeleted?.(folderId);
+
+    if (activeFolderId !== folderId) {
+      router.refresh();
+      return;
+    }
+
+    const currentIndex = folderView.findIndex((folder) => folder.id === folderId);
+    const fallbackFolder =
+      folderView[currentIndex + 1] ??
+      folderView[currentIndex - 1];
+
+    if (fallbackFolder) {
+      await onSelectFolder(fallbackFolder.id);
+    } else if (onSelectEntry) {
+      await onSelectEntry("all");
+    }
+
+    router.refresh();
   }
 
   return (
@@ -167,8 +198,8 @@ export function ContentSpaceSidebar({
           }
         }}
         onCreated={(folder) => {
+          void onFolderCreated?.(folder);
           void onSelectFolder(folder.id);
-          router.refresh();
         }}
         folder={editingFolder ?? undefined}
       />
