@@ -90,7 +90,6 @@ export function ContentSpaceShell({
     params.postId || params.folder || params.entry || params.q,
   );
   const beforeLeaveHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
-  const searchFormRef = useRef<HTMLFormElement | null>(null);
 
   const leaveConfirm = useConfirm();
 
@@ -295,19 +294,6 @@ export function ContentSpaceShell({
     });
   }
 
-  async function handleSearchSubmit() {
-    const formData = new FormData(searchFormRef.current ?? undefined);
-    const normalizedSearch = String(formData.get("search") ?? "").trim();
-    if (normalizedSearch === searchQuery.trim()) return;
-    if (!(await confirmNavigation())) return;
-
-    setSidebarOpen(false);
-    navigate({
-      postId: undefined,
-      q: normalizedSearch,
-    });
-  }
-
   const handleBeforeUnload = useEffectEvent((event: BeforeUnloadEvent) => {
     if (!hasUnsavedChanges) return;
 
@@ -383,7 +369,6 @@ export function ContentSpaceShell({
             <ContentSpaceContextPanel
               entry={activeEntry}
               searchQuery={searchQuery}
-              searchFormRef={searchFormRef}
               folder={activeFolder}
               quickEntries={[
                 { key: "all", label: "全部", count: quickEntryCounts.all },
@@ -401,7 +386,6 @@ export function ContentSpaceShell({
               posts={contextPosts}
               selectedPostId={selectedPostId}
               onSelectEntry={handleSelectEntry}
-              onSearchSubmit={handleSearchSubmit}
               onSelectPost={handleSelectPost}
               onCreateNew={handleCreateNew}
               canCreatePost={hasFolders}

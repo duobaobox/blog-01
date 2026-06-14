@@ -1,14 +1,18 @@
 "use client";
 
-import { startTransition, type RefObject } from "react";
+import {
+  startTransition,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   FilePlus2,
-  ArrowUpDown,
   Ellipsis,
+  X,
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { buildContentContextSummary } from "@/features/content-space/lib/content-space-context";
 import { buildContentSpaceViewModel } from "@/features/content-space/lib/content-space-view-model";
 import type { ContentSpaceEntry } from "@/features/content-space/lib/content-space-workspace";
 import { deletePost } from "@/features/posts/actions/post.actions";
@@ -39,7 +43,6 @@ type QuickEntry = {
 type ContentSpaceContextPanelProps = {
   entry: ContentSpaceEntry;
   searchQuery: string;
-  searchFormRef: RefObject<HTMLFormElement | null>;
   folder?: {
     id: string;
     name: string;
@@ -49,7 +52,6 @@ type ContentSpaceContextPanelProps = {
   posts: ContentSpaceContextPost[];
   selectedPostId?: string;
   onSelectEntry: (entry: QuickEntry["key"]) => void | Promise<void>;
-  onSearchSubmit: () => void | Promise<void>;
   onSelectPost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
   canCreatePost?: boolean;
@@ -77,57 +79,46 @@ function formatRelativeDate(value: Date | string) {
   return `${date.getMonth() + 1}月${date.getDate()}日`;
 }
 
-function getContextMeta(
-  entry: ContentSpaceEntry,
-  options: {
-    folderName?: string;
-    searchQuery: string;
-  },
-) {
-  if (entry === "drafts") {
-    return { title: "草稿" };
-  }
-
-  if (entry === "ready") {
-    return { title: "待发布" };
-  }
-
-  if (entry === "folder") {
-    return { title: options.folderName ?? "文件夹" };
-  }
-
-  if (entry === "search") {
-    return { title: `搜索 “${options.searchQuery}”` };
-  }
-
-  return { title: "全部文章" };
-}
-
 export function ContentSpaceContextPanel({
   entry,
   searchQuery,
-  searchFormRef,
   folder,
   quickEntries,
   posts,
   selectedPostId,
   onSelectEntry,
-  onSearchSubmit,
   onSelectPost,
   onCreateNew,
   canCreatePost = true,
 }: ContentSpaceContextPanelProps) {
   const router = useRouter();
   const deleteConfirm = useConfirm();
-  const summary = buildContentContextSummary({
-    entry,
-    folderName: folder?.name,
-    searchQuery,
-    posts,
-  });
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [entry, folder?.id, searchQuery]);
+
+  const normalizedSearchQuery = localSearchQuery.trim().toLowerCase();
+  const filteredPosts = useMemo(() => {
+    if (!normalizedSearchQuery) return posts;
+
+    return posts.filter((post) => {
+      const haystacks = [
+        post.title,
+        post.excerpt ?? "",
+        post.folder?.name ?? "",
+      ];
+
+      return haystacks.some((value) =>
+        value.toLowerCase().includes(normalizedSearchQuery),
+      );
+    });
+  }, [normalizedSearchQuery, posts]);
+
   const viewModel = buildContentSpaceViewModel({
     entry,
-    posts,
+    posts: filteredPosts,
   });
   const activeQuickEntry = quickEntries.some((item) => item.key === entry)
     ? entry
@@ -151,32 +142,29 @@ export function ContentSpaceContextPanel({
       <TooltipProvider delay={1000}>
         <div className="flex h-full flex-col border-r bg-background">
           <div className="border-b px-3 py-3">
-            <form
-              ref={searchFormRef}
-              className="flex items-center gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void onSearchSubmit();
-              }}
-            >
+            <div className="flex items-center gap-2">
               <Input
                 id="content-space-search"
                 name="search"
-                defaultValue={searchQuery}
-                placeholder="搜索文章"
+                value={localSearchQuery}
+                onChange={(event) => setLocalSearchQuery(event.target.value)}
+                placeholder={folder ? `在 ${folder.name} 中搜索` : "搜索文章"}
                 aria-label="搜索文章"
                 className="h-8 flex-1"
               />
-              <Button
-                type="submit"
-                size="icon-sm"
-                variant="outline"
-                className="shrink-0"
-                disabled
-                aria-label="排序"
-              >
-                <ArrowUpDown className="size-3.5" />
-              </Button>
+              {localSearchQuery ? (
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
+                  className="shrink-0"
+                  onClick={() => setLocalSearchQuery("")}
+                  aria-label="清除搜索"
+                  title="清除搜索"
+                >
+                  <X className="size-3.5" />
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 size="icon-sm"
@@ -189,24 +177,26 @@ export function ContentSpaceContextPanel({
               >
                 <FilePlus2 className="size-3.5" />
               </Button>
-            </form>
+            </div>
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex-1 overflow-y-auto px-2 py-2">
-              {posts.length === 0 ? (
+              {filteredPosts.length === 0 ? (
                 <PostsEmptyState
                   title={viewModel.emptyTitle}
                   description={
-                    entry === "search"
-                      ? "换个关键词或切换上下文试试。"
+                    normalizedSearchQuery
+                      ? folder
+                        ? `当前文件夹里没有匹配“${localSearchQuery.trim()}”的文章。`
+                        : `没有找到匹配“${localSearchQuery.trim()}”的文章。`
                       : "先创建一篇文章，之后它会自动出现在对应文件夹里。"
                   }
                   className="px-4 pt-8"
                   size="sm"
                   icon={null}
                 >
-                  {entry === "search" ? null : (
+                  {normalizedSearchQuery ? null : (
                     <Button
                       size="sm"
                       onClick={() => void onCreateNew()}
@@ -219,7 +209,7 @@ export function ContentSpaceContextPanel({
                 </PostsEmptyState>
               ) : (
                 <div className="space-y-1">
-                  {posts.map((post) => {
+                  {filteredPosts.map((post) => {
                     const isActive = post.id === selectedPostId;
                     const displayTitle = getPostDisplayTitle(post.title);
 
