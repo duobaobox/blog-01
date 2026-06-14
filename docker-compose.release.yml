@@ -3,20 +3,23 @@
 
 services:
   blog:
-    # 这里的 image 请替换为你推送到 Docker Hub 上的实际地址，例如：
-    # image: your-dockerhub-username/blog-01:latest
-    image: blog-01:latest
+    # 本地导入镜像后默认直接使用 blog-01-app:release
+    # 如果后续切 Docker Hub，可在 .env 中覆盖 APP_IMAGE
+    image: ${APP_IMAGE:-blog-01-app:release}
+    container_name: blog-app
     restart: unless-stopped
     ports:
       - "${APP_PORT:-3000}:3000"
-    command: ["sh", "-c", "npm run db:push && npm start"]
     environment:
       - NODE_ENV=production
+      - RUN_DB_PUSH=${RUN_DB_PUSH:-1}
       - DATABASE_URL=postgresql://blog:${POSTGRES_PASSWORD:-change-this-db-password}@db:5432/blog?schema=public
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-secret}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3000}
+      - BETTER_AUTH_TRUSTED_ORIGINS=${BETTER_AUTH_TRUSTED_ORIGINS:-}
       - SITE_URL=${SITE_URL:-http://localhost:3000}
       - SEED_ADMIN_NAME=${SEED_ADMIN_NAME:-Admin}
+      - SEED_ADMIN_USERNAME=${SEED_ADMIN_USERNAME:-admin}
       - SEED_ADMIN_EMAIL=${SEED_ADMIN_EMAIL:-admin@example.com}
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD:-admin123456}
     depends_on:
@@ -27,6 +30,7 @@ services:
 
   db:
     image: postgres:16
+    container_name: blog-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: blog

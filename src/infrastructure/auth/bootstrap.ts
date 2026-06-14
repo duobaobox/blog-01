@@ -4,15 +4,44 @@ import { siteConfig } from "@/shared/config/site.config";
 import { normalizeSiteUrl } from "@/shared/lib/url";
 
 const DEFAULT_DEV_ADMIN_NAME = "Admin";
+const DEFAULT_DEV_ADMIN_USERNAME = "admin";
 const DEFAULT_DEV_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_DEV_ADMIN_PASSWORD = "admin123456";
 
-export function getDefaultAdminCredentials() {
+type DefaultAdminCredentials = {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+};
+
+type DefaultAdminUserSnapshot = {
+  id: string;
+  name: string;
+  username: string | null;
+  email: string;
+  role: string;
+};
+
+function normalizeAdminUsername(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function normalizeAdminEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+export function getDefaultAdminCredentials(): DefaultAdminCredentials {
+  const username = normalizeAdminUsername(
+    process.env.SEED_ADMIN_USERNAME?.trim() || DEFAULT_DEV_ADMIN_USERNAME,
+  );
+
   return {
     name: process.env.SEED_ADMIN_NAME?.trim() || DEFAULT_DEV_ADMIN_NAME,
-    email:
-      process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase() ||
-      DEFAULT_DEV_ADMIN_EMAIL,
+    username,
+    email: normalizeAdminEmail(
+      process.env.SEED_ADMIN_EMAIL?.trim() || `${username}@example.com`,
+    ),
     password:
       process.env.SEED_ADMIN_PASSWORD?.trim() || DEFAULT_DEV_ADMIN_PASSWORD,
   };
@@ -34,8 +63,95 @@ export async function promoteToAdmin(email: string) {
   });
 }
 
+async function findDefaultAdminUser(
+  credentials: DefaultAdminCredentials,
+): Promise<DefaultAdminUserSnapshot | null> {
+  const existingByUsername = await db.user.findFirst({
+    where: { username: credentials.username },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      role: true,
+    },
+  });
+
+  if (existingByUsername) {
+    return existingByUsername;
+  }
+
+  return db.user.findUnique({
+    where: { email: credentials.email },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      role: true,
+    },
+  });
+}
+
+async function getCredentialAccount(userId: string) {
+  return db.account.findFirst({
+    where: {
+      userId,
+      providerId: "credential",
+    },
+    select: {
+      id: true,
+      password: true,
+    },
+  });
+}
+
+async function isCredentialPasswordMatching(
+  passwordHash: string | null | undefined,
+  rawPassword: string,
+) {
+  if (!passwordHash) {
+    return false;
+  }
+
+  try {
+    return await verifyPassword({
+      hash: passwordHash,
+      password: rawPassword,
+    });
+  } catch {
+    return false;
+  }
+}
+
 export async function ensureDefaultAdminUser() {
   return syncDefaultAdminUser({ onlyWhenEmpty: true });
+}
+
+export async function getDefaultAdminLoginHint() {
+  const credentials = getDefaultAdminCredentials();
+  const existingUser = await findDefaultAdminUser(credentials);
+
+  if (
+    !existingUser ||
+    existingUser.role !== "admin" ||
+    existingUser.name !== credentials.name ||
+    existingUser.username !== credentials.username
+  ) {
+    return null;
+  }
+
+  const existingCredentialAccount = await getCredentialAccount(existingUser.id);
+  const passwordMatches = await isCredentialPasswordMatching(
+    existingCredentialAccount?.password,
+    credentials.password,
+  );
+
+  if (!passwordMatches) {
+    return null;
+  }
+
+  return credentials;
 }
 
 export async function syncDefaultAdminUser(options?: {
@@ -48,45 +164,21 @@ export async function syncDefaultAdminUser(options?: {
     return credentials;
   }
 
-  const existingUser = await db.user.findUnique({
-    where: { email: credentials.email },
-    select: {
-      id: true,
-      name: true,
-      role: true,
-    },
-  });
-
+  const existingUser = await findDefaultAdminUser(credentials);
   const existingCredentialAccount = existingUser
-    ? await db.account.findFirst({
-        where: {
-          userId: existingUser.id,
-          providerId: "credential",
-        },
-        select: {
-          id: true,
-          password: true,
-        },
-      })
+    ? await getCredentialAccount(existingUser.id)
     : null;
 
-  let passwordMatches = false;
-
-  if (existingCredentialAccount?.password) {
-    try {
-      passwordMatches = await verifyPassword({
-        hash: existingCredentialAccount.password,
-        password: credentials.password,
-      });
-    } catch {
-      passwordMatches = false;
-    }
-  }
+  const passwordMatches = await isCredentialPasswordMatching(
+    existingCredentialAccount?.password,
+    credentials.password,
+  );
 
   if (
     existingUser &&
     existingUser.role === "admin" &&
     existingUser.name === credentials.name &&
+    existingUser.username === credentials.username &&
     passwordMatches
   ) {
     return credentials;
@@ -103,6 +195,8 @@ export async function syncDefaultAdminUser(options?: {
         data: {
           email: credentials.email,
           name: credentials.name,
+          username: credentials.username,
+          displayUsername: credentials.username,
           role: "admin",
         },
         select: {
@@ -113,12 +207,17 @@ export async function syncDefaultAdminUser(options?: {
     if (
       !existingUser ||
       existingUser.role !== "admin" ||
-      existingUser.name !== credentials.name
+      existingUser.name !== credentials.name ||
+      existingUser.username !== credentials.username ||
+      existingUser.email !== credentials.email
     ) {
       await tx.user.update({
         where: { id: user.id },
         data: {
           name: credentials.name,
+          username: credentials.username,
+          displayUsername: credentials.username,
+          email: credentials.email,
           role: "admin",
         },
       });
@@ -150,12 +249,11 @@ export async function syncDefaultAdminUser(options?: {
 }
 
 export async function isDefaultAdminPasswordActive(userId: string) {
-  const credentials = getDefaultAdminCredentials();
   const user = await db.user.findUnique({
     where: { id: userId },
     select: {
       name: true,
-      email: true,
+      username: true,
     },
   });
 
@@ -163,32 +261,13 @@ export async function isDefaultAdminPasswordActive(userId: string) {
     return false;
   }
 
-  if (user.name !== credentials.name || user.email !== credentials.email) {
-    return false;
-  }
+  const defaultAdminHint = await getDefaultAdminLoginHint();
 
-  const account = await db.account.findFirst({
-    where: {
-      userId,
-      providerId: "credential",
-    },
-    select: {
-      password: true,
-    },
-  });
-
-  if (!account?.password) {
-    return false;
-  }
-
-  try {
-    return await verifyPassword({
-      hash: account.password,
-      password: credentials.password,
-    });
-  } catch {
-    return false;
-  }
+  return (
+    !!defaultAdminHint &&
+    user.name === defaultAdminHint.name &&
+    user.username === defaultAdminHint.username
+  );
 }
 
 export async function needsSiteBasicSetup() {

@@ -7,11 +7,11 @@ async function main() {
   console.log("🌱 Seeding database...");
   console.log(`   Base URL: ${BASE_URL}`);
   const admin = await syncDefaultAdminUser();
-  console.log(`   Admin email: ${admin.email}`);
+  console.log(`   Admin account: ${admin.username}`);
 
   console.log("\n✅ Seed complete!");
   console.log(`\n   Login at: ${BASE_URL}/admin/login`);
-  console.log(`   Email:    ${admin.email}`);
+  console.log(`   Account:  ${admin.username}`);
   console.log(`   Password: ${admin.password}`);
 }
 

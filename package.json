@@ -8,7 +8,6 @@
     "start": "next start",
     "test": "tsx --tsconfig tsconfig.test.json --test",
     "lint": "eslint",
-    "release:offline:build": "bash scripts/release/build-offline-bundle.sh",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo-posts": "tsx prisma/seed-demo-posts.ts",

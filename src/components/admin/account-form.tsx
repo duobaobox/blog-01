@@ -10,19 +10,21 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 
 type AccountFormProps = {
   defaultName: string;
-  email: string;
+  username: string;
   showPasswordNotice?: boolean;
 };
 
 export function AccountForm({
   defaultName,
-  email,
+  username,
   showPasswordNotice = false,
 }: AccountFormProps) {
   const router = useRouter();
   const [name, setName] = useState(defaultName);
+  const [loginUsername, setLoginUsername] = useState(username);
   const [nameLoading, setNameLoading] = useState(false);
   const [nameMsg, setNameMsg] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -34,16 +36,36 @@ export function AccountForm({
   async function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
     setNameMsg("");
+    setNameError("");
+
+    const normalizedUsername = loginUsername.trim().toLowerCase();
+
+    if (!normalizedUsername) {
+      setNameError("登录账号不能为空");
+      return;
+    }
+
+    if (!/^[a-z0-9._-]{3,32}$/i.test(normalizedUsername)) {
+      setNameError("登录账号支持 3-32 位字母、数字、点、下划线或短横线");
+      return;
+    }
+
     setNameLoading(true);
 
-    const { error } = await authClient.updateUser({ name });
+    const { error } = await authClient.updateUser({
+      name,
+      username: normalizedUsername,
+      displayUsername: normalizedUsername,
+    });
 
     setNameLoading(false);
 
     if (error) {
-      setNameMsg(error.message || "更新失败");
+      setNameError(error.message || "更新失败");
     } else {
-      setNameMsg("昵称已更新");
+      setNameMsg("账号信息已更新");
+      setLoginUsername(normalizedUsername);
+      router.refresh();
     }
   }
 
@@ -67,6 +89,7 @@ export function AccountForm({
     const { error } = await authClient.changePassword({
       currentPassword,
       newPassword,
+      revokeOtherSessions: true,
     });
 
     setPwLoading(false);
@@ -74,10 +97,12 @@ export function AccountForm({
     if (error) {
       setPwError(error.message || "修改失败，请确认当前密码是否正确");
     } else {
-      setPwMsg("密码已修改");
+      setPwMsg("密码已修改，正在重新登录...");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      await authClient.signOut();
+      router.replace("/admin/login");
       router.refresh();
     }
   }
@@ -86,7 +111,7 @@ export function AccountForm({
     <div className="space-y-6">
       {showPasswordNotice ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          你当前仍在使用默认管理员密码。建议现在就修改，修改完成后首次初始化提醒会自动消失。
+          你当前仍在使用默认管理员凭据。建议现在就修改登录账号和密码，修改完成后首次初始化提醒会自动消失。
         </div>
       ) : null}
       <Card>
@@ -96,8 +121,15 @@ export function AccountForm({
         <CardContent>
           <form onSubmit={handleNameSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>邮箱</Label>
-              <Input value={email} disabled />
+              <Label htmlFor="username">登录账号</Label>
+              <Input
+                id="username"
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
+                required
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="name">昵称</Label>
@@ -108,9 +140,8 @@ export function AccountForm({
                 required
               />
             </div>
-            {nameMsg && (
-              <p className="text-sm text-muted-foreground">{nameMsg}</p>
-            )}
+            {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+            {nameMsg && <p className="text-sm text-muted-foreground">{nameMsg}</p>}
             <Button type="submit" disabled={nameLoading}>
               {nameLoading ? "保存中..." : "保存"}
             </Button>

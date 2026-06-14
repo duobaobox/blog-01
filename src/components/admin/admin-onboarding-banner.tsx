@@ -21,9 +21,9 @@ export function AdminOnboardingBanner({
           <p className="text-sm font-medium">首次启动已可直接使用，建议先完成基础初始化。</p>
           <p className="text-sm text-amber-900/80">
             {needsPasswordChange && needsSiteSetup
-              ? "请先修改默认管理员密码，并补全站点标题、域名等基础信息。"
+              ? "请先修改默认管理员账号和密码，并补全站点标题、域名等基础信息。"
               : needsPasswordChange
-                ? "请先修改默认管理员密码，避免继续使用初始登录凭据。"
+                ? "请先修改默认管理员账号和密码，避免继续使用初始登录凭据。"
                 : "请先补全站点标题、域名等基础信息，完成开箱后的第一次配置。"}
           </p>
         </div>

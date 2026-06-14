@@ -15,16 +15,16 @@ import {
 } from "@/shared/ui/card";
 
 type AdminLoginFormProps = {
-  defaultEmail?: string | null;
+  defaultUsername?: string | null;
   defaultPassword?: string | null;
 };
 
 export function AdminLoginForm({
-  defaultEmail,
+  defaultUsername,
   defaultPassword,
 }: AdminLoginFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState(defaultEmail || "");
+  const [username, setUsername] = useState(defaultUsername || "");
   const [password, setPassword] = useState(defaultPassword || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,8 +34,8 @@ export function AdminLoginForm({
     setError("");
     setLoading(true);
 
-    const { error: authError } = await authClient.signIn.email({
-      email,
+    const { error: authError } = await authClient.signIn.username({
+      username,
       password,
     });
 
@@ -59,20 +59,22 @@ export function AdminLoginForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {defaultEmail && defaultPassword ? (
+            {defaultUsername && defaultPassword ? (
               <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-                系统已自动准备好默认管理员账号，首次登录后请立即修改密码并完成站点基础配置。
+                系统已自动准备好默认管理员账号。首次登录后请立即修改登录账号和密码，并完成站点基础配置。
               </div>
             ) : null}
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="username">登录账号</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
-                placeholder="admin@example.com"
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="输入登录账号"
               />
             </div>
             <div className="space-y-2">

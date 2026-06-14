@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { username } from "better-auth/plugins/username";
 import { db } from "@/infrastructure/db";
 import { headers } from "next/headers";
 
@@ -25,7 +26,14 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [nextCookies()],
+  plugins: [
+    username({
+      minUsernameLength: 3,
+      maxUsernameLength: 32,
+      usernameValidator: (value) => /^[a-z0-9._-]+$/i.test(value),
+    }),
+    nextCookies(),
+  ],
 });
 
 export type AuthSession = typeof auth.$Infer.Session;

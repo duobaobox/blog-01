@@ -72,8 +72,9 @@ BETTER_AUTH_URL="http://localhost:3000"
 
 SITE_URL="http://localhost:3000"
 
-# 默认管理员账号（首次启动可直接登录，登录后建议立即修改密码）
+# 默认管理员账号（首次启动可直接登录，登录后建议立即修改账号和密码）
 SEED_ADMIN_NAME="Admin"
+SEED_ADMIN_USERNAME="admin"
 SEED_ADMIN_EMAIL="admin@example.com"
 SEED_ADMIN_PASSWORD="admin123456"
 ```
@@ -81,7 +82,7 @@ SEED_ADMIN_PASSWORD="admin123456"
 说明：
 
 - Prisma CLI 默认读取 `.env`，所以本项目本地开发也推荐直接使用 `.env`
-- 默认会自动准备管理员账号，首次登录后台后建议立即修改密码并完成站点基础配置
+- 默认会自动准备管理员账号，首次登录后台后建议立即修改登录账号和密码，并完成站点基础配置
 - 媒体上传默认走站点内置媒体库，本地开发和 Docker 部署都不需要额外配置上传路径
 - 数据库里的 `media` 记录会同时保存 `storageProvider`、`storageKey`、`url` 和基础元数据，后续切对象存储时不需要重做媒体索引结构
 - 如需保留手动初始化能力，可额外设置 `ADMIN_SETUP_TOKEN`
@@ -113,10 +114,10 @@ npm run dev
 
 首次启动可直接使用默认管理员账号登录：
 
-- 邮箱：`admin@example.com`
+- 账号：`admin`
 - 密码：`admin123456`
 
-如果你改了 `.env` 里的 `SEED_ADMIN_*`，这里就对应使用你自己的默认值。登录后后台会提醒你先修改密码，并补全站点标题、站点 URL 等基础信息。
+如果你改了 `.env` 里的 `SEED_ADMIN_*`，这里就对应使用你自己的默认值。登录后后台会提醒你先修改登录账号和密码，并补全站点标题、站点 URL 等基础信息。
 
 ### 6. Docker 启动
 
@@ -138,7 +139,7 @@ docker compose run --rm --profile tools seed
 
 ```bash
 docker compose run --rm --profile tools seed
-docker compose run --rm app npm run db:seed:demo-posts
+docker compose run --rm --profile tools seed-demo-posts
 ```
 
 Docker 部署默认会自动持久化媒体库，不需要额外处理上传目录；上传后的文件会跟随站点一起保留。
@@ -173,7 +174,7 @@ docker compose -f docker-compose.release.yml up -d
 
 默认管理员账号仍然是：
 
-- 邮箱：`admin@example.com`
+- 账号：`admin`
 - 密码：`admin123456`
 
 如果你要在线上正式使用，至少要改掉：
@@ -182,8 +183,54 @@ docker compose -f docker-compose.release.yml up -d
 - `POSTGRES_PASSWORD`
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
+- `BETTER_AUTH_TRUSTED_ORIGINS`
 - `SITE_URL`
+- `SEED_ADMIN_USERNAME`
 - `SEED_ADMIN_PASSWORD`
+
+### 8. 当前内测推荐：本地只打 app 镜像，服务器自己拉 PostgreSQL
+
+如果你现在还不打算发 Docker Hub，当前最省事的方式是：
+
+- 本地只构建 `app` 镜像
+- 导出成 `tar`
+- 上传到服务器
+- 服务器自己拉 `postgres:16`
+
+本地先打当前机器可运行的版本：
+
+```bash
+docker build -t blog-01-app:local .
+```
+
+如果你的服务器是常见的 `linux/amd64`，发布时本地打服务器架构版本：
+
+```bash
+docker buildx build --platform linux/amd64 -t blog-01-app:release --load .
+```
+
+导出镜像：
+
+```bash
+mkdir -p dist/app-delivery
+docker save -o dist/app-delivery/blog-01-app-release.tar blog-01-app:release
+```
+
+上传到服务器后：
+
+```bash
+bash install.sh
+```
+
+这条流程的特点是：
+
+- 本地和服务器职责很清楚
+- 不需要服务器安装 Node.js 或拉源码
+- PostgreSQL 继续使用官方镜像
+- 跑通后再推 Docker Hub 即可平滑切换
+- 默认管理员账号自动准备好，启动后直接访问 `/admin/login`
+- 首次部署默认会打开 `nano` 让你确认配置
+- 服务启动完成后会直接打印访问地址和后台账号信息
 
 ## npm Scripts
 
@@ -197,8 +244,6 @@ npm run db:generate          # 生成 Prisma Client
 npm run db:push              # 推送 Prisma Schema
 npm run db:seed              # 按当前 .env 同步默认管理员
 npm run db:seed:demo-posts   # 灌入前后台联调用的演示文章、分类、标签
-
-npm run release:offline:build  # 生成离线交付包
 ```
 
 ## 联调测试数据
@@ -435,9 +480,9 @@ npm run db:seed:demo-posts
 
 项目部署和交付文档见：
 
+- [文档索引](./docs/README.md)
 - [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./docs/alicloud-docker-nginx-https-guide.md)
-- [离线镜像交付指南](./docs/offline-image-delivery-guide.md)
 - [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
 
 ## 当前约定

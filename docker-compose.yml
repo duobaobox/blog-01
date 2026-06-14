@@ -4,12 +4,15 @@ x-app-environment: &app-environment
   NODE_ENV: production
   HOSTNAME: 0.0.0.0
   PORT: 3000
+  RUN_DB_PUSH: ${RUN_DB_PUSH:-1}
   DATABASE_URL: postgresql://${POSTGRES_USER:-blog}:${POSTGRES_PASSWORD:-blog}@db:5432/${POSTGRES_DB:-blog}?schema=public
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
+  BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-}
   SITE_URL: ${SITE_URL:-}
   ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-}
   SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Admin}
+  SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
   SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
   SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123456}
 
@@ -19,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     container_name: blog-app
     restart: unless-stopped
     environment: *app-environment
@@ -35,24 +39,39 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     profiles: ["tools"]
     environment: *app-environment
     depends_on:
       db:
         condition: service_healthy
-    command: ["npm", "run", "db:push"]
+    command: ["/app/node_modules/.bin/prisma", "db", "push", "--schema", "/app/prisma/schema.prisma"]
 
   seed:
-    image: ${APP_IMAGE:-blog-01-app:latest}
+    image: ${APP_TOOLS_IMAGE:-blog-01-tools:latest}
     build:
       context: .
       dockerfile: Dockerfile
+      target: tools
     profiles: ["tools"]
     environment: *app-environment
     depends_on:
       db:
         condition: service_healthy
     command: ["npm", "run", "db:seed"]
+
+  seed-demo-posts:
+    image: ${APP_TOOLS_IMAGE:-blog-01-tools:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tools
+    profiles: ["tools"]
+    environment: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "tsx", "prisma/seed-demo-posts.ts"]
 
   db:
     image: postgres:16

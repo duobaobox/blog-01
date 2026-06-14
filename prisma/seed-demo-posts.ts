@@ -752,21 +752,23 @@ async function main() {
   console.log("Resetting and seeding demo content...");
 
   const adminUser =
-    (await db.user.findUnique({
-      where: { email: process.env.SEED_ADMIN_EMAIL || "admin@example.com" },
-      select: { id: true, email: true },
+    (await db.user.findFirst({
+      where: {
+        username: (process.env.SEED_ADMIN_USERNAME || "admin").toLowerCase(),
+      },
+      select: { id: true, email: true, username: true },
     })) ||
     (await db.user.findFirst({
       where: { role: "admin" },
       orderBy: { createdAt: "asc" },
-      select: { id: true, email: true },
+      select: { id: true, email: true, username: true },
     }));
 
   if (!adminUser) {
     throw new Error("No admin user found. Please create an admin account first.");
   }
 
-  console.log(`Using admin author: ${adminUser.email}`);
+  console.log(`Using admin author: ${adminUser.username || adminUser.email}`);
 
   await resetContentData();
   await ensureSiteSettings();

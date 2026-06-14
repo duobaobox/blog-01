@@ -1,17 +1,19 @@
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import {
   ensureDefaultAdminUser,
+  getDefaultAdminLoginHint,
 } from "@/infrastructure/auth/bootstrap";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage() {
-  const defaultAdmin = await ensureDefaultAdminUser();
+  await ensureDefaultAdminUser();
+  const defaultAdminHint = await getDefaultAdminLoginHint();
 
   return (
     <AdminLoginForm
-      defaultEmail={defaultAdmin?.email}
-      defaultPassword={defaultAdmin?.password}
+      defaultUsername={defaultAdminHint?.username}
+      defaultPassword={defaultAdminHint?.password}
     />
   );
 }

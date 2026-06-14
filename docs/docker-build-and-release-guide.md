@@ -1,23 +1,20 @@
 # Docker 构建与发版指导
 
-这份文档描述当前项目保留的两条部署路径：
+这份文档只描述当前项目仍然在维护的两条部署路径：
 
-1. 源码部署：服务器拉仓库，用根目录 [docker-compose.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.yml) 启动
-2. 发布版一键启动：直接使用 [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
-3. 离线交付：本地构建 `linux/amd64` 镜像，服务器只拿交付包部署
+1. 源码部署：服务器拉仓库，使用根目录 `docker-compose.yml`
+2. 发布版交付：本地构建 app 镜像，生成 `dist/app-delivery` 后上传服务器
 
-## 当前部署模型
+## 当前发布模型
 
 ```mermaid
 flowchart LR
-  Dev["本地开发机"] --> Repo["Git / 源码"]
-  Repo --> Server["Linux x86 服务器"]
+  Dev["本地开发机"] --> Build["构建 app 镜像"]
+  Build --> Bundle["dist/app-delivery"]
+  Bundle --> Server["Linux 服务器"]
   Server --> Compose["docker compose"]
-  Compose --> App["Next.js app :3000"]
-  Compose --> DB["PostgreSQL 16"]
-  Compose --> Tools["migrate / seed"]
-  App --> Media["./media"]
-  DB --> PgData["postgres_data volume"]
+  Compose --> App["blog-app"]
+  Compose --> DB["postgres:16"]
 ```
 
 ## 关键文件
@@ -25,8 +22,8 @@ flowchart LR
 - [Dockerfile](/Users/duobao/个人/个人-网站搭建/blog-01/Dockerfile)
 - [docker-compose.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.yml)
 - [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
-- [.env.example](/Users/duobao/个人/个人-网站搭建/blog-01/.env.example)
-- [offline-image-delivery-guide.md](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
+- [delivery/release/install.sh](/Users/duobao/个人/个人-网站搭建/blog-01/delivery/release/install.sh)
+- [scripts/release/refresh-app-delivery.sh](/Users/duobao/个人/个人-网站搭建/blog-01/scripts/release/refresh-app-delivery.sh)
 
 ## 一、源码部署
 
@@ -34,7 +31,7 @@ flowchart LR
 
 - 服务器能拉 Git 仓库
 - 服务器能直接构建镜像
-- 接受使用 `.env`
+- 当前仍在开发期，优先追求迭代效率
 
 准备：
 
@@ -48,10 +45,11 @@ cp .env.example .env
 POSTGRES_PASSWORD=replace-with-strong-password
 BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
+BETTER_AUTH_TRUSTED_ORIGINS=https://your-domain.com
 SITE_URL=https://your-domain.com
+SEED_ADMIN_USERNAME=admin
+SEED_ADMIN_PASSWORD=replace-with-strong-admin-password
 ```
-
-默认会自动准备管理员账号。普通部署流程直接访问 `/admin/login` 登录即可；`ADMIN_SETUP_TOKEN` 只作为高级保留项。
 
 启动：
 
@@ -61,97 +59,76 @@ docker compose run --rm --profile tools migrate
 docker compose up -d app
 ```
 
-应用容器启动时只执行 `npm start`，不会自动修改数据库结构。数据库同步必须通过 `migrate` 工具服务显式执行。
-
-如需补一批联调文章，便于测试前台分页和后台筛选，可额外执行：
+补测试数据：
 
 ```bash
-docker compose run --rm app npm run db:seed:demo-posts
+docker compose run --rm --profile tools seed
+docker compose run --rm --profile tools seed-demo-posts
 ```
 
-这条命令会向当前数据库补充演示分类、标签和文章，不影响正常启动流程。
-
-## 二、发布版一键启动
+## 二、发布版交付
 
 适用场景：
 
-- 已经有可用的应用镜像
-- 希望尽量贴近最终用户的一句命令安装体验
-- 接受应用容器首启自动执行 `db:push`
+- 你在本地开发完成后，要把当前版本交给服务器测试
+- 服务器不跑源码构建
+- 当前不依赖 Docker Hub，先走手工上传
 
-准备：
+### 1. 本地构建镜像
 
-- 使用 [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
-- 把 `image: blog-01:latest` 改成你实际推送的镜像地址
-
-最小启动示例：
+如果服务器是 `linux/amd64`：
 
 ```bash
-APP_PORT=3000 \
-POSTGRES_PASSWORD=replace-with-strong-password \
-BETTER_AUTH_SECRET=replace-with-strong-random-secret \
-BETTER_AUTH_URL=https://your-domain.com \
-SITE_URL=https://your-domain.com \
-SEED_ADMIN_PASSWORD=replace-with-strong-admin-password \
-docker compose -f docker-compose.release.yml up -d
+docker buildx build --platform linux/amd64 -t blog-01-app:release --load .
 ```
 
-这条路径的特点是：
-
-- 数据库和媒体库都由 Docker volume 自动持久化
-- 应用容器首启自动执行 `db:push`
-- 默认管理员账号可直接登录
-- 不要求用户再手动执行 migrate / seed
-- 可以通过 `APP_PORT` 改端口，适合本机并行测试或一台机器跑多个站点
-
-启动后建议立即验证：
-
-- `/admin/login` 可访问
-- 使用默认管理员账号能登录
-- 登录后能看到首次初始化提醒
-
-## 三、离线交付
-
-适用场景：
-
-- 本地是 ARM，服务器是 Linux x86
-- 服务器不拉仓库或不走镜像仓库
-- 希望交付物尽量傻瓜化
-
-本地打包：
+### 2. 导出镜像并刷新交付目录
 
 ```bash
-bash scripts/release/build-offline-bundle.sh
+mkdir -p dist/app-delivery
+docker save -o dist/app-delivery/blog-01-app-release.tar blog-01-app:release
+bash scripts/release/refresh-app-delivery.sh
+tar -C dist -czf dist/app-delivery-release.tar.gz app-delivery
 ```
 
-服务器部署详见：
+### 3. 上传到服务器
 
-- [offline-image-delivery-guide.md](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
+上传：
 
-这条路径的特点是：
+- `dist/app-delivery-release.tar.gz`
 
-- 交付包里只有一个可编辑的 `config/docker-compose.yml`
-- 服务器不需要 `.env`
-- 服务器只需 `docker load`、编辑 compose、执行启动脚本
+### 4. 服务器安装
 
-## 四、持久化和备份
+```bash
+cd /root
+rm -rf app-delivery
+tar -xzf app-delivery-release.tar.gz
+cd app-delivery
+bash install.sh
+```
 
-当前实现下：
+如果你明确不想编辑配置：
 
-- PostgreSQL 使用 `postgres_data`
-- 本地上传目录是项目根目录下的 `./media`
+```bash
+bash install.sh . --no-edit
+```
 
-备份最少覆盖：
+### 5. 首次部署后的重点检查
 
-- `postgres_data`
-- `./media`
+- `BETTER_AUTH_URL`
+- `BETTER_AUTH_TRUSTED_ORIGINS`
+- `SITE_URL`
 
-## 五、发版建议
+这三个值必须和你实际访问后台时使用的地址完全一致。
 
-单机生产环境的推荐顺序：
+## 三、当前不再维护的方案
 
-1. 先备份数据库
-2. 再备份 `./media`
-3. 再更新应用镜像或代码
-4. 跑 `migrate`
-5. 做登录、发文、上传的冒烟验证
+以下旧方案已经废弃，不再作为正式交付链路维护：
+
+- `dist/offline-delivery`
+- `delivery/offline/*`
+- `scripts/release/build-offline-bundle.sh`
+- `scripts/release/import-offline-bundle.sh`
+- `scripts/release/start-offline-stack.sh`
+
+如果后续恢复离线交付，也应该基于当前 `app-delivery` 方案重新设计，而不是继续叠加旧脚本。
