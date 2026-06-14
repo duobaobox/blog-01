@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSession } from "@/infrastructure/auth";
 import {
+  backfillAdminUsername,
   isDefaultAdminPasswordActive,
   needsSiteBasicSetup,
 } from "@/infrastructure/auth/bootstrap";
@@ -27,6 +28,10 @@ export default async function AdminLayout({
 
   if (session.user.role !== "admin") {
     redirect("/");
+  }
+
+  if (!session.user.username) {
+    await backfillAdminUsername(session.user.id);
   }
 
   const cookieStore = await cookies();

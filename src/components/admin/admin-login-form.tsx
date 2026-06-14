@@ -6,6 +6,7 @@ import { authClient } from "@/infrastructure/auth/client";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { PasswordInput } from "@/shared/ui/password-input";
 import {
   Card,
   CardHeader,
@@ -60,8 +61,8 @@ export function AdminLoginForm({
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {defaultUsername && defaultPassword ? (
-              <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-                系统已自动准备好默认管理员账号。首次登录后请立即修改登录账号和密码，并完成站点基础配置。
+              <div className="rounded-lg border border-border/70 bg-muted/30 px-3.5 py-3 text-sm text-muted-foreground">
+                默认管理员账号已经准备好。首次登录后建议先修改密码，再补齐站点基础信息。
               </div>
             ) : null}
             <div className="space-y-2">
@@ -79,9 +80,8 @@ export function AdminLoginForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">密码</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

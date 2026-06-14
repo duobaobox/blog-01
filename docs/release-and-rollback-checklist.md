@@ -5,7 +5,7 @@
 - [ ] 确认本次代码已经提交
 - [ ] 确认 `npm run build` 通过
 - [ ] 确认 `BETTER_AUTH_URL` / `BETTER_AUTH_TRUSTED_ORIGINS` / `SITE_URL` 不含 `localhost`
-- [ ] 确认默认管理员账号已使用 `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD`
+- [ ] 确认默认管理员账号和密码已按预期生成
 - [ ] 确认数据库和媒体目录有备份
 - [ ] 记录当前线上镜像版本或当前交付包时间
 
@@ -36,7 +36,7 @@ bash install.sh
 - [ ] 首页可访问
 - [ ] `/admin/login` 可访问
 - [ ] 默认管理员能登录
-- [ ] 修改默认管理员账号和密码后，重新登录正常
+- [ ] 修改默认管理员密码后，重新登录正常
 - [ ] 能新建文章
 - [ ] 能上传图片
 - [ ] `/robots.txt` 正常
@@ -49,7 +49,7 @@ bash install.sh
 cd /root/app-delivery
 docker compose --env-file .env.release -f docker-compose.release.yml ps
 docker compose --env-file .env.release -f docker-compose.release.yml logs --tail=100 blog
-grep -E '^(BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|SITE_URL|SEED_ADMIN_USERNAME)=' .env.release
+grep -E '^(BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|SITE_URL|SEED_ADMIN_PASSWORD)=' .env.release
 ```
 
 ## 回滚触发条件

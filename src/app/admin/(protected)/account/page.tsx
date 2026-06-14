@@ -24,7 +24,6 @@ export default async function AccountPage() {
       <div className="max-w-lg">
         <AccountForm
           defaultName={session.user.name}
-          username={session.user.username ?? ""}
           showPasswordNotice={showPasswordNotice}
         />
       </div>

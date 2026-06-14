@@ -31,6 +31,16 @@ function normalizeAdminEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
+function slugifyAdminUsername(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const slug = normalized
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32);
+
+  return slug || DEFAULT_DEV_ADMIN_USERNAME;
+}
+
 export function getDefaultAdminCredentials(): DefaultAdminCredentials {
   const username = normalizeAdminUsername(
     process.env.SEED_ADMIN_USERNAME?.trim() || DEFAULT_DEV_ADMIN_USERNAME,
@@ -93,6 +103,53 @@ async function findDefaultAdminUser(
   });
 }
 
+export async function backfillAdminUsername(userId: string) {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      role: true,
+    },
+  });
+
+  if (!user || user.role !== "admin" || user.username) {
+    return null;
+  }
+
+  const baseUsername = slugifyAdminUsername(user.name);
+  let nextUsername = baseUsername;
+  let suffix = 2;
+
+  while (true) {
+    const exists = await db.user.findFirst({
+      where: {
+        username: nextUsername,
+        id: { not: user.id },
+      },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      break;
+    }
+
+    nextUsername = `${baseUsername.slice(0, Math.max(1, 32 - String(suffix).length - 1))}-${suffix}`;
+    suffix += 1;
+  }
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      username: nextUsername,
+      displayUsername: nextUsername,
+    },
+  });
+
+  return nextUsername;
+}
+
 async function getCredentialAccount(userId: string) {
   return db.account.findFirst({
     where: {
@@ -132,12 +189,7 @@ export async function getDefaultAdminLoginHint() {
   const credentials = getDefaultAdminCredentials();
   const existingUser = await findDefaultAdminUser(credentials);
 
-  if (
-    !existingUser ||
-    existingUser.role !== "admin" ||
-    existingUser.name !== credentials.name ||
-    existingUser.username !== credentials.username
-  ) {
+  if (!existingUser || existingUser.role !== "admin") {
     return null;
   }
 
@@ -252,7 +304,7 @@ export async function isDefaultAdminPasswordActive(userId: string) {
   const user = await db.user.findUnique({
     where: { id: userId },
     select: {
-      name: true,
+      role: true,
       username: true,
     },
   });
@@ -265,7 +317,7 @@ export async function isDefaultAdminPasswordActive(userId: string) {
 
   return (
     !!defaultAdminHint &&
-    user.name === defaultAdminHint.name &&
+    user.role === "admin" &&
     user.username === defaultAdminHint.username
   );
 }
@@ -274,7 +326,6 @@ export async function needsSiteBasicSetup() {
   const settings = await db.siteSetting.findFirst({
     select: {
       siteTitle: true,
-      siteUrl: true,
     },
   });
 
@@ -282,11 +333,5 @@ export async function needsSiteBasicSetup() {
     return true;
   }
 
-  const normalizedDbUrl = normalizeSiteUrl(settings.siteUrl || "");
-  const normalizedDefaultUrl = normalizeSiteUrl(siteConfig.url);
-
-  return (
-    settings.siteTitle.trim() === siteConfig.name ||
-    normalizedDbUrl === normalizedDefaultUrl
-  );
+  return settings.siteTitle.trim() === siteConfig.name;
 }

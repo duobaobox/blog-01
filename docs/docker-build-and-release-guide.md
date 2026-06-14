@@ -47,7 +47,6 @@ BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
 BETTER_AUTH_TRUSTED_ORIGINS=https://your-domain.com
 SITE_URL=https://your-domain.com
-SEED_ADMIN_USERNAME=admin
 SEED_ADMIN_PASSWORD=replace-with-strong-admin-password
 ```
 
@@ -120,6 +119,13 @@ bash install.sh . --no-edit
 - `SITE_URL`
 
 这三个值必须和你实际访问后台时使用的地址完全一致。
+
+当前产品规则：
+
+- 固定管理员登录账号为 `admin`
+- 首次部署后用户只需要修改密码和昵称
+- 不提供修改登录账号的入口
+- 如需多用户或角色管理，后续单独设计“用户管理”功能
 
 ## 三、当前不再维护的方案
 

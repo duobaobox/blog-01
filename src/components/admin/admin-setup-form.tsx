@@ -6,6 +6,7 @@ import { authClient } from "@/infrastructure/auth/client";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { PasswordInput } from "@/shared/ui/password-input";
 import {
   Card,
   CardHeader,
@@ -106,9 +107,8 @@ export function AdminSetupForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">密码</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -117,9 +117,8 @@ export function AdminSetupForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">确认密码</Label>
-              <Input
+              <PasswordInput
                 id="confirm"
-                type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
@@ -128,9 +127,8 @@ export function AdminSetupForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="setupToken">初始化口令</Label>
-              <Input
+              <PasswordInput
                 id="setupToken"
-                type="password"
                 value={setupToken}
                 onChange={(e) => setSetupToken(e.target.value)}
                 placeholder="生产环境必填"

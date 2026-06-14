@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { updateSiteSettings } from "@/features/settings/actions/settings.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ImagePlus, Trash2 } from "lucide-react";
+import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -39,6 +41,21 @@ export function SettingsForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState(settings?.logoUrl ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(settings?.avatarUrl ?? "");
+  const [pickerField, setPickerField] = useState<"logoUrl" | "avatarUrl" | null>(
+    null,
+  );
+
+  function handleMediaSelect(url: string) {
+    if (pickerField === "logoUrl") {
+      setLogoUrl(url);
+    }
+
+    if (pickerField === "avatarUrl") {
+      setAvatarUrl(url);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,8 +82,8 @@ export function SettingsForm({
     <TooltipProvider>
       <form onSubmit={handleSubmit} className="space-y-6">
         {showSetupNotice ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            当前仍是默认站点信息。建议至少先改掉站点标题和站点 URL，这样前台展示、SEO 和后续分享地址都会正常。
+          <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            当前站点信息还比较基础。建议优先完善站点标题；站点 URL、Logo 和头像都可以后续再补。
           </div>
         ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
@@ -128,7 +145,7 @@ export function SettingsForm({
               id="siteUrl"
               name="siteUrl"
               defaultValue={settings?.siteUrl ?? ""}
-              required
+              placeholder="https://your-domain.com"
             />
           </div>
           <div className="space-y-2">
@@ -143,20 +160,102 @@ export function SettingsForm({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="logoUrl">Logo URL</Label>
-            <Input
-              id="logoUrl"
-              name="logoUrl"
-              defaultValue={settings?.logoUrl ?? ""}
-            />
+            <Label htmlFor="logoUrl">Logo</Label>
+            <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+              <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background">
+                {logoUrl ? (
+                  <Image
+                    src={logoUrl}
+                    alt="Logo 预览"
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">未设置</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <Input
+                  id="logoUrl"
+                  name="logoUrl"
+                  value={logoUrl}
+                  onChange={(event) => setLogoUrl(event.target.value)}
+                  placeholder="可直接粘贴图片 URL"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPickerField("logoUrl")}
+                  >
+                    <ImagePlus />
+                    从媒体库选择
+                  </Button>
+                  {logoUrl ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setLogoUrl("")}
+                    >
+                      <Trash2 />
+                      清除
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="avatarUrl">头像 URL</Label>
-            <Input
-              id="avatarUrl"
-              name="avatarUrl"
-              defaultValue={settings?.avatarUrl ?? ""}
-            />
+            <Label htmlFor="avatarUrl">头像</Label>
+            <div className="flex items-center gap-3 rounded-lg border border-border/70 bg-muted/20 p-3">
+              <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-background">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt="头像预览"
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">未设置</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <Input
+                  id="avatarUrl"
+                  name="avatarUrl"
+                  value={avatarUrl}
+                  onChange={(event) => setAvatarUrl(event.target.value)}
+                  placeholder="可直接粘贴图片 URL"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPickerField("avatarUrl")}
+                  >
+                    <ImagePlus />
+                    从媒体库选择
+                  </Button>
+                  {avatarUrl ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAvatarUrl("")}
+                    >
+                      <Trash2 />
+                      清除
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -191,6 +290,18 @@ export function SettingsForm({
           )}
         </div>
       </form>
+      <MediaPickerDialog
+        open={pickerField !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPickerField(null);
+          }
+        }}
+        onSelect={(media) => {
+          handleMediaSelect(media.url);
+          setPickerField(null);
+        }}
+      />
     </TooltipProvider>
   );
 }

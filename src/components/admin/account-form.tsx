@@ -3,25 +3,25 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/infrastructure/auth/client";
+import { updateAdminProfile } from "@/features/settings/actions/account.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 
 type AccountFormProps = {
   defaultName: string;
-  username: string;
   showPasswordNotice?: boolean;
 };
 
 export function AccountForm({
   defaultName,
-  username,
   showPasswordNotice = false,
 }: AccountFormProps) {
   const router = useRouter();
   const [name, setName] = useState(defaultName);
-  const [loginUsername, setLoginUsername] = useState(username);
+  const [savedName, setSavedName] = useState(defaultName);
   const [nameLoading, setNameLoading] = useState(false);
   const [nameMsg, setNameMsg] = useState("");
   const [nameError, setNameError] = useState("");
@@ -33,44 +33,33 @@ export function AccountForm({
   const [pwMsg, setPwMsg] = useState("");
   const [pwError, setPwError] = useState("");
 
+  const hasPendingNameChange = name.trim() !== savedName.trim();
+
   async function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
     setNameMsg("");
     setNameError("");
 
-    const normalizedUsername = loginUsername.trim().toLowerCase();
-
-    if (!normalizedUsername) {
-      setNameError("登录账号不能为空");
-      return;
-    }
-
-    if (!/^[a-z0-9._-]{3,32}$/i.test(normalizedUsername)) {
-      setNameError("登录账号支持 3-32 位字母、数字、点、下划线或短横线");
-      return;
-    }
-
     setNameLoading(true);
 
-    const { error } = await authClient.updateUser({
-      name,
-      username: normalizedUsername,
-      displayUsername: normalizedUsername,
-    });
-
-    setNameLoading(false);
-
-    if (error) {
-      setNameError(error.message || "更新失败");
-    } else {
-      setNameMsg("账号信息已更新");
-      setLoginUsername(normalizedUsername);
+    try {
+      await updateAdminProfile({
+        name,
+      });
+      setNameMsg("昵称已更新");
+      setSavedName(name.trim());
       router.refresh();
+    } catch (error) {
+      setNameError(error instanceof Error ? error.message : "更新失败");
+    } finally {
+      setNameLoading(false);
     }
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setNameMsg("");
+    setNameError("");
     setPwMsg("");
     setPwError("");
 
@@ -86,17 +75,25 @@ export function AccountForm({
 
     setPwLoading(true);
 
-    const { error } = await authClient.changePassword({
-      currentPassword,
-      newPassword,
-      revokeOtherSessions: true,
-    });
+    try {
+      if (hasPendingNameChange) {
+        await updateAdminProfile({
+          name,
+        });
+        setSavedName(name.trim());
+      }
 
-    setPwLoading(false);
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      });
 
-    if (error) {
-      setPwError(error.message || "修改失败，请确认当前密码是否正确");
-    } else {
+      if (error) {
+        setPwError(error.message || "修改失败，请确认当前密码是否正确");
+        return;
+      }
+
       setPwMsg("密码已修改，正在重新登录...");
       setCurrentPassword("");
       setNewPassword("");
@@ -104,14 +101,22 @@ export function AccountForm({
       await authClient.signOut();
       router.replace("/admin/login");
       router.refresh();
+    } catch (error) {
+      setPwError(
+        error instanceof Error
+          ? error.message
+          : "保存账号信息失败，请稍后重试",
+      );
+    } finally {
+      setPwLoading(false);
     }
   }
 
   return (
     <div className="space-y-6">
       {showPasswordNotice ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          你当前仍在使用默认管理员凭据。建议现在就修改登录账号和密码，修改完成后首次初始化提醒会自动消失。
+        <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          你当前仍在使用默认管理员初始密码。建议现在改掉，改完后初始化提醒会自动消失。
         </div>
       ) : null}
       <Card>
@@ -120,17 +125,6 @@ export function AccountForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleNameSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">登录账号</Label>
-              <Input
-                id="username"
-                value={loginUsername}
-                onChange={(e) => setLoginUsername(e.target.value)}
-                required
-                autoCapitalize="none"
-                autoCorrect="off"
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="name">昵称</Label>
               <Input
@@ -157,9 +151,8 @@ export function AccountForm({
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">当前密码</Label>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
@@ -168,9 +161,8 @@ export function AccountForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">新密码</Label>
-              <Input
+              <PasswordInput
                 id="newPassword"
-                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -179,9 +171,8 @@ export function AccountForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">确认新密码</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -189,6 +180,11 @@ export function AccountForm({
               />
             </div>
             {pwError && <p className="text-sm text-destructive">{pwError}</p>}
+            {hasPendingNameChange ? (
+              <p className="text-sm text-muted-foreground">
+                你有未保存的昵称修改。修改密码时会先自动保存昵称。
+              </p>
+            ) : null}
             {pwMsg && <p className="text-sm text-muted-foreground">{pwMsg}</p>}
             <Button type="submit" disabled={pwLoading}>
               {pwLoading ? "修改中..." : "修改密码"}
