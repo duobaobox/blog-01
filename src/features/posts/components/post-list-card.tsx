@@ -42,7 +42,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
 
   return (
     <Link href={`/blog/${post.slug}`} className="block">
-      <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
+      <Card className="gap-0 py-0 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
         {post.coverImageUrl ? (
           <div className="overflow-hidden rounded-t-xl border-b bg-muted/30">
             <Image
@@ -55,7 +55,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
             />
           </div>
         ) : null}
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-3 py-4">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {post.isFeatured ? (
               <>
@@ -88,7 +88,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
             )}
           </div>
           <CardTitle className="text-xl leading-tight">{post.title}</CardTitle>
-          <CardDescription className="text-sm leading-relaxed line-clamp-2">
+          <CardDescription className="line-clamp-2 text-sm leading-relaxed">
             {preview}
           </CardDescription>
           {post.tags.length > 0 && (
