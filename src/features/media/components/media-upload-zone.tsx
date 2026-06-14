@@ -81,7 +81,7 @@ export function MediaUploadZone({
             拖拽文件到这里，或点击选择
           </p>
           <p className="text-xs text-muted-foreground/70">
-            支持图片、PDF、ZIP；大小限制取决于当前存储配置
+            支持图片、PDF、ZIP；上传后会自动保存到站点媒体库
           </p>
         </>
       )}

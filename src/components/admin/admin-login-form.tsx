@@ -61,7 +61,7 @@ export function AdminLoginForm({
           <form onSubmit={handleSubmit} className="space-y-4">
             {defaultEmail && defaultPassword ? (
               <div className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-                开发环境测试账号已自动准备好，可直接登录。
+                系统已自动准备好默认管理员账号，首次登录后请立即修改密码并完成站点基础配置。
               </div>
             ) : null}
             <div className="space-y-2">

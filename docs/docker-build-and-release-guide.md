@@ -47,18 +47,15 @@ POSTGRES_PASSWORD=replace-with-strong-password
 BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
 SITE_URL=https://your-domain.com
-ADMIN_SETUP_TOKEN=replace-with-strong-random-token
-STORAGE_PROVIDER=local
 ```
 
-`ADMIN_SETUP_TOKEN` 是生产环境首次创建管理员账号的初始化口令。部署者访问 `/admin/setup` 时，需要在页面里填写同一个值。
+默认会自动准备管理员账号。普通部署流程直接访问 `/admin/login` 登录即可；`ADMIN_SETUP_TOKEN` 只作为高级保留项。
 
 启动：
 
 ```bash
 docker compose up -d --build db
 docker compose run --rm --profile tools migrate
-docker compose run --rm --profile tools seed
 docker compose up -d app
 ```
 

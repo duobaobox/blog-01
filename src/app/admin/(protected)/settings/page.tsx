@@ -1,10 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import { getSiteSettings } from "@/features/settings/queries/settings.queries";
+import { needsSiteBasicSetup } from "@/infrastructure/auth/bootstrap";
 import { SettingsForm } from "@/components/admin/settings-form";
 
 export default async function AdminSettingsPage() {
-  const settings = await getSiteSettings();
+  const [settings, showSetupNotice] = await Promise.all([
+    getSiteSettings(),
+    needsSiteBasicSetup(),
+  ]);
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto w-full max-w-[1680px] p-4 md:p-6">
@@ -14,7 +18,10 @@ export default async function AdminSettingsPage() {
             管理站点基本信息、社交链接和页脚文本
           </p>
         </div>
-        <SettingsForm settings={settings} />
+        <SettingsForm
+          settings={settings}
+          showSetupNotice={showSetupNotice}
+        />
       </div>
     </div>
   );

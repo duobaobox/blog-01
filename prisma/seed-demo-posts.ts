@@ -8,8 +8,7 @@ type DemoPostSeed = {
   slug: string;
   excerpt: string;
   categorySlug: string;
-  topicSlug: string;
-  subtopicSlug: string;
+  folderSlug: string;
   tagSlugs: string[];
   status: "published" | "draft";
   isFeatured: boolean;
@@ -22,402 +21,615 @@ type DemoPostSeed = {
   }>;
 };
 
+type DemoPostBlueprint = Omit<DemoPostSeed, "sections"> & {
+  lead: string;
+  focus: string;
+};
+
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
 const db = new PrismaClient({ adapter });
 
-const topics = [
+const folders = [
   {
-    name: "内容系统",
-    slug: "content-system",
-    description: "围绕写作、发布和增长建立的内容知识体系。",
+    name: "产品与体验",
+    slug: "product-experience",
+    description: "后台工作台、内容流程和交互体验相关内容。",
     sortOrder: 1,
-    subtopics: [
-      {
-        name: "发布流程",
-        slug: "publishing-flow",
-        description: "草稿、校对、发布与前台回归相关内容。",
-        sortOrder: 1,
-      },
-      {
-        name: "增长策略",
-        slug: "growth-strategy",
-        description: "SEO、摘要、专题组织和内容增长。",
-        sortOrder: 2,
-      },
-    ],
   },
   {
-    name: "工程实践",
-    slug: "engineering-practice",
-    description: "博客工程实现、部署和前端技术实践。",
+    name: "内容策略",
+    slug: "content-strategy-lab",
+    description: "摘要、SEO、专题组织和内容增长实验。",
     sortOrder: 2,
-    subtopics: [
-      {
-        name: "Next.js 博客",
-        slug: "nextjs-blog",
-        description: "围绕博客前台、渲染和分页的工程实践。",
-        sortOrder: 1,
-      },
-      {
-        name: "Docker 部署",
-        slug: "docker-delivery",
-        description: "容器化部署、发布检查与运维实践。",
-        sortOrder: 2,
-      },
-    ],
+  },
+  {
+    name: "前端实现",
+    slug: "frontend-implementation",
+    description: "Next.js、React 和前台阅读体验优化。",
+    sortOrder: 3,
+  },
+  {
+    name: "部署与运维",
+    slug: "delivery-ops",
+    description: "Docker、发布检查和运行环境维护。",
+    sortOrder: 4,
+  },
+  {
+    name: "待整理灵感",
+    slug: "idea-backlog",
+    description: "暂存未完善想法，方便测试草稿流。",
+    sortOrder: 5,
   },
 ] as const;
 
 const categories = [
-  { name: "产品设计", slug: "product-design", description: "产品体验、界面策略与交互设计。" },
-  { name: "前端工程", slug: "frontend-engineering", description: "React、Next.js 与前端性能优化实践。" },
-  { name: "内容运营", slug: "content-ops", description: "博客内容规划、发布节奏和读者增长。" },
-  { name: "部署运维", slug: "devops", description: "Docker、构建发布和基础设施配置。" },
+  {
+    name: "产品设计",
+    slug: "product-design",
+    description: "产品体验、界面结构和交互策略。",
+  },
+  {
+    name: "内容运营",
+    slug: "content-ops",
+    description: "写作组织、选题规划和内容增长。",
+  },
+  {
+    name: "前端工程",
+    slug: "frontend-engineering",
+    description: "React、Next.js 与页面体验优化。",
+  },
+  {
+    name: "部署运维",
+    slug: "devops",
+    description: "部署、运行和环境维护相关实践。",
+  },
 ] as const;
 
 const tags = [
+  { name: "后台体验", slug: "admin-ux", color: "#7c3aed" },
+  { name: "内容策略", slug: "content-strategy", color: "#ea580c" },
+  { name: "SEO", slug: "seo", color: "#dc2626" },
   { name: "Next.js", slug: "nextjs", color: "#111827" },
   { name: "React", slug: "react", color: "#2563eb" },
   { name: "性能优化", slug: "performance", color: "#16a34a" },
-  { name: "后台体验", slug: "admin-ux", color: "#9333ea" },
-  { name: "内容策略", slug: "content-strategy", color: "#ea580c" },
-  { name: "Docker", slug: "docker", color: "#0ea5e9" },
-  { name: "SEO", slug: "seo", color: "#dc2626" },
+  { name: "Docker", slug: "docker", color: "#0284c7" },
+  { name: "发布流程", slug: "publishing-flow", color: "#0f766e" },
   { name: "测试数据", slug: "demo-data", color: "#64748b" },
+  { name: "专题策划", slug: "editorial-planning", color: "#be185d" },
 ] as const;
 
-const demoPosts: DemoPostSeed[] = [
+const demoPosts: readonly DemoPostSeed[] = [
   {
-    title: "用 3 个界面动作把博客后台的发布效率拉起来",
-    slug: "demo-admin-publishing-workflow",
-    excerpt: "从草稿、预览到发布，梳理最影响效率的后台动作，方便测试文章管理流。",
+    title: "把博客后台重做成内容工作台后，最先该验证哪三件事",
+    slug: "demo-admin-workspace-first-checks",
+    excerpt: "先验证结构定位、列表切换和编辑保存链路，能最快看出这次重构值不值。",
     categorySlug: "product-design",
-    topicSlug: "content-system",
-    subtopicSlug: "publishing-flow",
-    tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
+    folderSlug: "product-experience",
+    tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
     status: "published",
     isFeatured: true,
     publishedDaysAgo: 2,
     createdDaysAgo: 3,
     sections: [
       {
-        heading: "为什么先优化发布链路",
+        heading: "为什么先看工作台主链路",
         paragraphs: [
-          "对于个人博客来说，真正会反复使用的不是首页，而是后台写作和发布流程。每多一次跳转、多一次确认、多一次重复输入，都会直接影响更新频率。",
-          "测试后台时，最值得验证的是列表筛选、编辑保存、状态切换和前台同步展示是否连贯。只要这条链路顺畅，后续再做视觉和细节优化就会更稳。",
+          "后台最常用的动作不是配置，而是定位内容、切换文章和继续编辑。如果这三件事顺了，其他功能的体验成本都会下降。",
+          "所以第一批测试数据最好覆盖多个文件夹、多篇草稿和不同状态，能直接暴露导航和筛选的问题。",
         ],
       },
       {
-        heading: "这篇测试文章要覆盖什么",
+        heading: "建议先走的测试顺序",
         paragraphs: [
-          "我们会刻意让文章具有分类、标签、摘要和精选状态，方便一次验证前台列表、详情页、分类页、标签页和后台筛选。",
+          "进入后台后，先点文件夹，再切换到草稿，最后打开一篇文章修改标题并保存，这条路径足够代表真实使用。",
         ],
-        bullets: ["后台列表可检索标题", "文章详情能展示目录", "首页精选区有内容"],
+        bullets: ["文件夹高亮是否明确", "列表切换是否顺手", "编辑保存是否稳定"],
       },
     ],
   },
   {
-    title: "给博客首页做一次更稳的精选文章编排",
-    slug: "demo-homepage-featured-layout",
-    excerpt: "精选文章不只是放三篇内容，更需要验证排序、封面和文案节奏。",
+    title: "内容工作台里的文件夹，不应该只是分类，而是操作上下文",
+    slug: "demo-folder-as-context",
+    excerpt: "文件夹真正的价值是让用户在当前上下文里连续完成创建、筛选和编辑。",
     categorySlug: "product-design",
-    topicSlug: "content-system",
-    subtopicSlug: "growth-strategy",
-    tagSlugs: ["content-strategy", "seo", "demo-data"],
+    folderSlug: "product-experience",
+    tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
     status: "published",
-    isFeatured: true,
+    isFeatured: false,
     publishedDaysAgo: 4,
     createdDaysAgo: 5,
     sections: [
       {
-        heading: "精选区的角色",
+        heading: "上下文比层级更重要",
         paragraphs: [
-          "精选区承担的是站点的第一印象，它既要让老读者快速看到重点，也要让新访客理解这个博客在写什么。",
-          "因此测试数据里最好同时包含不同主题的文章，避免首页看上去只有一种内容类型。",
+          "如果用户点进文件夹后，新建文章不能自动归属当前文件夹，整个结构就只是装饰。内容工作台的设计核心是让上下文持续生效。",
         ],
       },
       {
-        heading: "验证重点",
+        heading: "这篇文章适合怎么测试",
         paragraphs: [
-          "这里最适合检查图片比例、标题长度、摘要截断和时间信息是否协调。如果其中任何一块表现不好，真实内容上线后也会被放大。",
+          "你可以进入某个文件夹后新建文章，再确认中栏是否立即出现，右侧编辑器是否直接进入这篇文章。",
         ],
       },
     ],
   },
   {
-    title: "把分类页做成真正可浏览的内容入口",
-    slug: "demo-category-browsing-entry",
-    excerpt: "分类页不只是一个过滤结果页，它应该有足够清晰的浏览结构。",
+    title: "给博客首页做精选编排时，怎样让内容主题更有层次",
+    slug: "demo-homepage-featured-curation",
+    excerpt: "精选内容不是随便挑几篇，而是要覆盖主题、节奏和阅读入口。",
     categorySlug: "content-ops",
-    topicSlug: "content-system",
-    subtopicSlug: "growth-strategy",
-    tagSlugs: ["content-strategy", "seo", "demo-data"],
+    folderSlug: "content-strategy-lab",
+    tagSlugs: ["content-strategy", "editorial-planning", "demo-data"],
     status: "published",
-    isFeatured: false,
+    isFeatured: true,
     publishedDaysAgo: 6,
     createdDaysAgo: 7,
     sections: [
       {
-        heading: "分类页常见问题",
+        heading: "精选区承担什么角色",
         paragraphs: [
-          "很多博客的分类页只有标题和文章列表，缺少描述和层次感，导致用户点进去之后很快失去继续浏览的动机。",
-        ],
-      },
-      {
-        heading: "为什么测试时要多分类",
-        paragraphs: [
-          "如果数据库里只有一种分类，分类页的很多问题是看不出来的。增加几组不同主题文章后，分页、标题层级和内容密度才更容易暴露问题。",
+          "首页精选区决定访客第一眼会把这个博客理解成什么类型的站点，所以内容不要只集中在一个主题上。",
+          "测试数据里让精选文章分布在产品、内容和工程不同方向，更容易检验前台节奏。",
         ],
       },
     ],
   },
   {
-    title: "标签页该怎么测，才能知道筛选真的有价值",
-    slug: "demo-tag-filter-value",
-    excerpt: "标签是跨分类组织内容的方式，测试时要刻意制造交叉内容。",
+    title: "摘要和 SEO 描述应该一起设计，而不是上线前临时补",
+    slug: "demo-excerpt-seo-together",
+    excerpt: "摘要决定列表页点击意愿，SEO 描述决定搜索结果点击意愿，这两者应同时设计。",
     categorySlug: "content-ops",
-    topicSlug: "content-system",
-    subtopicSlug: "growth-strategy",
-    tagSlugs: ["content-strategy", "admin-ux", "demo-data"],
+    folderSlug: "content-strategy-lab",
+    tagSlugs: ["seo", "content-strategy", "demo-data"],
     status: "published",
     isFeatured: false,
     publishedDaysAgo: 8,
     createdDaysAgo: 9,
     sections: [
       {
-        heading: "交叉标签的意义",
+        heading: "为什么不能临时补",
         paragraphs: [
-          "标签页最怕的数据问题就是每个标签只关联一篇文章，因为那样基本测不出排序、分页和推荐逻辑。",
-          "所以这批测试数据会让多个标签重复出现在不同分类文章里，方便你直接观察列表组织方式。",
+          "如果摘要和 SEO 描述总是最后才写，通常会导致列表信息不完整、搜索片段不自然，也不利于后台批量维护。",
+        ],
+      },
+      {
+        heading: "测试重点",
+        paragraphs: [
+          "这篇文章适合拿来检查博客列表摘要长度、详情页 meta 信息，以及后台设置面板的回填效果。",
         ],
       },
     ],
   },
   {
-    title: "Next.js 博客分页该怎么做，用户体验才不会碎",
-    slug: "demo-nextjs-blog-pagination",
-    excerpt: "分页不是单纯把数据切开，更重要的是保留位置感和继续浏览的意愿。",
-    categorySlug: "frontend-engineering",
-    topicSlug: "engineering-practice",
-    subtopicSlug: "nextjs-blog",
-    tagSlugs: ["nextjs", "react", "performance", "demo-data"],
+    title: "分类页如果只有列表，没有主题说明，浏览体验会很弱",
+    slug: "demo-category-page-structure",
+    excerpt: "分类页不只是结果页，它应该帮助用户理解这个分类到底在讲什么。",
+    categorySlug: "content-ops",
+    folderSlug: "content-strategy-lab",
+    tagSlugs: ["seo", "editorial-planning", "demo-data"],
     status: "published",
-    isFeatured: true,
+    isFeatured: false,
     publishedDaysAgo: 10,
     createdDaysAgo: 11,
     sections: [
       {
-        heading: "分页最核心的事",
+        heading: "分类页最容易缺什么",
         paragraphs: [
-          "用户在翻页时最需要的是确认自己没有迷路，所以页码、上下页、当前状态和链接结构都要足够明确。",
-          "测试时最好准备超过一页的数据，并且让第二页也有足够代表性的文章，这样才不会只看到空壳分页。",
-        ],
-      },
-      {
-        heading: "怎么验证这次分页改动",
-        paragraphs: [
-          "你可以从博客列表进入第二页，再随机点进详情页，然后回退确认页码状态是否保持。这比只看第一页更能说明真实体验。",
+          "很多分类页只有文章卡片，却没有分类说明和内容重心，导致用户点进去之后很难继续深挖。",
         ],
       },
     ],
   },
   {
-    title: "React 内容页里，长文章渲染需要关注哪些细节",
-    slug: "demo-react-longform-rendering",
-    excerpt: "长内容最容易出现的是标题层级、段落节奏和代码块渲染问题。",
+    title: "Next.js 博客列表超过一页时，最容易暴露哪些交互问题",
+    slug: "demo-nextjs-pagination-checks",
+    excerpt: "分页问题通常要在数据足够多时才会显现，所以测试文章数量不能太少。",
     categorySlug: "frontend-engineering",
-    topicSlug: "engineering-practice",
-    subtopicSlug: "nextjs-blog",
-    tagSlugs: ["react", "performance", "demo-data"],
+    folderSlug: "frontend-implementation",
+    tagSlugs: ["nextjs", "react", "performance", "demo-data"],
     status: "published",
-    isFeatured: false,
+    isFeatured: true,
     publishedDaysAgo: 12,
     createdDaysAgo: 13,
     sections: [
       {
-        heading: "长文不是把字堆上去",
+        heading: "分页不只是翻页",
         paragraphs: [
-          "一篇长文如果没有合适的标题结构，读者在移动端尤其容易失去阅读方向。目录、段落间距和强调信息的位置都需要被一起验证。",
+          "用户真正关心的是自己有没有迷路，所以当前页、上下页和返回列表后的状态都需要连续。",
         ],
-        bullets: ["二级标题是否生成目录", "长段落是否易读", "移动端行宽是否合理"],
       },
       {
-        heading: "测试价值",
+        heading: "适合怎么测",
         paragraphs: [
-          "这类内容很适合拿来观察文章详情页的排版稳定性，也方便检查目录浮动逻辑是否正常。",
+          "从博客列表翻到第二页，再进入详情页后返回，能很快看出分页状态有没有保持。",
         ],
       },
     ],
   },
   {
-    title: "后台搜索不准的时候，用户会在哪一步放弃",
-    slug: "demo-admin-search-behavior",
-    excerpt: "搜索命中不稳定时，后台体验会明显下降，这篇文章方便你测试标题和标签搜索。",
-    categorySlug: "product-design",
-    topicSlug: "content-system",
-    subtopicSlug: "publishing-flow",
-    tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
+    title: "长文章在 React 页面里，排版稳定性比花哨效果更重要",
+    slug: "demo-react-long-article-layout",
+    excerpt: "长内容更容易暴露标题层级、段落间距和目录生成的问题。",
+    categorySlug: "frontend-engineering",
+    folderSlug: "frontend-implementation",
+    tagSlugs: ["react", "performance", "demo-data"],
     status: "published",
     isFeatured: false,
     publishedDaysAgo: 14,
     createdDaysAgo: 15,
     sections: [
       {
-        heading: "搜索体验不是一个输入框",
+        heading: "为什么长文更适合验版式",
         paragraphs: [
-          "后台搜索真正要解决的是定位速度。标题、摘要、正文、分类和标签是否都可检索，会直接影响找回旧文章的效率。",
+          "短文很难看出阅读节奏，长文则会把目录、段落、列表和间距问题全部放大出来。",
+          "因此这类测试文章非常适合用来检查详情页的阅读体验是否稳定。",
         ],
-      },
-      {
-        heading: "这篇文章怎么测",
-        paragraphs: [
-          "你可以在后台文章页搜索“搜索”“后台”或“标签”，观察结果数量和排序是否符合直觉。",
-        ],
+        bullets: ["目录是否生成", "二级标题是否清晰", "移动端行宽是否舒服"],
       },
     ],
   },
   {
-    title: "内容运营里，为什么要提前设计摘要和 SEO 描述",
-    slug: "demo-seo-excerpt-structure",
-    excerpt: "摘要和 SEO 描述虽然短，但会同时影响站内浏览和搜索入口的点击率。",
-    categorySlug: "content-ops",
-    topicSlug: "content-system",
-    subtopicSlug: "growth-strategy",
-    tagSlugs: ["seo", "content-strategy", "demo-data"],
+    title: "后台搜索如果只搜标题，不搜摘要和正文，定位效率会明显下降",
+    slug: "demo-admin-search-depth",
+    excerpt: "搜索体验的关键不只是框在不在，而是能否让用户真正快速定位旧内容。",
+    categorySlug: "product-design",
+    folderSlug: "product-experience",
+    tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
     status: "published",
     isFeatured: false,
     publishedDaysAgo: 16,
     createdDaysAgo: 17,
     sections: [
       {
-        heading: "摘要的双重职责",
+        heading: "搜索要解决什么问题",
         paragraphs: [
-          "摘要既是列表页的浏览钩子，也是未来做搜索展示和分享卡片时的重要文案来源。测试数据里保留不同长度的摘要，可以更快发现截断问题。",
+          "真实使用里，用户经常记得的是一个关键词或一句描述，而不一定记得完整标题，所以搜索范围不能太窄。",
+        ],
+      },
+      {
+        heading: "怎么验证",
+        paragraphs: [
+          "你可以分别搜“后台”“定位”“阅读体验”等关键词，看中栏结果是否符合预期。",
         ],
       },
     ],
   },
   {
-    title: "Docker 部署博客时，最常踩的不是构建，而是数据初始化",
-    slug: "demo-docker-bootstrap-flow",
-    excerpt: "在容器化环境里，数据库、迁移和种子数据的顺序比构建本身更容易出问题。",
+    title: "Docker 化之后，真正容易出问题的往往是初始化和数据同步",
+    slug: "demo-docker-bootstrap",
+    excerpt: "服务启动只是开始，数据库连接、schema 同步和种子数据才是稳定运行的基础。",
     categorySlug: "devops",
-    topicSlug: "engineering-practice",
-    subtopicSlug: "docker-delivery",
-    tagSlugs: ["docker", "nextjs", "demo-data"],
+    folderSlug: "delivery-ops",
+    tagSlugs: ["docker", "publishing-flow", "demo-data"],
     status: "published",
     isFeatured: false,
     publishedDaysAgo: 18,
     createdDaysAgo: 19,
     sections: [
       {
-        heading: "为什么初始化步骤更容易翻车",
+        heading: "为什么初始化更容易翻车",
         paragraphs: [
-          "应用容器能启动，不代表数据库已经准备好；数据库可连，也不代表数据结构已经同步。这些前后顺序问题往往只会在真实部署里暴露。",
+          "容器起来了，不代表数据库结构已经准备好；数据库能连，也不代表演示数据已经正确导入。这些问题在开发期尤其常见。",
         ],
       },
       {
         heading: "测试建议",
         paragraphs: [
-          "这类文章可以帮助你确认运维向内容也能被前台正常展示，同时让分类页和标签页的主题更加丰富。",
+          "这篇文章更偏运维主题，适合用来验证分类页、标签页和前台内容主题是否足够丰富。",
         ],
       },
     ],
   },
   {
-    title: "把构建日志读顺，发布问题会少一半",
-    slug: "demo-build-log-debugging",
-    excerpt: "构建失败时，最有效的方式通常不是反复重试，而是先把日志层次读清楚。",
+    title: "发布前检查不该只看前台，还要把后台主流程走一遍",
+    slug: "demo-release-checklist",
+    excerpt: "后台能否新建、保存、删除和回到列表，决定了发版后能不能继续稳定维护。",
     categorySlug: "devops",
-    topicSlug: "engineering-practice",
-    subtopicSlug: "docker-delivery",
-    tagSlugs: ["docker", "performance", "demo-data"],
+    folderSlug: "delivery-ops",
+    tagSlugs: ["docker", "publishing-flow", "demo-data"],
     status: "published",
     isFeatured: false,
     publishedDaysAgo: 20,
     createdDaysAgo: 21,
     sections: [
       {
-        heading: "日志优先级",
+        heading: "检查顺序建议",
         paragraphs: [
-          "先看第一处真正导致失败的错误，再看后续连锁报错，是定位构建问题最省时间的方式。这个思路同样适用于前端运行时和后台操作异常。",
+          "最顺的顺序通常是服务状态、后台登录、内容创建、前台回归，而不是只看首页能不能打开。",
         ],
+        bullets: ["服务已启动", "后台可进入", "文章可创建", "前台能回归展示"],
       },
     ],
   },
   {
-    title: "给博客做一轮发布前检查，到底该看什么",
-    slug: "demo-release-checklist",
-    excerpt: "发版前检查不应该只是“能打开”，而要覆盖页面、数据和后台操作。",
-    categorySlug: "devops",
-    topicSlug: "engineering-practice",
-    subtopicSlug: "docker-delivery",
-    tagSlugs: ["docker", "seo", "demo-data"],
-    status: "published",
-    isFeatured: false,
-    publishedDaysAgo: 22,
-    createdDaysAgo: 23,
-    sections: [
-      {
-        heading: "检查顺序",
-        paragraphs: [
-          "最合理的顺序通常是容器状态、基础路由、后台登录、文章发布、前台回归。按这个顺序检查，能更快发现是系统性问题还是单点功能问题。",
-        ],
-        bullets: ["服务是否启动", "后台是否可进", "文章是否能发布", "前台是否能看到"],
-      },
-    ],
-  },
-  {
-    title: "一篇草稿在发布前，应该经历哪些内容检查",
-    slug: "demo-draft-review-checklist",
-    excerpt: "草稿文章适合用来测试后台状态筛选、编辑回填和保存行为。",
+    title: "草稿文章适合拿来验证什么：状态筛选、自动保存和再次打开编辑",
+    slug: "demo-draft-review-flow",
+    excerpt: "草稿是后台体验里最常见的状态，应该重点验证其切换和回填表现。",
     categorySlug: "content-ops",
-    topicSlug: "content-system",
-    subtopicSlug: "publishing-flow",
-    tagSlugs: ["content-strategy", "admin-ux", "demo-data"],
+    folderSlug: "idea-backlog",
+    tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
     status: "draft",
     isFeatured: false,
     publishedDaysAgo: null,
     createdDaysAgo: 1,
     sections: [
       {
-        heading: "草稿的价值",
+        heading: "草稿的真正用途",
         paragraphs: [
-          "不是每篇文章都要立即发布。草稿状态可以帮助你测试后台的状态过滤、最近修改时间和编辑回填逻辑。",
+          "草稿不是未完成的发布品，而是内容工作流里最常见的中间状态，所以它的编辑和恢复体验必须稳定。",
         ],
       },
       {
-        heading: "这篇文章适合怎么测",
+        heading: "这篇草稿怎么测",
         paragraphs: [
-          "你可以在后台筛选草稿，打开这篇文章修改标题或摘要，再保存并返回列表，看状态和内容是否保持一致。",
+          "打开后改标题、摘要或正文，再切换到别的文章回来，看看内容是否保持一致。",
         ],
       },
     ],
   },
   {
-    title: "准备中的专题页：把内容结构先搭出来再慢慢填",
-    slug: "demo-draft-topic-page",
-    excerpt: "另一篇草稿，用来验证多草稿场景下的分页和搜索表现。",
+    title: "专题页想法池：先搭结构，再慢慢填内容",
+    slug: "demo-draft-topic-idea",
+    excerpt: "另一篇草稿，方便测试多草稿状态下的搜索和列表切换体验。",
     categorySlug: "product-design",
-    topicSlug: "content-system",
-    subtopicSlug: "publishing-flow",
-    tagSlugs: ["admin-ux", "demo-data"],
+    folderSlug: "idea-backlog",
+    tagSlugs: ["editorial-planning", "demo-data"],
     status: "draft",
     isFeatured: false,
     publishedDaysAgo: null,
     createdDaysAgo: 4,
     sections: [
       {
-        heading: "先搭骨架",
+        heading: "为什么先搭骨架",
         paragraphs: [
-          "专题内容通常不会一次写完，所以更需要确认后台在处理半成品内容时是否稳定，尤其是保存、搜索和再次打开编辑。",
+          "很多内容不是一次写完，先有结构再补正文是更真实的写作方式，所以后台必须能很好处理半成品内容。",
         ],
       },
     ],
   },
+  {
+    title: "还没想清楚的内容实验记录",
+    slug: "demo-draft-experiment-log",
+    excerpt: "这篇更短的草稿适合拿来测试空摘要、短正文和列表展示的兼容性。",
+    categorySlug: "content-ops",
+    folderSlug: "idea-backlog",
+    tagSlugs: ["content-strategy", "demo-data"],
+    status: "draft",
+    isFeatured: false,
+    publishedDaysAgo: null,
+    createdDaysAgo: 6,
+    sections: [
+      {
+        heading: "实验记录的价值",
+        paragraphs: [
+          "短草稿也需要被很好地展示，否则后台列表容易出现信息密度不一致的问题。",
+        ],
+      },
+    ],
+  },
+  ...([
+    {
+      title: "后台文章列表如果只适合看十篇以内的数据，那它其实还没准备好进入真实使用",
+      slug: "demo-admin-list-density",
+      excerpt:
+        "当文章数量上来之后，列表的信息密度、筛选效率和滚动中的定位感会立刻暴露问题。",
+      categorySlug: "product-design",
+      folderSlug: "product-experience",
+      tagSlugs: ["admin-ux", "performance", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 22,
+      createdDaysAgo: 23,
+      lead:
+        "后台列表在十篇以内通常看不出问题，但当内容逐渐变多，信息密度和选中状态是否足够清晰就会立刻成为真实阻力。",
+      focus:
+        "这篇文章可以帮助你观察长标题、较长摘要和多标签组合出现在中高密度列表里时的可读性。",
+    },
+    {
+      title: "文章标题一旦变长，前后台的截断、悬浮提示和视觉重心都会一起接受检验",
+      slug: "demo-long-title-behavior",
+      excerpt:
+        "长标题是最容易把列表设计、详情页层级和编辑器头部布局一起拉出来测试的内容类型。",
+      categorySlug: "frontend-engineering",
+      folderSlug: "frontend-implementation",
+      tagSlugs: ["react", "admin-ux", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 24,
+      createdDaysAgo: 25,
+      lead:
+        "短标题通常不会出问题，但只要内容进入真实写作状态，标题长度很快就会超出理想范围，于是很多细节都会暴露出来。",
+      focus:
+        "这类文章最适合观察后台 tooltip、前台列表卡片换行、详情页标题节奏以及移动端首屏是否仍然稳定。",
+    },
+    {
+      title: "专题策划不是把文章堆到一起，而是提前决定用户会沿着什么路径继续阅读",
+      slug: "demo-editorial-path-design",
+      excerpt:
+        "专题页真正承接的是阅读路径，所以测试数据里需要存在可以串联浏览的相关主题文章。",
+      categorySlug: "content-ops",
+      folderSlug: "content-strategy-lab",
+      tagSlugs: ["editorial-planning", "content-strategy", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 26,
+      createdDaysAgo: 27,
+      lead:
+        "很多博客会做专题，但专题页如果没有清晰的阅读顺序，就只是把标签和分类又包了一层壳，并没有真正提高内容利用率。",
+      focus:
+        "这篇文章适合和同文件夹的其他文章一起测试前台连续阅读的感觉，也适合检查后台按主题组织内容时是否顺手。",
+    },
+    {
+      title: "当标签数量慢慢变多之后，标签页更像内容入口还是更像筛选器，其实是两种完全不同的设计决策",
+      slug: "demo-tag-page-role",
+      excerpt:
+        "标签页的角色如果不明确，前台会显得凌乱，后台也会越来越难维护跨主题内容。",
+      categorySlug: "content-ops",
+      folderSlug: "content-strategy-lab",
+      tagSlugs: ["seo", "editorial-planning", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 28,
+      createdDaysAgo: 29,
+      lead:
+        "标签页可以是轻量筛选，也可以是跨栏目浏览入口，但两者在标题、摘要和推荐逻辑上的要求并不一样。",
+      focus:
+        "你可以用它测试标签页的标题、文章排序和回到博客列表后的浏览连贯性，看当前结构更偏向哪一种。",
+    },
+    {
+      title: "把更多真实文章灌进数据库之后，前台分页、精选区和分类页才会真正表现出自己的性格",
+      slug: "demo-data-volume-matters",
+      excerpt:
+        "只有当数据量足够时，分页和模块节奏的优缺点才会被放大出来，少量数据通常会掩盖结构问题。",
+      categorySlug: "frontend-engineering",
+      folderSlug: "frontend-implementation",
+      tagSlugs: ["nextjs", "performance", "demo-data"],
+      status: "published",
+      isFeatured: true,
+      publishedDaysAgo: 30,
+      createdDaysAgo: 31,
+      lead:
+        "稀疏数据带来的最大误判，是你会误以为当前页面结构已经很整洁，但一旦文章数量增加，真正的密度问题和排序问题都会同时出现。",
+      focus:
+        "这篇文章的作用就是故意把列表体量抬起来，帮助你观察前台翻页和首页模块在更高数据量下是否仍然自然。",
+    },
+    {
+      title: "部署流程里最需要被复盘的，往往不是命令本身，而是每一步在系统中的因果顺序",
+      slug: "demo-deployment-sequence",
+      excerpt:
+        "发版失败很多时候不是单点错误，而是顺序错了，所以演示数据里也应该有运维主题内容去覆盖前台主题广度。",
+      categorySlug: "devops",
+      folderSlug: "delivery-ops",
+      tagSlugs: ["docker", "publishing-flow", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 32,
+      createdDaysAgo: 33,
+      lead:
+        "只记命令而不理解顺序，通常意味着出问题时只能重复试错。对博客系统来说，数据库、服务启动和内容初始化尤其依赖顺序。",
+      focus:
+        "这篇文章可以帮助前台保持主题多样性，也适合你在后台测试搜索“部署”“顺序”等关键词时观察命中效果。",
+    },
+    {
+      title: "如果后台新建文章之后不能马上形成列表反馈，用户对系统是否成功响应会明显不安",
+      slug: "demo-create-feedback-loop",
+      excerpt:
+        "即时反馈是内容工作台体验的关键，它比空状态文案更能决定用户是否信任系统。",
+      categorySlug: "product-design",
+      folderSlug: "product-experience",
+      tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 34,
+      createdDaysAgo: 35,
+      lead:
+        "用户点了新建之后，最先需要确认的是系统有没有真正接住这个动作，而不是先去理解复杂的状态提示。",
+      focus:
+        "这篇文章和我们刚做的即时创建逻辑是配套的，方便你继续回看后台创建后的列表反馈是否自然。",
+    },
+    {
+      title: "文章摘要长短不一时，列表卡片的节奏感能不能保持稳定，决定了博客页是不是耐看",
+      slug: "demo-excerpt-length-rhythm",
+      excerpt:
+        "真实数据里摘要长度一定会不均匀，所以列表卡片必须在信息差异中依然保持浏览节奏。",
+      categorySlug: "frontend-engineering",
+      folderSlug: "frontend-implementation",
+      tagSlugs: ["react", "content-strategy", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 36,
+      createdDaysAgo: 37,
+      lead:
+        "统一长度的假数据会让页面显得过于理想化，而真实博客最常见的情况恰恰是标题和摘要长度都不平均。",
+      focus:
+        "这篇文章和其他长短不一的内容一起，能帮助你直接看出列表卡片的高度节奏是否足够稳。",
+    },
+    {
+      title: "从写作到上线的每一个小摩擦，最后都会累积成内容团队更新频率下降的真实原因",
+      slug: "demo-friction-compounds",
+      excerpt:
+        "体验里的微小阻力在单次使用时不明显，但在高频写作场景里会持续侵蚀效率和意愿。",
+      categorySlug: "product-design",
+      folderSlug: "product-experience",
+      tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
+      status: "published",
+      isFeatured: false,
+      publishedDaysAgo: 38,
+      createdDaysAgo: 39,
+      lead:
+        "任何一次多余点击、模糊反馈或切换成本，看起来都不算大，但只要进入持续写作状态，这些细节就会快速累积成真实负担。",
+      focus:
+        "把这类文章和更多后台动作一起测试，会更容易让你判断现在的工作台体验是不是已经到了真正可用的阶段。",
+    },
+    {
+      title: "下一批内容还没完全成型：这是为了测试草稿堆积时，列表过滤和搜索是否还能保持清晰",
+      slug: "demo-draft-backlog-density",
+      excerpt:
+        "草稿数量一旦上来，后台的筛选、命名和再次定位就会比发布态更先暴露问题。",
+      categorySlug: "content-ops",
+      folderSlug: "idea-backlog",
+      tagSlugs: ["publishing-flow", "demo-data"],
+      status: "draft",
+      isFeatured: false,
+      publishedDaysAgo: null,
+      createdDaysAgo: 2,
+      lead:
+        "草稿区最容易出现的问题不是写不写得完，而是随着半成品变多，用户越来越难确认哪些该继续、哪些该合并、哪些可以删掉。",
+      focus:
+        "这篇额外草稿的作用就是让你在后台切换草稿视图时，看到比之前更接近真实的密度。",
+    },
+    {
+      title: "这个选题先放着：后面再决定它更适合写成工具评测、实践复盘，还是一篇完整的系统设计文章",
+      slug: "demo-draft-direction-pending",
+      excerpt:
+        "方向未定的草稿很适合测试标签、分类和文件夹在内容还没成型时的组织方式。",
+      categorySlug: "product-design",
+      folderSlug: "idea-backlog",
+      tagSlugs: ["editorial-planning", "demo-data"],
+      status: "draft",
+      isFeatured: false,
+      publishedDaysAgo: null,
+      createdDaysAgo: 5,
+      lead:
+        "很多真实草稿都不是从明确标题开始，而是从一个模糊方向开始，这对后台的重命名、移动和再次打开体验都是更严格的考验。",
+      focus:
+        "你可以把它当成一个更接近现实的半成品，看看当前工作台是否支持这种不确定状态下的内容管理。",
+    },
+  ] satisfies readonly DemoPostBlueprint[]).map(
+    ({
+      lead,
+      focus,
+      ...post
+    }: DemoPostBlueprint): DemoPostSeed => ({
+      ...post,
+      sections: [
+        {
+          heading: "为什么这类内容值得保留在演示数据里",
+          paragraphs: [
+            lead,
+            "演示数据如果太整齐，很多真实问题就会被掩盖。把不同长度、不同主题和不同完成度的内容一起放进系统，反而更容易发现结构是否经得起真实使用。",
+          ],
+        },
+        {
+          heading: "这篇文章主要帮助你测什么",
+          paragraphs: [
+            focus,
+            "除了前台浏览，你也可以顺手回到后台验证搜索、筛选、重新定位和再次编辑这条链路是否仍然顺畅。",
+          ],
+        },
+        {
+          heading: "继续优化时可以观察的信号",
+          paragraphs: [
+            "当数据规模和内容长度都开始变化时，页面是否仍然容易扫读、状态是否仍然清楚、交互是否仍然可预期，这些都会比视觉细节本身更早说明问题。",
+          ],
+          bullets: ["标题是否容易扫读", "状态是否容易辨认", "回到列表后是否容易继续操作"],
+        },
+      ],
+    }),
+  ),
 ];
 
 function daysAgo(days: number) {
@@ -507,8 +719,37 @@ function buildContentText(seed: DemoPostSeed) {
     .join("\n\n");
 }
 
+async function resetContentData() {
+  await db.$transaction(async (tx) => {
+    await tx.postTag.deleteMany();
+    await tx.post.deleteMany();
+    await tx.folder.deleteMany();
+    await tx.category.deleteMany();
+    await tx.tag.deleteMany();
+  });
+}
+
+async function ensureSiteSettings() {
+  const existing = await db.siteSetting.findFirst({
+    select: { id: true },
+  });
+
+  if (existing) return;
+
+  await db.siteSetting.create({
+    data: {
+      siteTitle: "duobao",
+      siteSubtitle: "内容工作台演示站",
+      siteDescription: "用于验证后台内容工作台和前台博客体验的演示数据。",
+      siteUrl: process.env.SITE_URL || "http://localhost:3000",
+      email: process.env.SEED_ADMIN_EMAIL || "admin@example.com",
+      footerText: "Demo content seed",
+    },
+  });
+}
+
 async function main() {
-  console.log("Seeding demo posts...");
+  console.log("Resetting and seeding demo content...");
 
   const adminUser =
     (await db.user.findUnique({
@@ -527,45 +768,23 @@ async function main() {
 
   console.log(`Using admin author: ${adminUser.email}`);
 
-  const folderMap = new Map<string, string>();
-  const folderSeeds = topics.flatMap((topic) =>
-    topic.subtopics.map((subtopic) => ({
-      name: subtopic.name,
-      slug: subtopic.slug,
-      description: subtopic.description,
-      sortOrder: topic.sortOrder * 10 + subtopic.sortOrder,
-    })),
-  );
+  await resetContentData();
+  await ensureSiteSettings();
 
-  for (const folder of folderSeeds) {
-    const savedFolder = await db.folder.upsert({
-      where: { slug: folder.slug },
-      update: {
-        name: folder.name,
-        description: folder.description,
-        sortOrder: folder.sortOrder,
-      },
-      create: {
-        name: folder.name,
-        slug: folder.slug,
-        description: folder.description,
-        sortOrder: folder.sortOrder,
-      },
+  const folderMap = new Map<string, string>();
+  for (const folder of folders) {
+    const saved = await db.folder.create({
+      data: folder,
       select: { id: true, slug: true },
     });
 
-    folderMap.set(savedFolder.slug, savedFolder.id);
+    folderMap.set(saved.slug, saved.id);
   }
 
   const categoryMap = new Map<string, string>();
   for (const category of categories) {
-    const saved = await db.category.upsert({
-      where: { slug: category.slug },
-      update: {
-        name: category.name,
-        description: category.description,
-      },
-      create: category,
+    const saved = await db.category.create({
+      data: category,
       select: { id: true, slug: true },
     });
 
@@ -574,13 +793,8 @@ async function main() {
 
   const tagMap = new Map<string, string>();
   for (const tag of tags) {
-    const saved = await db.tag.upsert({
-      where: { slug: tag.slug },
-      update: {
-        name: tag.name,
-        color: tag.color,
-      },
-      create: tag,
+    const saved = await db.tag.create({
+      data: tag,
       select: { id: true, slug: true },
     });
 
@@ -598,25 +812,24 @@ async function main() {
         .split("")
         .filter(Boolean).length || Math.max(1, Math.round(stats.words));
 
-    const tagIds = seed.tagSlugs.map((slug) => {
-      const id = tagMap.get(slug);
-      if (!id) {
-        throw new Error(`Missing tag mapping for ${slug}`);
-      }
-      return id;
-    });
-
     const categoryId = categoryMap.get(seed.categorySlug);
     if (!categoryId) {
       throw new Error(`Missing category mapping for ${seed.categorySlug}`);
     }
 
-    const folderId = folderMap.get(seed.subtopicSlug);
+    const folderId = folderMap.get(seed.folderSlug);
     if (!folderId) {
-      throw new Error(
-        `Missing folder mapping for ${seed.subtopicSlug}`,
-      );
+      throw new Error(`Missing folder mapping for ${seed.folderSlug}`);
     }
+
+    const tagIds = seed.tagSlugs.map((slug) => {
+      const id = tagMap.get(slug);
+      if (!id) {
+        throw new Error(`Missing tag mapping for ${slug}`);
+      }
+
+      return id;
+    });
 
     const createdAt = daysAgo(seed.createdDaysAgo);
     const publishedAt =
@@ -624,34 +837,8 @@ async function main() {
         ? daysAgo(seed.publishedDaysAgo)
         : null;
 
-    await db.post.upsert({
-      where: { slug: seed.slug },
-      update: {
-        title: seed.title,
-        excerpt: seed.excerpt,
-        coverImageUrl: null,
-        contentJson: contentJson as Prisma.InputJsonValue,
-        contentHtml,
-        contentText,
-        contentToc: buildToc(seed) as Prisma.InputJsonValue,
-        status: seed.status,
-        publishedAt,
-        readingTimeMinutes: Math.max(1, Math.ceil(stats.minutes)),
-        wordCount,
-        seoTitle: seed.title,
-        seoDescription: seed.excerpt,
-        canonicalUrl: null,
-        isFeatured: seed.isFeatured,
-        categoryId,
-        folderId,
-        createdBy: adminUser.id,
-        createdAt,
-        tags: {
-          deleteMany: {},
-          create: tagIds.map((tagId) => ({ tagId })),
-        },
-      },
-      create: {
+    await db.post.create({
+      data: {
         title: seed.title,
         slug: seed.slug,
         excerpt: seed.excerpt,
@@ -668,10 +855,11 @@ async function main() {
         seoDescription: seed.excerpt,
         canonicalUrl: null,
         isFeatured: seed.isFeatured,
+        createdAt,
+        updatedAt: createdAt,
         categoryId,
         folderId,
         createdBy: adminUser.id,
-        createdAt,
         tags: {
           create: tagIds.map((tagId) => ({ tagId })),
         },
@@ -679,24 +867,8 @@ async function main() {
     });
   }
 
-  const [postCount, publishedCount, draftCount] = await Promise.all([
-    db.post.count(),
-    db.post.count({ where: { status: "published" } }),
-    db.post.count({ where: { status: "draft" } }),
-  ]);
-
-  console.log("Demo post seed complete.");
   console.log(
-    JSON.stringify(
-      {
-        totalPosts: postCount,
-        publishedPosts: publishedCount,
-        draftPosts: draftCount,
-        insertedDemoPosts: demoPosts.length,
-      },
-      null,
-      2,
-    ),
+    `Demo content seeded: ${folders.length} folders, ${categories.length} categories, ${tags.length} tags, ${demoPosts.length} posts.`,
   );
 }
 

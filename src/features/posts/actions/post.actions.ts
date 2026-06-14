@@ -64,6 +64,33 @@ export async function createPost(formData: FormData) {
   return post;
 }
 
+export async function createEmptyPost(input?: {
+  folderId?: string | null;
+  status?: string;
+}) {
+  const session = await requireAdminSession();
+
+  const post = await postService.createPost({
+    title: "",
+    contentJson: parseStoredContentJsonStrict(""),
+    excerpt: null,
+    coverImageUrl: null,
+    categoryId: null,
+    folderId: input?.folderId ?? null,
+    status: input?.status ?? "draft",
+    seoTitle: null,
+    seoDescription: null,
+    canonicalUrl: null,
+    isFeatured: false,
+    tagIds: [],
+    createdBy: session.user.id,
+  });
+
+  revalidateAdminPostRoutes();
+
+  return post;
+}
+
 export async function updatePost(id: string, formData: FormData) {
   await requireAdminSession();
   const existingPost = await postRepo.findPostById(id);

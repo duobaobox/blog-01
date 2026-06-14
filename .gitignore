@@ -17,6 +17,7 @@
 /.next/
 /out/
 /media/
+/public/media/
 
 # production
 /build

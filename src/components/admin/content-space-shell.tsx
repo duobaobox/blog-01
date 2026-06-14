@@ -9,6 +9,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutPanelLeft, Menu } from "lucide-react";
+import { createEmptyPost } from "@/features/posts/actions/post.actions";
 import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
 import {
   buildContentSpaceUrl,
@@ -99,7 +100,6 @@ export function ContentSpaceShell({
        Do not override with saved session — that would cause an infinite reload. */
     if (activeEntry === "all") return;
 
-
     const savedSession = loadWorkspaceSession();
     if (!savedSession) return;
 
@@ -111,11 +111,15 @@ export function ContentSpaceShell({
       q?: string;
     }> = { view: "edit" };
 
-    if (savedSession.activeEntry === "drafts" || savedSession.activeEntry === "ready") {
+    if (
+      savedSession.activeEntry === "drafts" ||
+      savedSession.activeEntry === "ready"
+    ) {
       next.entry = savedSession.activeEntry;
       next.folderId = undefined;
     } else if (
-      (savedSession.activeEntry === "folder" || savedSession.activeEntry === "post") &&
+      (savedSession.activeEntry === "folder" ||
+        savedSession.activeEntry === "post") &&
       savedSession.folderId
     ) {
       next.entry = "folder";
@@ -180,13 +184,15 @@ export function ContentSpaceShell({
     return leaveConfirm.confirm();
   }
 
-  function navigate(next: Partial<{
-    entry: ContentSpaceEntry;
-    folderId?: string;
-    postId?: string;
-    view: "new" | "edit";
-    q?: string;
-  }>) {
+  function navigate(
+    next: Partial<{
+      entry: ContentSpaceEntry;
+      folderId?: string;
+      postId?: string;
+      view: "new" | "edit";
+      q?: string;
+    }>,
+  ) {
     const url = buildContentSpaceUrl(pathname, {
       current: {
         entry: activeEntry,
@@ -206,16 +212,31 @@ export function ContentSpaceShell({
   async function handleCreateNew() {
     if (!(await confirmNavigation())) return;
     setSidebarOpen(false);
+    const nextEntry = activeFolder ? "folder" : activeEntry;
 
-    navigate({
-      entry: activeFolder ? "folder" : activeEntry,
-      folderId: activeFolder?.id,
-      postId: undefined,
-      view: "new",
-    });
+    try {
+      const post = await createEmptyPost({
+        folderId: activeFolder?.id ?? null,
+        status: "draft",
+      });
+
+      navigate({
+        entry: nextEntry,
+        folderId: activeFolder?.id,
+        postId: post.id,
+        view: "edit",
+        q: "",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message ? error.message : "创建文章失败";
+      window.alert(message);
+    }
   }
 
-  async function handleSelectEntry(entry: Extract<ContentSpaceEntry, "all" | "drafts" | "ready">) {
+  async function handleSelectEntry(
+    entry: Extract<ContentSpaceEntry, "all" | "drafts" | "ready">,
+  ) {
     if (!(await confirmNavigation())) return;
     setSidebarOpen(false);
     navigate({
@@ -289,21 +310,31 @@ export function ContentSpaceShell({
 
   return (
     <div className="flex flex-1 overflow-hidden bg-background">
-      <div className="hidden w-[184px] shrink-0 border-r lg:block">{sidebar}</div>
+      <div className="hidden w-[168px] shrink-0 border-r lg:block">
+        {sidebar}
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between border-b px-3 py-2 lg:hidden">
-          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu className="size-4" />
             内容空间
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => void handleCreateNew()}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void handleCreateNew()}
+          >
             <LayoutPanelLeft className="size-4" />
             新建
           </Button>
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[210px_minmax(0,1fr)]">
           <div className="min-h-0 border-r bg-background">
             <ContentSpaceContextPanel
               entry={activeEntry}
@@ -312,8 +343,16 @@ export function ContentSpaceShell({
               folder={activeFolder}
               quickEntries={[
                 { key: "all", label: "全部", count: quickEntryCounts.all },
-                { key: "drafts", label: "草稿", count: quickEntryCounts.drafts },
-                { key: "ready", label: "待发布", count: quickEntryCounts.ready },
+                {
+                  key: "drafts",
+                  label: "草稿",
+                  count: quickEntryCounts.drafts,
+                },
+                {
+                  key: "ready",
+                  label: "待发布",
+                  count: quickEntryCounts.ready,
+                },
               ]}
               posts={contextPosts}
               selectedPostId={selectedPostId}
@@ -343,7 +382,7 @@ export function ContentSpaceShell({
       </div>
 
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[240px] p-0">
+        <SheetContent side="left" className="w-[224px] p-0">
           <SheetHeader className="sr-only">
             <SheetTitle>内容空间导航</SheetTitle>
           </SheetHeader>

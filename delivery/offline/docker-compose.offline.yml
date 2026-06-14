@@ -11,9 +11,6 @@ x-install-config:
   better-auth-secret: &better-auth-secret "replace-with-strong-random-secret"
   better-auth-url: &better-auth-url "http://your-server-ip:3000"
   site-url: &site-url "http://your-server-ip:3000"
-  admin-setup-token: &admin-setup-token "replace-with-strong-admin-setup-token"
-  storage-provider: &storage-provider "local"
-  blob-read-write-token: &blob-read-write-token ""
   seed-admin-name: &seed-admin-name "Admin"
   seed-admin-email: &seed-admin-email "admin@example.com"
   seed-admin-password: &seed-admin-password "change-this-admin-password"
@@ -26,9 +23,6 @@ x-app-environment: &app-environment
   BETTER_AUTH_SECRET: *better-auth-secret
   BETTER_AUTH_URL: *better-auth-url
   SITE_URL: *site-url
-  ADMIN_SETUP_TOKEN: *admin-setup-token
-  STORAGE_PROVIDER: *storage-provider
-  BLOB_READ_WRITE_TOKEN: *blob-read-write-token
   SEED_ADMIN_NAME: *seed-admin-name
   SEED_ADMIN_EMAIL: *seed-admin-email
   SEED_ADMIN_PASSWORD: *seed-admin-password

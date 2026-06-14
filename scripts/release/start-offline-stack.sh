@@ -23,16 +23,13 @@ fi
 
 mkdir -p "$CONFIG_DIR/media" "$CONFIG_DIR/data/postgres"
 
-echo "[1/4] Starting db"
+echo "[1/3] Starting db"
 docker compose -f "$CONFIG_DIR/docker-compose.yml" up -d db
 
-echo "[2/4] Running migrate"
+echo "[2/3] Running migrate"
 docker compose -f "$CONFIG_DIR/docker-compose.yml" run --rm --profile tools migrate
 
-echo "[3/4] Running seed"
-docker compose -f "$CONFIG_DIR/docker-compose.yml" run --rm --profile tools seed
-
-echo "[4/4] Starting app"
+echo "[3/3] Starting app"
 docker compose -f "$CONFIG_DIR/docker-compose.yml" up -d app
 
 echo "Done"

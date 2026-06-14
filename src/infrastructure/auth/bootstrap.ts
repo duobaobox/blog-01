@@ -1,16 +1,13 @@
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { db } from "@/infrastructure/db";
+import { siteConfig } from "@/shared/config/site.config";
+import { normalizeSiteUrl } from "@/shared/lib/url";
 
 const DEFAULT_DEV_ADMIN_NAME = "Admin";
 const DEFAULT_DEV_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_DEV_ADMIN_PASSWORD = "admin123456";
 
-function getDevelopmentAdminCredentials() {
-  // Only auto-create in explicit local development — never in staging/preview/test
-  if (process.env.NODE_ENV !== "development") {
-    return null;
-  }
-
+export function getDefaultAdminCredentials() {
   return {
     name: process.env.SEED_ADMIN_NAME?.trim() || DEFAULT_DEV_ADMIN_NAME,
     email:
@@ -37,11 +34,18 @@ export async function promoteToAdmin(email: string) {
   });
 }
 
-export async function ensureDevelopmentAdminUser() {
-  const credentials = getDevelopmentAdminCredentials();
+export async function ensureDefaultAdminUser() {
+  return syncDefaultAdminUser({ onlyWhenEmpty: true });
+}
 
-  if (!credentials) {
-    return null;
+export async function syncDefaultAdminUser(options?: {
+  onlyWhenEmpty?: boolean;
+}) {
+  const credentials = getDefaultAdminCredentials();
+  const userCount = await getUserCount();
+
+  if (options?.onlyWhenEmpty && userCount > 0) {
+    return credentials;
   }
 
   const existingUser = await db.user.findUnique({
@@ -143,4 +147,67 @@ export async function ensureDevelopmentAdminUser() {
   });
 
   return credentials;
+}
+
+export async function isDefaultAdminPasswordActive(userId: string) {
+  const credentials = getDefaultAdminCredentials();
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      name: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    return false;
+  }
+
+  if (user.name !== credentials.name || user.email !== credentials.email) {
+    return false;
+  }
+
+  const account = await db.account.findFirst({
+    where: {
+      userId,
+      providerId: "credential",
+    },
+    select: {
+      password: true,
+    },
+  });
+
+  if (!account?.password) {
+    return false;
+  }
+
+  try {
+    return await verifyPassword({
+      hash: account.password,
+      password: credentials.password,
+    });
+  } catch {
+    return false;
+  }
+}
+
+export async function needsSiteBasicSetup() {
+  const settings = await db.siteSetting.findFirst({
+    select: {
+      siteTitle: true,
+      siteUrl: true,
+    },
+  });
+
+  if (!settings) {
+    return true;
+  }
+
+  const normalizedDbUrl = normalizeSiteUrl(settings.siteUrl || "");
+  const normalizedDefaultUrl = normalizeSiteUrl(siteConfig.url);
+
+  return (
+    settings.siteTitle.trim() === siteConfig.name ||
+    normalizedDbUrl === normalizedDefaultUrl
+  );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/infrastructure/auth/client";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -10,9 +11,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 type AccountFormProps = {
   defaultName: string;
   email: string;
+  showPasswordNotice?: boolean;
 };
 
-export function AccountForm({ defaultName, email }: AccountFormProps) {
+export function AccountForm({
+  defaultName,
+  email,
+  showPasswordNotice = false,
+}: AccountFormProps) {
+  const router = useRouter();
   const [name, setName] = useState(defaultName);
   const [nameLoading, setNameLoading] = useState(false);
   const [nameMsg, setNameMsg] = useState("");
@@ -71,11 +78,17 @@ export function AccountForm({ defaultName, email }: AccountFormProps) {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      router.refresh();
     }
   }
 
   return (
     <div className="space-y-6">
+      {showPasswordNotice ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          你当前仍在使用默认管理员密码。建议现在就修改，修改完成后首次初始化提醒会自动消失。
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">基本信息</CardTitle>

@@ -69,14 +69,10 @@ DATABASE_URL="postgresql://user:password@localhost:5432/blog?schema=public"
 
 BETTER_AUTH_SECRET="your-secret-key-here"
 BETTER_AUTH_URL="http://localhost:3000"
-# 生产环境必须设置；首次访问 /admin/setup 创建管理员时填写同一口令
-ADMIN_SETUP_TOKEN=""
 
 SITE_URL="http://localhost:3000"
 
-STORAGE_PROVIDER="local"
-BLOB_READ_WRITE_TOKEN=""
-
+# 默认管理员账号（首次启动可直接登录，登录后建议立即修改密码）
 SEED_ADMIN_NAME="Admin"
 SEED_ADMIN_EMAIL="admin@example.com"
 SEED_ADMIN_PASSWORD="admin123456"
@@ -85,9 +81,10 @@ SEED_ADMIN_PASSWORD="admin123456"
 说明：
 
 - Prisma CLI 默认读取 `.env`，所以本项目本地开发也推荐直接使用 `.env`
-- `NODE_ENV=production` 时，首次管理员注册必须设置并填写 `ADMIN_SETUP_TOKEN`
-- `STORAGE_PROVIDER=local` 时，媒体文件走本地存储
-- `STORAGE_PROVIDER=vercel-blob` 时，需要额外配置 `BLOB_READ_WRITE_TOKEN`
+- 默认会自动准备管理员账号，首次登录后台后建议立即修改密码并完成站点基础配置
+- 媒体上传默认走站点内置媒体库，本地开发和 Docker 部署都不需要额外配置上传路径
+- 如需保留手动初始化能力，可额外设置 `ADMIN_SETUP_TOKEN`
+- 如果后续要接对象存储，再额外补 `STORAGE_PROVIDER` / `BLOB_READ_WRITE_TOKEN` 这类高级配置
 
 ### 4. 初始化数据库
 
@@ -96,7 +93,7 @@ npm run db:generate
 npm run db:push
 ```
 
-如需初始化开发管理员：
+如需按当前 `.env` 重新同步默认管理员：
 
 ```bash
 npm run db:seed
@@ -113,6 +110,13 @@ npm run dev
 - 前台首页：[http://localhost:3000](http://localhost:3000)
 - 后台登录：[http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
+首次启动可直接使用默认管理员账号登录：
+
+- 邮箱：`admin@example.com`
+- 密码：`admin123456`
+
+如果你改了 `.env` 里的 `SEED_ADMIN_*`，这里就对应使用你自己的默认值。登录后后台会提醒你先修改密码，并补全站点标题、站点 URL 等基础信息。
+
 ### 6. Docker 启动
 
 如果你本地是通过 Docker 跑项目，当前推荐顺序是：
@@ -123,11 +127,20 @@ docker compose run --rm --profile tools migrate
 docker compose up -d app
 ```
 
-如需初始化管理员和示例数据：
+如需按当前 `.env` 重新同步默认管理员：
 
 ```bash
 docker compose run --rm --profile tools seed
 ```
+
+如需补充管理员测试内容和示例数据：
+
+```bash
+docker compose run --rm --profile tools seed
+docker compose run --rm app npm run db:seed:demo-posts
+```
+
+Docker 部署默认会自动持久化媒体库，不需要额外处理上传目录；上传后的文件会跟随站点一起保留。
 
 更多部署细节见：
 
@@ -143,7 +156,7 @@ npm run lint                 # ESLint
 
 npm run db:generate          # 生成 Prisma Client
 npm run db:push              # 推送 Prisma Schema
-npm run db:seed              # 初始化开发管理员和示例数据
+npm run db:seed              # 按当前 .env 同步默认管理员
 npm run db:seed:demo-posts   # 灌入前后台联调用的演示文章、分类、标签
 
 npm run release:offline:build  # 生成离线交付包
@@ -162,6 +175,13 @@ npm run db:seed:demo-posts
 - 创建或更新演示分类
 - 创建或更新演示标签
 - 写入一批已发布 / 草稿混合的测试文章
+
+这套演示数据已经覆盖：
+
+- 前台博客分页
+- 后台文件夹 / 草稿 / 待发布切换
+- 长标题、长摘要、不同正文长度
+- 分类页、标签页和搜索联调
 
 适合验证这些流程：
 
@@ -364,7 +384,6 @@ npm run db:seed:demo-posts
 当前后台主要页面：
 
 - `/admin/login`
-- `/admin/setup`
 - `/admin`
 - `/admin/posts`
 - `/admin/categories`

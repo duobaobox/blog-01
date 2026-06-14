@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateSiteSettings } from "@/features/settings/actions/settings.actions";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -27,9 +28,14 @@ interface SettingsFormProps {
     email: string | null;
     footerText: string | null;
   } | null;
+  showSetupNotice?: boolean;
 }
 
-export function SettingsForm({ settings }: SettingsFormProps) {
+export function SettingsForm({
+  settings,
+  showSetupNotice = false,
+}: SettingsFormProps) {
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -44,6 +50,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
       const formData = new FormData(e.currentTarget);
       await updateSiteSettings(formData);
       setSaved(true);
+      router.refresh();
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       setSaveError(
@@ -57,6 +64,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   return (
     <TooltipProvider>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {showSetupNotice ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            当前仍是默认站点信息。建议至少先改掉站点标题和站点 URL，这样前台展示、SEO 和后续分享地址都会正常。
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="siteTitle">站点标题</Label>

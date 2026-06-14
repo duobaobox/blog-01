@@ -5,10 +5,8 @@
 - [ ] 确认本次代码已经合并到目标分支
 - [ ] 确认 `.env` 或交付 compose 中不含 `localhost`
 - [ ] 确认 `BETTER_AUTH_URL` 和 `SITE_URL` 使用真实访问地址
-- [ ] 确认生产环境 `ADMIN_SETUP_TOKEN` 已设置为强随机值
-- [ ] 确认 `STORAGE_PROVIDER` 符合当前环境
 - [ ] 确认数据库有可用备份方案
-- [ ] 确认 `./media` 有可用备份方案
+- [ ] 确认站点媒体库有可用备份方案
 - [ ] 记录当前线上 commit/tag 或离线包版本
 
 ## 发版操作
@@ -29,7 +27,7 @@ bash scripts/import-offline-bundle.sh .
 bash scripts/start-offline-stack.sh .
 ```
 
-如果是首发或需要重建管理员：
+如需按当前配置重建默认管理员：
 
 ```bash
 docker compose -f config/docker-compose.yml run --rm --profile tools seed

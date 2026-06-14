@@ -28,7 +28,6 @@ test("offline compose template exposes install-config anchors", async () => {
   assert.match(template, /better-auth-secret: &better-auth-secret/);
   assert.match(template, /better-auth-url: &better-auth-url/);
   assert.match(template, /site-url: &site-url/);
-  assert.match(template, /admin-setup-token: &admin-setup-token/);
   assert.match(template, /published: \*app-port/);
   assert.match(template, /\$\$\{POSTGRES_USER\}/);
   assert.match(template, /\$\$\{POSTGRES_DB\}/);

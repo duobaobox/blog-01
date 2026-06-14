@@ -7,7 +7,7 @@ let storageProvider: StorageProvider | null = null;
 
 export function getStorageProvider(): StorageProvider {
   if (!storageProvider) {
-    const providerType = process.env.STORAGE_PROVIDER ?? "local";
+    const providerType = process.env.STORAGE_PROVIDER?.trim() || "local";
     switch (providerType) {
       case "local":
         storageProvider = new LocalStorageProvider();

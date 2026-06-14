@@ -20,7 +20,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./media:/app/public/media # 本地挂载用户上传的图片附件等
+      - media_data:/app/public/media # Docker 自动管理站点媒体库，无需额外配置路径
 
   db:
     image: postgres:16
@@ -40,3 +40,4 @@ services:
 
 volumes:
   db_data:
+  media_data:

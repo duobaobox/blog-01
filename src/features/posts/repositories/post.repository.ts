@@ -1,5 +1,9 @@
 import { db } from "@/infrastructure/db";
 import { Prisma } from "@/generated/prisma/client";
+import {
+  UNTITLED_POST_TITLE,
+  UNTITLED_POST_TITLE_PREFIX,
+} from "@/features/posts/lib/post-title";
 
 export type PostFilters = {
   status?: string;
@@ -176,6 +180,21 @@ export async function findPostBySlug(slug: string) {
       category: true,
       tags: { include: { tag: true } },
       author: { select: { name: true } },
+    },
+  });
+}
+
+export async function findUntitledPostTitles(createdBy: string) {
+  return db.post.findMany({
+    where: {
+      createdBy,
+      OR: [
+        { title: UNTITLED_POST_TITLE },
+        { title: { startsWith: `${UNTITLED_POST_TITLE_PREFIX} ` } },
+      ],
+    },
+    select: {
+      title: true,
     },
   });
 }

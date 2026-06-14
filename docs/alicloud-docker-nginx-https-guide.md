@@ -56,18 +56,15 @@ POSTGRES_PASSWORD=replace-with-strong-password
 BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
 SITE_URL=https://your-domain.com
-ADMIN_SETUP_TOKEN=replace-with-strong-random-token
-STORAGE_PROVIDER=local
 ```
 
-首次访问 `/admin/setup` 创建管理员时，需要填写这里配置的 `ADMIN_SETUP_TOKEN`。
+默认会自动准备管理员账号，直接访问 `/admin/login` 登录即可。`ADMIN_SETUP_TOKEN` 仅保留给高级初始化场景。
 
 启动：
 
 ```bash
 docker compose up -d --build db
 docker compose run --rm --profile tools migrate
-docker compose run --rm --profile tools seed
 docker compose up -d app
 ```
 
@@ -174,8 +171,8 @@ https://your-domain.com
 
 优先检查：
 
-- `./media` 目录里是否真的有文件
-- `app` 服务是否挂载了 `./media:/app/public/media`
+- 站点媒体库里是否真的有文件
+- `app` 服务是否已经为 `/app/public/media` 提供了持久化挂载
 
 ### SEO 地址仍是 localhost
 
