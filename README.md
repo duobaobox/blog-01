@@ -83,6 +83,7 @@ SEED_ADMIN_PASSWORD="admin123456"
 - Prisma CLI 默认读取 `.env`，所以本项目本地开发也推荐直接使用 `.env`
 - 默认会自动准备管理员账号，首次登录后台后建议立即修改密码并完成站点基础配置
 - 媒体上传默认走站点内置媒体库，本地开发和 Docker 部署都不需要额外配置上传路径
+- 数据库里的 `media` 记录会同时保存 `storageProvider`、`storageKey`、`url` 和基础元数据，后续切对象存储时不需要重做媒体索引结构
 - 如需保留手动初始化能力，可额外设置 `ADMIN_SETUP_TOKEN`
 - 如果后续要接对象存储，再额外补 `STORAGE_PROVIDER` / `BLOB_READ_WRITE_TOKEN` 这类高级配置
 
@@ -145,6 +146,44 @@ Docker 部署默认会自动持久化媒体库，不需要额外处理上传目�
 更多部署细节见：
 
 - [docs/docker-build-and-release-guide.md](./docs/docker-build-and-release-guide.md)
+
+### 7. 发布版一键启动
+
+如果后续你要把产品打成给最终用户直接用的 Docker 版本，当前仓库已经保留了一个更接近“开箱即用”的发布 compose：
+
+- 文件：`docker-compose.release.yml`
+- 目标：用户只改少量环境变量，然后直接启动
+- 行为：应用容器首启会自动执行 `db:push`，不需要用户手动跑 migrate
+
+最小启动方式：
+
+```bash
+POSTGRES_PASSWORD=change-this-db-password \
+BETTER_AUTH_SECRET=change-this-secret \
+BETTER_AUTH_URL=http://localhost:3000 \
+SITE_URL=http://localhost:3000 \
+APP_PORT=3000 \
+docker compose -f docker-compose.release.yml up -d
+```
+
+启动后直接访问：
+
+- 前台首页：`http://localhost:3000`
+- 后台登录：`http://localhost:3000/admin/login`
+
+默认管理员账号仍然是：
+
+- 邮箱：`admin@example.com`
+- 密码：`admin123456`
+
+如果你要在线上正式使用，至少要改掉：
+
+- `APP_PORT`（如果 3000 已被占用）
+- `POSTGRES_PASSWORD`
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `SITE_URL`
+- `SEED_ADMIN_PASSWORD`
 
 ## npm Scripts
 

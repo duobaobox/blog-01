@@ -9,6 +9,9 @@ type MediaGridProps = {
   onSelect?: (item: MediaItem) => void;
   onDoubleClick?: (item: MediaItem) => void;
   onDelete?: (id: string) => void;
+  onCopyLink?: (item: MediaItem) => void;
+  onViewReferences?: (item: MediaItem) => void;
+  onReplace?: (item: MediaItem, file: File) => void;
 };
 
 export function MediaGrid({
@@ -17,6 +20,9 @@ export function MediaGrid({
   onSelect,
   onDoubleClick,
   onDelete,
+  onCopyLink,
+  onViewReferences,
+  onReplace,
 }: MediaGridProps) {
   if (items.length === 0) {
     return (
@@ -36,6 +42,9 @@ export function MediaGrid({
           onSelect={onSelect}
           onDoubleClick={onDoubleClick}
           onDelete={onDelete}
+          onCopyLink={onCopyLink}
+          onViewReferences={onViewReferences}
+          onReplace={onReplace}
         />
       ))}
     </div>

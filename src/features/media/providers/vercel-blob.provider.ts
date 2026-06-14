@@ -1,5 +1,6 @@
 import { del, put } from "@vercel/blob";
 import type {
+  ReplaceOptions,
   StorageProvider,
   UploadOptions,
   UploadResult,
@@ -21,11 +22,30 @@ function getBlobToken() {
 }
 
 export class VercelBlobStorageProvider implements StorageProvider {
+  readonly type = "vercel-blob" as const;
+
   async upload({ file }: UploadOptions): Promise<UploadResult> {
+    return this.writeBlob({ file });
+  }
+
+  async replace({ file, key, filename }: ReplaceOptions): Promise<UploadResult> {
+    return this.writeBlob({
+      file,
+      storageKey: key ?? undefined,
+      filename,
+    });
+  }
+
+  private async writeBlob({
+    file,
+    storageKey,
+    filename,
+  }: UploadOptions): Promise<UploadResult> {
     const validationError = validateUpload(file, VERCEL_BLOB_UPLOAD_MAX_SIZE);
     if (validationError) {
       return {
         url: "",
+        storageKey: "",
         filename: "",
         size: 0,
         mimeType: "",
@@ -34,8 +54,10 @@ export class VercelBlobStorageProvider implements StorageProvider {
     }
 
     const ext = getUploadExtension(file.type);
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const pathname = `media/${filename}`;
+    const resolvedFilename =
+      filename ||
+      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const pathname = storageKey || `media/${resolvedFilename}`;
 
     const blob = await put(pathname, file, {
       access: "public",
@@ -45,13 +67,14 @@ export class VercelBlobStorageProvider implements StorageProvider {
 
     return {
       url: blob.url,
-      filename,
+      storageKey: pathname,
+      filename: resolvedFilename,
       size: file.size,
       mimeType: file.type,
     };
   }
 
-  async delete(url: string): Promise<void> {
+  async delete({ url }: { url: string }): Promise<void> {
     await del(url, { token: getBlobToken() });
   }
 }

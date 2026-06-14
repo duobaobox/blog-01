@@ -3,7 +3,8 @@
 这份文档描述当前项目保留的两条部署路径：
 
 1. 源码部署：服务器拉仓库，用根目录 [docker-compose.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.yml) 启动
-2. 离线交付：本地构建 `linux/amd64` 镜像，服务器只拿交付包部署
+2. 发布版一键启动：直接使用 [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
+3. 离线交付：本地构建 `linux/amd64` 镜像，服务器只拿交付包部署
 
 ## 当前部署模型
 
@@ -23,6 +24,7 @@ flowchart LR
 
 - [Dockerfile](/Users/duobao/个人/个人-网站搭建/blog-01/Dockerfile)
 - [docker-compose.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.yml)
+- [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
 - [.env.example](/Users/duobao/个人/个人-网站搭建/blog-01/.env.example)
 - [offline-image-delivery-guide.md](/Users/duobao/个人/个人-网站搭建/blog-01/docs/offline-image-delivery-guide.md)
 
@@ -69,7 +71,46 @@ docker compose run --rm app npm run db:seed:demo-posts
 
 这条命令会向当前数据库补充演示分类、标签和文章，不影响正常启动流程。
 
-## 二、离线交付
+## 二、发布版一键启动
+
+适用场景：
+
+- 已经有可用的应用镜像
+- 希望尽量贴近最终用户的一句命令安装体验
+- 接受应用容器首启自动执行 `db:push`
+
+准备：
+
+- 使用 [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
+- 把 `image: blog-01:latest` 改成你实际推送的镜像地址
+
+最小启动示例：
+
+```bash
+APP_PORT=3000 \
+POSTGRES_PASSWORD=replace-with-strong-password \
+BETTER_AUTH_SECRET=replace-with-strong-random-secret \
+BETTER_AUTH_URL=https://your-domain.com \
+SITE_URL=https://your-domain.com \
+SEED_ADMIN_PASSWORD=replace-with-strong-admin-password \
+docker compose -f docker-compose.release.yml up -d
+```
+
+这条路径的特点是：
+
+- 数据库和媒体库都由 Docker volume 自动持久化
+- 应用容器首启自动执行 `db:push`
+- 默认管理员账号可直接登录
+- 不要求用户再手动执行 migrate / seed
+- 可以通过 `APP_PORT` 改端口，适合本机并行测试或一台机器跑多个站点
+
+启动后建议立即验证：
+
+- `/admin/login` 可访问
+- 使用默认管理员账号能登录
+- 登录后能看到首次初始化提醒
+
+## 三、离线交付
 
 适用场景：
 
@@ -93,7 +134,7 @@ bash scripts/release/build-offline-bundle.sh
 - 服务器不需要 `.env`
 - 服务器只需 `docker load`、编辑 compose、执行启动脚本
 
-## 三、持久化和备份
+## 四、持久化和备份
 
 当前实现下：
 
@@ -105,7 +146,7 @@ bash scripts/release/build-offline-bundle.sh
 - `postgres_data`
 - `./media`
 
-## 四、发版建议
+## 五、发版建议
 
 单机生产环境的推荐顺序：
 

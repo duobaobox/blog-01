@@ -178,16 +178,20 @@ model siteSetting {
 }
 
 model media {
-  id        String   @id @default(uuid())
-  url       String   @db.Text
-  filename  String
-  mimeType  String
-  size      Int
-  width     Int?
-  height    Int?
-  alt       String?  @db.Text
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  url             String   @db.Text
+  storageProvider String   @default("local")
+  storageKey      String?  @db.Text
+  filename        String
+  mimeType        String
+  size            Int
+  width           Int?
+  height          Int?
+  alt             String?  @db.Text
+  createdAt       DateTime @default(now())
 
   @@index([mimeType])
   @@index([createdAt])
+  @@index([storageProvider])
+  @@index([storageProvider, storageKey])
 }
