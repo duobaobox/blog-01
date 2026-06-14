@@ -92,8 +92,8 @@ export function MediaReferencesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[min(42rem,calc(100vw-2rem))] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>查看引用</DialogTitle>
           <DialogDescription>
             {item ? `${item.filename} 当前被哪些文章使用。` : "查看媒体引用。"}
@@ -101,28 +101,30 @@ export function MediaReferencesDialog({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 px-6 py-10 text-sm text-muted-foreground">
             <LoaderCircle className="size-4 animate-spin" />
             正在加载引用...
           </div>
         ) : error ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <div className="mx-6 mb-6 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : references.length === 0 ? (
-          <div className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
+          <div className="mx-6 mb-6 rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
             当前还没有文章引用这个文件。
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="max-h-[min(60vh,28rem)] space-y-3 overflow-y-auto px-6 pb-6">
             {references.map((reference) => (
               <Link
                 key={reference.id}
                 href={`/admin/posts?postId=${reference.id}`}
-                className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-lg border p-3 transition-colors hover:bg-muted/40"
+                className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 overflow-hidden rounded-xl border p-4 transition-colors hover:bg-muted/40"
               >
                 <div className="min-w-0 flex-1 space-y-2">
-                  <div className="truncate font-medium">{reference.title}</div>
+                  <div className="line-clamp-2 pr-2 text-[15px] font-medium leading-snug">
+                    {reference.title}
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     <Badge variant="outline">
                       {reference.status === "published" ? "已发布" : "草稿"}
