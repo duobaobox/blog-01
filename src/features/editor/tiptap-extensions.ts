@@ -46,7 +46,6 @@ export function createPostEditorExtensions(
       openOnClick: false,
       autolink: true,
       defaultProtocol: "https",
-      protocols: ["http", "https", "mailto", "tel"],
       isAllowedUri: (url, ctx) =>
         url.startsWith("/") || url.startsWith("#") || ctx.defaultValidate(url),
     }),

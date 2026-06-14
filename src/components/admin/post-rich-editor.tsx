@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import type { ReactNode } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -353,6 +353,10 @@ export function PostRichEditor({
   const normalizedInitialJson = stringifyContentJson(
     parseStoredContentJson(initialJson),
   );
+  const extensions = useMemo(
+    () => [MarkdownPaste, ...createPostEditorExtensions({ placeholder }), Markdown],
+    [placeholder],
+  );
 
   function emitSnapshot(editor: Editor) {
     onChange({
@@ -363,11 +367,7 @@ export function PostRichEditor({
 
   const instance = useEditor({
     immediatelyRender: false,
-    extensions: [
-      MarkdownPaste,
-      ...createPostEditorExtensions({ placeholder }),
-      Markdown,
-    ],
+    extensions,
     content: parseStoredContentJson(normalizedInitialJson),
     editorProps: {
       attributes: {

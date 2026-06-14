@@ -34,10 +34,11 @@ export function MediaGrid({
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <MediaGridItem
           key={item.id}
           item={item}
+          imagePriority={index === 0 && item.mimeType.startsWith("image/")}
           isSelected={selectedId === item.id}
           onSelect={onSelect}
           onDoubleClick={onDoubleClick}

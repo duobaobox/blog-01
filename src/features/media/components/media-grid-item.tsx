@@ -29,6 +29,7 @@ function formatFileSize(bytes: number) {
 
 type MediaGridItemProps = {
   item: MediaItem;
+  imagePriority?: boolean;
   isSelected?: boolean;
   onSelect?: (item: MediaItem) => void;
   onDoubleClick?: (item: MediaItem) => void;
@@ -40,6 +41,7 @@ type MediaGridItemProps = {
 
 export function MediaGridItem({
   item,
+  imagePriority = false,
   isSelected = false,
   onSelect,
   onDoubleClick,
@@ -67,6 +69,8 @@ export function MediaGridItem({
             src={item.url}
             alt={item.alt || item.filename}
             fill
+            priority={imagePriority}
+            loading={imagePriority ? "eager" : "lazy"}
             sizes="(min-width: 1280px) 16rem, (min-width: 768px) 20rem, 50vw"
             className="object-cover"
           />
@@ -90,7 +94,6 @@ export function MediaGridItem({
           <DropdownMenuTrigger
             render={
               <Button
-                nativeButton={false}
                 variant="secondary"
                 size="icon-xs"
                 className="bg-black/55 text-white hover:bg-black/70"

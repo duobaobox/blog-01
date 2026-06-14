@@ -92,7 +92,7 @@ export function MediaReferencesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-[min(42rem,calc(100vw-2rem))] overflow-hidden">
         <DialogHeader>
           <DialogTitle>查看引用</DialogTitle>
           <DialogDescription>
@@ -119,12 +119,14 @@ export function MediaReferencesDialog({
               <Link
                 key={reference.id}
                 href={`/admin/posts?postId=${reference.id}`}
-                className="flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/40"
+                className="flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-lg border p-3 transition-colors hover:bg-muted/40"
               >
-                <div className="min-w-0 space-y-2">
+                <div className="min-w-0 flex-1 space-y-2">
                   <div className="truncate font-medium">{reference.title}</div>
                   <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline">{reference.status === "published" ? "已发布" : "草稿"}</Badge>
+                    <Badge variant="outline">
+                      {reference.status === "published" ? "已发布" : "草稿"}
+                    </Badge>
                     {reference.folder ? (
                       <Badge variant="secondary">{reference.folder.name}</Badge>
                     ) : null}

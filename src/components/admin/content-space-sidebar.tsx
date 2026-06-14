@@ -13,13 +13,9 @@ import type { ContentSpaceEntry } from "@/features/content-space/lib/content-spa
 import { deleteFolder } from "@/features/content-space/actions/folder.actions";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/tooltip";
 import { FolderCreateDialog } from "./folder-create-dialog";
+import { OverflowTooltipLabel } from "./overflow-tooltip-label";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,16 +100,10 @@ export function ContentSpaceSidebar({
                             : "text-muted-foreground",
                         )}
                       />
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <span className="min-w-0 flex-1 truncate font-medium">
-                              {folder.name}
-                            </span>
-                          }
-                        />
-                        <TooltipContent>{folder.name}</TooltipContent>
-                      </Tooltip>
+                      <OverflowTooltipLabel
+                        label={folder.name}
+                        className="flex-1 font-medium"
+                      />
                       <span
                         className={cn(
                           "shrink-0 text-[11px]",

@@ -26,12 +26,8 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Input } from "@/shared/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/tooltip";
+import { OverflowTooltipLabel } from "./overflow-tooltip-label";
 import type { ContentSpaceContextPost } from "./content-space-types";
 
 type QuickEntry = {
@@ -243,23 +239,15 @@ export function ContentSpaceContextPanel({
                                     : "bg-amber-500",
                                 )}
                               />
-                              <Tooltip>
-                                <TooltipTrigger
-                                  render={
-                                    <span
-                                      className={cn(
-                                        "min-w-0 flex-1 truncate text-[13px] font-medium",
-                                        isActive
-                                          ? "text-sidebar-accent-foreground"
-                                          : "text-foreground",
-                                      )}
-                                    >
-                                      {displayTitle}
-                                    </span>
-                                  }
-                                />
-                                <TooltipContent>{displayTitle}</TooltipContent>
-                              </Tooltip>
+                              <OverflowTooltipLabel
+                                label={displayTitle}
+                                className={cn(
+                                  "flex-1 text-[13px] font-medium",
+                                  isActive
+                                    ? "text-sidebar-accent-foreground"
+                                    : "text-foreground",
+                                )}
+                              />
                               <span className="shrink-0 text-[11px] text-muted-foreground">
                                 {formatRelativeDate(post.updatedAt)}
                               </span>
