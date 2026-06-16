@@ -10,11 +10,12 @@ import {
   validateUpload,
   VERCEL_BLOB_UPLOAD_MAX_SIZE,
 } from "@/features/media/config/upload.config";
+import { ConfigurationError } from "@/shared/lib/app-error";
 
 function getBlobToken() {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (!token) {
-    throw new Error(
+    throw new ConfigurationError(
       "BLOB_READ_WRITE_TOKEN is required for vercel-blob storage",
     );
   }

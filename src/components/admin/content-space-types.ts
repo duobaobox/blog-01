@@ -1,4 +1,6 @@
-import type { WorkspacePostSummary } from "@/features/content-space/lib/content-space-workspace";
+import type {
+  WorkspacePostSummary,
+} from "@/features/content-space/lib/content-space-workspace";
 
 export type AdminCategory = {
   id: string;
@@ -38,11 +40,6 @@ export type ContentSpaceSelectedPost = {
     name: string;
     slug: string;
   } | null;
-};
-
-export type ContentSpaceFolderOption = {
-  id: string;
-  name: string;
 };
 
 export type ContentSpaceContextPost = WorkspacePostSummary;

@@ -1,5 +1,4 @@
-import { requireAdminSession } from "@/infrastructure/auth";
-import { isDefaultAdminPasswordActive } from "@/infrastructure/auth/bootstrap";
+import { getAdminAccountPageData } from "@/features/settings/queries/settings.queries";
 import { AccountForm } from "@/components/admin/account-form";
 
 export const metadata = {
@@ -8,10 +7,7 @@ export const metadata = {
 };
 
 export default async function AccountPage() {
-  const session = await requireAdminSession();
-  const showPasswordNotice = await isDefaultAdminPasswordActive(
-    session.user.id,
-  );
+  const pageData = await getAdminAccountPageData();
 
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
@@ -23,8 +19,8 @@ export default async function AccountPage() {
       </div>
       <div className="max-w-lg">
         <AccountForm
-          defaultName={session.user.name}
-          showPasswordNotice={showPasswordNotice}
+          defaultName={pageData.defaultName}
+          showPasswordNotice={pageData.showPasswordNotice}
         />
       </div>
     </div>

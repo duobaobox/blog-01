@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
-import { replaceFile } from "@/features/media/services/media.service";
+import { mediaActionRunner } from "@/features/media/actions/media-action-runtime";
+import { parseMediaFileFormData } from "@/features/media/lib/media-write";
+import { toErrorResponse } from "@/shared/lib/api-error";
 
 type RouteContext = {
   params: Promise<{
@@ -12,31 +13,15 @@ type RouteContext = {
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     await requireAdminSession();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unauthorized";
-    const status = message === "Forbidden" ? 403 : 401;
-    return NextResponse.json({ error: message }, { status });
-  }
-
-  const { id } = await context.params;
-  const formData = await request.formData();
-  const file = formData.get("file") as File | null;
-
-  if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
-  }
-
-  const result = await replaceFile(id, file);
-
-  if (result.error || !result.media) {
-    return NextResponse.json(
-      { error: result.error || "Replace failed" },
-      { status: 400 },
+    const { id } = await context.params;
+    const formData = await request.formData();
+    const media = await mediaActionRunner.replaceMedia(
+      id,
+      parseMediaFileFormData(formData),
     );
+
+    return NextResponse.json({ url: media.url, media });
+  } catch (error) {
+    return toErrorResponse(error, "Replace failed");
   }
-
-  revalidatePath("/admin/media");
-  revalidatePath("/admin/posts");
-
-  return NextResponse.json({ url: result.url, media: result.media });
 }

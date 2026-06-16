@@ -45,8 +45,33 @@ test("buildContentContextSummary counts drafts and published posts", () => {
 
   assert.equal(summary.totalCount, 2);
   assert.equal(summary.draftCount, 1);
+  assert.equal(summary.reviewCount, 0);
   assert.equal(summary.publishedCount, 1);
   assert.equal(summary.empty, false);
+});
+
+test("buildContentContextSummary counts review posts separately", () => {
+  const summary = buildContentContextSummary(
+    createInput({
+      posts: [
+        {
+          id: "post-1",
+          title: "A",
+          status: "review",
+          updatedAt: "2026-06-13T10:00:00.000Z",
+          folder: {
+            id: "folder-1",
+            name: "工程实践",
+            slug: "engineering-practice",
+          },
+        },
+      ],
+    }),
+  );
+
+  assert.equal(summary.draftCount, 0);
+  assert.equal(summary.reviewCount, 1);
+  assert.equal(summary.publishedCount, 0);
 });
 
 test("buildContentContextSummary produces contextual label for search views", () => {
@@ -74,4 +99,28 @@ test("buildContentContextSummary treats empty panels as empty state", () => {
   assert.equal(summary.empty, true);
   assert.equal(summary.totalCount, 0);
   assert.equal(summary.contextLabel, "草稿箱");
+});
+
+test("buildContentContextSummary uses recent-updates copy for recent entry", () => {
+  const summary = buildContentContextSummary(
+    createInput({
+      entry: "recent",
+      folderName: undefined,
+    }),
+  );
+
+  assert.equal(summary.contextLabel, "最近更新");
+  assert.equal(summary.hint, "先处理最近更新的内容，再进入具体文件夹继续整理");
+});
+
+test("buildContentContextSummary uses library copy for the all-content view", () => {
+  const summary = buildContentContextSummary(
+    createInput({
+      entry: "library",
+      folderName: undefined,
+    }),
+  );
+
+  assert.equal(summary.contextLabel, "全部内容");
+  assert.equal(summary.hint, "从完整内容库中查找、筛选和整理历史内容");
 });

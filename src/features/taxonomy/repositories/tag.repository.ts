@@ -4,6 +4,15 @@ import type { TaxonomyScope } from "@/features/taxonomy/repositories/category.re
 export async function findTags(scope: TaxonomyScope = "admin") {
   if (scope === "public") {
     return db.tag.findMany({
+      where: {
+        posts: {
+          some: {
+            post: {
+              status: "published",
+            },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
@@ -23,12 +32,41 @@ export async function findTags(scope: TaxonomyScope = "admin") {
 
   return db.tag.findMany({
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { posts: true } } },
+    include: {
+      _count: {
+        select: {
+          posts: {
+            where: {
+              post: {
+                status: {
+                  in: ["draft", "review", "published"],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 }
 
 export async function findTagBySlug(slug: string) {
   return db.tag.findUnique({ where: { slug } });
+}
+
+export async function findPublicTagBySlug(slug: string) {
+  return db.tag.findFirst({
+    where: {
+      slug,
+      posts: {
+        some: {
+          post: {
+            status: "published",
+          },
+        },
+      },
+    },
+  });
 }
 
 export async function findTagById(id: string) {

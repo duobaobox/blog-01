@@ -11,6 +11,7 @@ export type ContentTreeFolderInput = {
   name: string;
   slug: string;
   sortOrder: number;
+  postCount: number;
 };
 
 export type ContentTreeInput = {
@@ -22,6 +23,7 @@ export type ContentTreeFolder = {
   id: string;
   name: string;
   slug: string;
+  postCount: number;
   posts: Array<{
     id: string;
     title: string;
@@ -66,6 +68,7 @@ export function buildContentTree(input: ContentTreeInput): ContentTreeFolder[] {
       id: folder.id,
       name: folder.name,
       slug: folder.slug,
+      postCount: folder.postCount,
       posts: [...(postsByFolderId.get(folder.id) ?? [])].sort(
         comparePostsByUpdatedAtDesc,
       ),

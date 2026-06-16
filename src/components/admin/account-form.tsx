@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/infrastructure/auth/client";
 import { updateAdminProfile } from "@/features/settings/actions/account.actions";
+import { getErrorMessage } from "@/shared/lib/app-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -50,7 +51,7 @@ export function AccountForm({
       setSavedName(name.trim());
       router.refresh();
     } catch (error) {
-      setNameError(error instanceof Error ? error.message : "更新失败");
+      setNameError(getErrorMessage(error, "更新失败"));
     } finally {
       setNameLoading(false);
     }
@@ -102,11 +103,7 @@ export function AccountForm({
       router.replace("/admin/login");
       router.refresh();
     } catch (error) {
-      setPwError(
-        error instanceof Error
-          ? error.message
-          : "保存账号信息失败，请稍后重试",
-      );
+      setPwError(getErrorMessage(error, "保存账号信息失败，请稍后重试"));
     } finally {
       setPwLoading(false);
     }

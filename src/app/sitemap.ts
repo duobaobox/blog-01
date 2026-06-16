@@ -1,27 +1,20 @@
 import type { MetadataRoute } from "next";
-import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
-import { getPublishedSlugs } from "@/features/posts/queries/post.queries";
-import { getCategories } from "@/features/taxonomy/queries/category.queries";
-import { getTags } from "@/features/taxonomy/queries/tag.queries";
+import { getPublicSitemapData } from "@/features/settings/queries/public-site-metadata.query";
 import { joinSiteUrl } from "@/shared/lib/url";
 
-export const dynamic = "force-dynamic";
+// Next.js segment config must stay statically analyzable.
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = await getResolvedSiteConfig();
+  const { site, blogLastModified, posts, categories, tags } =
+    await getPublicSitemapData();
   const baseUrl = site.url;
 
-  const [posts, categories, tags] = await Promise.all([
-    getPublishedSlugs(),
-    getCategories("public"),
-    getTags("public"),
-  ]);
-
   const staticPages: MetadataRoute.Sitemap = [
-    { url: joinSiteUrl(baseUrl), lastModified: new Date() },
-    { url: joinSiteUrl(baseUrl, "about"), lastModified: new Date() },
-    { url: joinSiteUrl(baseUrl, "projects"), lastModified: new Date() },
-    { url: joinSiteUrl(baseUrl, "blog"), lastModified: new Date() },
+    { url: joinSiteUrl(baseUrl), lastModified: site.updatedAt },
+    { url: joinSiteUrl(baseUrl, "about"), lastModified: site.updatedAt },
+    { url: joinSiteUrl(baseUrl, "projects"), lastModified: site.updatedAt },
+    { url: joinSiteUrl(baseUrl, "blog"), lastModified: blogLastModified },
   ];
 
   const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
@@ -31,12 +24,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: joinSiteUrl(baseUrl, `blog/categories/${cat.slug}`),
-    lastModified: new Date(),
+    lastModified: cat.updatedAt,
   }));
 
   const tagPages: MetadataRoute.Sitemap = tags.map((tag) => ({
     url: joinSiteUrl(baseUrl, `blog/tags/${tag.slug}`),
-    lastModified: new Date(),
+    lastModified: tag.updatedAt,
   }));
 
   return [...staticPages, ...postPages, ...categoryPages, ...tagPages];

@@ -6,7 +6,6 @@ import { Button } from "@/shared/ui/button";
 import type {
   AdminCategory,
   AdminTag,
-  ContentSpaceFolderOption,
   ContentSpaceSelectedPost,
 } from "./content-space-types";
 
@@ -17,9 +16,13 @@ type ContentEditorShellProps = {
   hasFolders: boolean;
   categories: AdminCategory[];
   tags: AdminTag[];
-  folderOptions: ContentSpaceFolderOption[];
+  folderOptions: Array<{
+    id: string;
+    name: string;
+  }>;
   onDirtyChange: (dirty: boolean) => void;
   registerBeforeLeave: (handler: (() => Promise<boolean>) | null) => void;
+  onDeletePost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
 };
 
@@ -33,6 +36,7 @@ export function ContentEditorShell({
   folderOptions,
   onDirtyChange,
   registerBeforeLeave,
+  onDeletePost,
   onCreateNew,
 }: ContentEditorShellProps) {
   if (!selectedPost && mode !== "new") {
@@ -64,6 +68,7 @@ export function ContentEditorShell({
   return (
     <div className="flex h-full flex-col">
       <PostForm
+        key={`${selectedPost?.id ?? "new"}:${selectedPost?.updatedAt ?? activeFolderId ?? "root"}`}
         post={selectedPost}
         categories={categories}
         tags={tags}
@@ -71,6 +76,7 @@ export function ContentEditorShell({
         defaultFolderId={selectedPost?.folder?.id ?? activeFolderId}
         onDirtyChange={onDirtyChange}
         registerBeforeLeave={registerBeforeLeave}
+        onDeletePost={onDeletePost}
       />
     </div>
   );

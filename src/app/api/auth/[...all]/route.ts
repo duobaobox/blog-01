@@ -1,70 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { toNextJsHandler } from "better-auth/next-js";
 import { auth } from "@/infrastructure/auth";
+import { promoteToAdmin } from "@/infrastructure/auth/bootstrap";
 import {
-  isBootstrapAllowed,
-  promoteToAdmin,
-} from "@/infrastructure/auth/bootstrap";
-import {
-  isAdminBootstrapRequestAllowed,
-  parseBootstrapTokenFromHeaders,
-} from "@/infrastructure/auth/bootstrap-token";
+  readBootstrapEmailFromRequest,
+  resolveBootstrapSignupEmail,
+} from "@/infrastructure/auth/bootstrap-signup";
+import { toErrorResponse } from "@/shared/lib/api-error";
 
 const authHandler = toNextJsHandler(auth);
-
-function isEmailSignUpRequest(request: NextRequest) {
-  return request.nextUrl.pathname.endsWith("/sign-up/email");
-}
-
-async function getBootstrapEmail(request: NextRequest) {
-  try {
-    if (!request.headers.get("content-type")?.includes("application/json")) {
-      return null;
-    }
-
-    const body = (await request.clone().json()) as { email?: unknown };
-    return typeof body.email === "string" ? body.email : null;
-  } catch {
-    return null;
-  }
-}
 
 export const GET = authHandler.GET;
 
 export async function POST(request: NextRequest) {
-  const isEmailSignUp = isEmailSignUpRequest(request);
+  try {
+    const bootstrapEmail = await resolveBootstrapSignupEmail({
+      pathname: request.nextUrl.pathname,
+      headers: request.headers,
+      readEmail: () => readBootstrapEmailFromRequest(request),
+    });
+    const response = await authHandler.POST(request);
 
-  if (isEmailSignUp) {
-    if (!(await isBootstrapAllowed())) {
-      return NextResponse.json(
-        { error: "Sign-up is disabled." },
-        { status: 403 },
-      );
+    if (response.ok && bootstrapEmail) {
+      await promoteToAdmin(bootstrapEmail);
     }
 
-    const requestToken = parseBootstrapTokenFromHeaders(request.headers);
-    if (
-      !isAdminBootstrapRequestAllowed({
-        configuredToken: process.env.ADMIN_SETUP_TOKEN,
-        requestToken,
-        nodeEnv: process.env.NODE_ENV,
-      })
-    ) {
-      return NextResponse.json(
-        { error: "Invalid admin setup token." },
-        { status: 403 },
-      );
-    }
+    return response;
+  } catch (error) {
+    return toErrorResponse(error, "Authentication failed");
   }
-
-  const bootstrapEmail = isEmailSignUp
-    ? await getBootstrapEmail(request)
-    : null;
-  const response = await authHandler.POST(request);
-
-  if (response.ok && bootstrapEmail) {
-    await promoteToAdmin(bootstrapEmail);
-  }
-
-  return response;
 }

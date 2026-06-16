@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -18,7 +19,6 @@ import {
   stringifyContentJson,
 } from "@/features/editor/content-types";
 import {
-  deletePost,
   createPost,
   updatePost,
 } from "@/features/posts/actions/post.actions";
@@ -26,6 +26,14 @@ import {
   UNTITLED_POST_TITLE,
   getPostDisplayTitle,
 } from "@/features/posts/lib/post-title";
+import { getPostPublishability } from "@/features/posts/lib/post-publishability";
+import {
+  getPostStatusLabel,
+  isArchivedPost,
+  isDraftPost,
+  isPublishedPost,
+  isReviewPost,
+} from "@/features/posts/lib/post-status";
 import { TagMultiSelect } from "@/features/taxonomy/components/tag-multi-select";
 import type { Editor } from "@tiptap/core";
 import {
@@ -111,6 +119,7 @@ interface PostFormProps {
   defaultFolderId?: string;
   onDirtyChange?: (dirty: boolean) => void;
   registerBeforeLeave?: (handler: (() => Promise<boolean>) | null) => void;
+  onDeletePost?: (postId: string) => void | Promise<void>;
 }
 
 type FormState = {
@@ -135,6 +144,10 @@ type SaveOptions = {
   refreshAfterCreate?: boolean;
   silent?: boolean;
 };
+
+function getSuggestedNextReviewStatus(canPublish: boolean) {
+  return canPublish ? "review" : "draft";
+}
 
 function createFormState(
   post?: PostData,
@@ -240,13 +253,13 @@ export function PostForm({
   defaultFolderId,
   onDirtyChange,
   registerBeforeLeave,
+  onDeletePost,
 }: PostFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() =>
     createFormState(post, { defaultFolderId }),
   );
   const [saving, setSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
@@ -267,26 +280,13 @@ export function PostForm({
   const changeVersionRef = useRef(0);
   const savePromiseRef = useRef<Promise<boolean> | null>(null);
   const displayTitle = getPostDisplayTitle(form.title);
-
-  useEffect(() => {
-    const nextForm = createFormState(post, { defaultFolderId });
-    postIdRef.current = post?.id ?? null;
-    postSlugRef.current = post?.slug ?? null;
-    baselineRef.current = createSnapshot(nextForm);
-    formRef.current = nextForm;
-    changeVersionRef.current = 0;
-    setForm(nextForm);
-    setIsDirty(false);
-    setSaveError(null);
-  }, [defaultFolderId, post]);
+  const isDirty = useMemo(
+    () => createSnapshot(form) !== baselineRef.current,
+    [form],
+  );
 
   useEffect(() => {
     formRef.current = form;
-  }, [form]);
-
-  useEffect(() => {
-    const nextDirty = createSnapshot(form) !== baselineRef.current;
-    setIsDirty(nextDirty);
   }, [form]);
 
   const notifyDirtyChange = useEffectEvent((dirty: boolean) => {
@@ -309,6 +309,15 @@ export function PostForm({
   const wordCount = readingStats.words;
   const readingMinutes =
     wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
+  const publishability = useMemo(
+    () =>
+      getPostPublishability({
+        title: form.title,
+        contentJson: parseStoredContentJson(form.contentJson),
+      }),
+    [form.contentJson, form.title],
+  );
+  const reviewStatus = getSuggestedNextReviewStatus(publishability.canPublish);
 
   function patchForm(next: Partial<FormState>) {
     setSaveError(null);
@@ -388,7 +397,6 @@ export function PostForm({
           if (changeVersionRef.current === changeVersionAtSaveStart) {
             formRef.current = savedForm;
             setForm(savedForm);
-            setIsDirty(false);
           } else {
             let patchedForm = formRef.current;
 
@@ -407,8 +415,6 @@ export function PostForm({
               formRef.current = patchedForm;
               setForm(patchedForm);
             }
-
-            setIsDirty(createSnapshot(patchedForm) !== savedSnapshot);
           }
 
           if (startedAsNewDraft && redirectAfterCreate) {
@@ -499,11 +505,7 @@ export function PostForm({
     if (!post || !(await deleteConfirm.confirm())) return;
 
     try {
-      await deletePost(post.id);
-      startTransition(() => {
-        router.push("/admin/posts");
-        router.refresh();
-      });
+      await onDeletePost?.(post.id);
     } catch {
       window.alert("删除失败，请稍后重试。");
     }
@@ -521,10 +523,10 @@ export function PostForm({
             {displayTitle}
           </span>
           <Badge
-            variant={form.status === "published" ? "default" : "secondary"}
+            variant={isPublishedPost(form) ? "default" : "secondary"}
             className="rounded-full px-2 py-0 text-xs"
           >
-            {form.status === "published" ? "已发布" : "草稿"}
+            {getPostStatusLabel(form)}
           </Badge>
           {form.isFeatured ? (
             <Badge variant="outline" className="rounded-full px-2 py-0 text-xs">
@@ -577,18 +579,44 @@ export function PostForm({
             disabled={saving || !hasMeaningfulDraft(form)}
             onClick={() => handleSubmit(form.status)}
           >
-            {saving ? "保存中..." : "保存草稿"}
+            {saving
+              ? "保存中..."
+              : isReviewPost(form)
+                ? "保存待发布"
+                : isPublishedPost(form)
+                  ? "保存发布稿"
+                  : "保存草稿"}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-24"
+            disabled={saving || !publishability.canPublish}
+            onClick={() => handleSubmit("review")}
+            title={
+              publishability.canPublish ? undefined : publishability.reasons[0]
+            }
+          >
+            {saving
+              ? "处理中..."
+              : isReviewPost(form)
+                ? "保持待发布"
+                : "送去待发布"}
           </Button>
 
           <Button
             size="sm"
             className="w-24"
-            disabled={saving || !form.title.trim()}
+            disabled={saving || !publishability.canPublish}
             onClick={() => handleSubmit("published")}
+            title={
+              publishability.canPublish ? undefined : publishability.reasons[0]
+            }
           >
             {saving
               ? "处理中..."
-              : post && form.status === "published"
+              : post && isPublishedPost(form)
                 ? "更新发布"
                 : "发布文章"}
           </Button>
@@ -644,18 +672,74 @@ export function PostForm({
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium">发布状态</span>
                   <span className="text-xs text-muted-foreground">
-                    开启后文章将对所有访客可见
+                    草稿仅自己可见，待发布进入最终检查，已发布对访客可见
                   </span>
                 </div>
-                <Switch
-                  id="status"
-                  checked={form.status === "published"}
-                  onCheckedChange={(checked) =>
-                    patchForm({ status: checked ? "published" : "draft" })
+                <Select
+                  value={form.status}
+                  onValueChange={(value) =>
+                    patchForm({
+                      status:
+                        value === "archived"
+                          ? "archived"
+                          : value === "published"
+                          ? publishability.canPublish
+                            ? "published"
+                            : reviewStatus
+                          : value === "review"
+                            ? reviewStatus
+                            : "draft",
+                    })
                   }
-                  suppressHydrationWarning
-                />
+                >
+                  <SelectTrigger
+                    id="status"
+                    className="h-9 w-[140px] rounded-lg"
+                    suppressHydrationWarning
+                  >
+                    <SelectValue placeholder="选择状态" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectGroup>
+                      <SelectItem value="draft">草稿</SelectItem>
+                      <SelectItem
+                        value="review"
+                        disabled={!publishability.canPublish}
+                      >
+                        待发布
+                      </SelectItem>
+                      <SelectItem
+                        value="published"
+                        disabled={!publishability.canPublish}
+                      >
+                        已发布
+                      </SelectItem>
+                      <SelectItem value="archived">已归档</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
+              {!publishability.canPublish ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  进入待发布或直接发布前，还需要处理：{publishability.reasons.join("；")}
+                </p>
+              ) : isReviewPost(form) ? (
+                <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+                  这篇文章已进入待发布队列，适合做最终校对和发布前检查。
+                </p>
+              ) : isPublishedPost(form) ? (
+                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                  这篇文章已对外可见，后续保存会继续保留发布时间。
+                </p>
+              ) : isArchivedPost(form) ? (
+                <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                  这篇文章已归档，默认不会出现在内容库和公开页面；改回草稿、待发布或已发布即可恢复。
+                </p>
+              ) : isDraftPost(form) ? (
+                <p className="rounded-lg border border-muted bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                  草稿阶段适合先补全标题、正文和结构，准备好后再送入待发布。
+                </p>
+              ) : null}
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="category">分类</Label>
@@ -912,9 +996,9 @@ export function PostForm({
       <ConfirmDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
-        title="删除文章"
-        description="确定删除这篇文章吗？发布后的内容将对读者不可见，此操作不可撤销。"
-        confirmText="删除"
+        title="归档文章"
+        description="确定归档这篇文章吗？归档后会从默认内容库和公开页面下线，但之后仍可恢复。"
+        confirmText="归档"
         variant="destructive"
         onConfirm={deleteConfirm.handleConfirm}
       />

@@ -1,14 +1,12 @@
-import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
-import { getPublishedForFeed } from "@/features/posts/queries/post.queries";
+import { getPublicFeedData } from "@/features/settings/queries/public-site-metadata.query";
 import { joinSiteUrl } from "@/shared/lib/url";
 
-export const dynamic = "force-dynamic";
+// Next.js segment config must stay statically analyzable.
+export const revalidate = 300;
 
 export async function GET() {
-  const site = await getResolvedSiteConfig();
+  const { site, posts } = await getPublicFeedData(20);
   const baseUrl = site.url;
-
-  const posts = await getPublishedForFeed(20);
 
   const items = posts
     .map((post) => {

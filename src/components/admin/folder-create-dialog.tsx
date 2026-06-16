@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createFolder,
   renameFolder,
 } from "@/features/content-space/actions/folder.actions";
+import { getErrorMessage } from "@/shared/lib/app-error";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -33,22 +34,11 @@ export function FolderCreateDialog({
   folder,
 }: FolderCreateDialogProps) {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => folder?.name ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = Boolean(folder);
-
-  useEffect(() => {
-    if (!open) {
-      setName("");
-      setError(null);
-      return;
-    }
-
-    setName(folder?.name ?? "");
-    setError(null);
-  }, [folder?.name, open]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -67,11 +57,7 @@ export function FolderCreateDialog({
       onOpenChange(false);
       router.refresh();
     } catch (submissionError) {
-      setError(
-        submissionError instanceof Error
-          ? submissionError.message
-          : "创建文件夹失败，请稍后重试。",
-      );
+      setError(getErrorMessage(submissionError, "创建文件夹失败，请稍后重试。"));
     } finally {
       setSubmitting(false);
     }

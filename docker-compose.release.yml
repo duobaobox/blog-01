@@ -1,5 +1,5 @@
 # 这是留给最终用户（部署者）的发布版 compose
-# 默认管理员账号会在首次访问 /admin/login 时自动准备
+# 生产初始化通过 /admin/setup + ADMIN_SETUP_TOKEN 创建自定义管理员
 
 services:
   blog:
@@ -12,16 +12,14 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
-      - RUN_DB_PUSH=${RUN_DB_PUSH:-1}
+      - DB_SCHEMA_SYNC_MODE=${DB_SCHEMA_SYNC_MODE:-auto}
+      - PRISMA_SCHEMA_PATH=/app/prisma/schema.prisma
       - DATABASE_URL=postgresql://blog:${POSTGRES_PASSWORD:-change-this-db-password}@db:5432/blog?schema=public
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-change-this-secret}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3000}
       - BETTER_AUTH_TRUSTED_ORIGINS=${BETTER_AUTH_TRUSTED_ORIGINS:-}
       - SITE_URL=${SITE_URL:-http://localhost:3000}
-      - SEED_ADMIN_NAME=${SEED_ADMIN_NAME:-Admin}
-      - SEED_ADMIN_USERNAME=${SEED_ADMIN_USERNAME:-admin}
-      - SEED_ADMIN_EMAIL=${SEED_ADMIN_EMAIL:-admin@example.com}
-      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD:-admin123456}
+      - ADMIN_SETUP_TOKEN=${ADMIN_SETUP_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy

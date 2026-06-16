@@ -1,27 +1,22 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
-import { db } from "@/infrastructure/db";
+import { revalidateAdminAccount } from "@/infrastructure/cache/admin-cache";
+import { createAccountActionRunner } from "@/features/settings/actions/account-action-runner";
+import { parseAccountProfileInput } from "@/features/settings/lib/account-write";
+import * as settingsService from "@/features/settings/services/settings.service";
+
+const accountActionRunner = createAccountActionRunner({
+  settingsService,
+  revalidateAdminAccount,
+});
 
 export async function updateAdminProfile(input: { name: string }) {
   const session = await requireAdminSession();
+  const parsedInput = parseAccountProfileInput(input);
 
-  const name = input.name.trim();
-
-  if (!name) {
-    throw new Error("昵称不能为空");
-  }
-
-  await db.user.update({
-    where: { id: session.user.id },
-    data: {
-      name,
-    },
+  return accountActionRunner.updateAdminProfile({
+    ...parsedInput,
+    userId: session.user.id,
   });
-
-  revalidatePath("/admin/account");
-  revalidatePath("/admin");
-
-  return { name };
 }

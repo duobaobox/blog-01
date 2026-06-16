@@ -1,9 +1,7 @@
-export const dynamic = "force-dynamic";
-
-import { getCategories } from "@/features/taxonomy/queries/category.queries";
+import { getAdminCategoriesPageData } from "@/features/taxonomy/queries/category.queries";
 import { CategoriesList } from "@/components/admin/categories-list";
 
 export default async function AdminCategoriesPage() {
-  const categories = await getCategories();
-  return <CategoriesList categories={categories} />;
+  const pageData = await getAdminCategoriesPageData();
+  return <CategoriesList categories={pageData.categories} />;
 }

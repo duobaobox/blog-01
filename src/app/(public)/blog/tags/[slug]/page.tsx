@@ -4,16 +4,8 @@ import { Separator } from "@/shared/ui/separator";
 import { PostsPagination } from "@/components/blog/posts-pagination";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import {
-  getPostCount,
-  getPosts,
-} from "@/features/posts/queries/post.queries";
-import {
-  getTotalPages,
-  parsePageParam,
-  PUBLIC_POSTS_PER_PAGE,
-} from "@/features/posts/lib/pagination";
-import { getTagBySlug } from "@/features/taxonomy/queries/tag.queries";
+import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
+import { getPublicTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { generateSeo } from "@/infrastructure/seo";
 
@@ -25,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const tag = await getTagBySlug(slug);
+  const tag = await getPublicTagBySlug(slug);
   if (!tag) return { title: "标签未找到" };
   return generateSeo({
     title: `标签: ${tag.name}`,
@@ -43,28 +35,18 @@ export default async function TagPage({
 }) {
   const { slug } = await params;
   const currentSearchParams = await searchParams;
-  const currentPage = parsePageParam(currentSearchParams.page);
-  if (!currentPage) notFound();
 
-  const tag = await getTagBySlug(slug);
+  const tag = await getPublicTagBySlug(slug);
 
   if (!tag) notFound();
 
-  const totalPosts = await getPostCount({
-    status: "published",
+  const { posts, totalPages, totalPosts, currentPage, isValidPage, isOutOfRange } =
+    await resolvePublicPostsPage({
+      page: currentSearchParams.page,
     tagId: tag.id,
-  });
-  const totalPages = getTotalPages(totalPosts, PUBLIC_POSTS_PER_PAGE);
+    });
 
-  if (currentPage > totalPages) notFound();
-
-  const posts = await getPosts({
-    status: "published",
-    tagId: tag.id,
-    order: "published",
-    take: PUBLIC_POSTS_PER_PAGE,
-    skip: (currentPage - 1) * PUBLIC_POSTS_PER_PAGE,
-  });
+  if (!isValidPage || isOutOfRange) notFound();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">

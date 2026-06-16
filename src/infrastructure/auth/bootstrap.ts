@@ -1,11 +1,10 @@
 import { hashPassword, verifyPassword } from "better-auth/crypto";
+import { needsSiteBasicSetupFromTitle } from "@/features/settings/lib/site-setup";
+import * as settingsRepo from "@/features/settings/repositories/settings.repository";
 import { db } from "@/infrastructure/db";
-import { siteConfig } from "@/shared/config/site.config";
-import { normalizeSiteUrl } from "@/shared/lib/url";
 
 const DEFAULT_DEV_ADMIN_NAME = "Admin";
 const DEFAULT_DEV_ADMIN_USERNAME = "admin";
-const DEFAULT_DEV_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_DEV_ADMIN_PASSWORD = "admin123456";
 
 type DefaultAdminCredentials = {
@@ -323,15 +322,6 @@ export async function isDefaultAdminPasswordActive(userId: string) {
 }
 
 export async function needsSiteBasicSetup() {
-  const settings = await db.siteSetting.findFirst({
-    select: {
-      siteTitle: true,
-    },
-  });
-
-  if (!settings) {
-    return true;
-  }
-
-  return settings.siteTitle.trim() === siteConfig.name;
+  const settings = await settingsRepo.findSiteSettingsSummary();
+  return needsSiteBasicSetupFromTitle(settings?.siteTitle);
 }

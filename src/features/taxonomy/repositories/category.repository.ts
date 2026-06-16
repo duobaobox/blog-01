@@ -5,6 +5,13 @@ export type TaxonomyScope = "admin" | "public";
 export async function findCategories(scope: TaxonomyScope = "admin") {
   if (scope === "public") {
     return db.category.findMany({
+      where: {
+        posts: {
+          some: {
+            status: "published",
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
@@ -22,12 +29,37 @@ export async function findCategories(scope: TaxonomyScope = "admin") {
 
   return db.category.findMany({
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { posts: true } } },
+    include: {
+      _count: {
+        select: {
+          posts: {
+            where: {
+              status: {
+                in: ["draft", "review", "published"],
+              },
+            },
+          },
+        },
+      },
+    },
   });
 }
 
 export async function findCategoryBySlug(slug: string) {
   return db.category.findUnique({ where: { slug } });
+}
+
+export async function findPublicCategoryBySlug(slug: string) {
+  return db.category.findFirst({
+    where: {
+      slug,
+      posts: {
+        some: {
+          status: "published",
+        },
+      },
+    },
+  });
 }
 
 export async function findCategoryById(id: string) {

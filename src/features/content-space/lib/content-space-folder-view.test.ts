@@ -11,6 +11,7 @@ const tree: ContentTreeFolder[] = [
     id: "folder-1",
     name: "内容系统",
     slug: "content-system",
+    postCount: 3,
     posts: [
       {
         id: "post-1",
@@ -39,6 +40,7 @@ const tree: ContentTreeFolder[] = [
     id: "folder-2",
     name: "工程实践",
     slug: "engineering-practice",
+    postCount: 0,
     posts: [],
   },
 ];

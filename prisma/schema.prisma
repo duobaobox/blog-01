@@ -26,6 +26,8 @@ model user {
   sessions session[]
   accounts account[]
   posts    post[]
+  savedContentViews contentSpaceSavedView[]
+  postOperationLogs postOperationLog[]
 }
 
 model session {
@@ -109,12 +111,18 @@ model post {
   author    user   @relation(fields: [createdBy], references: [id])
 
   tags postTag[]
+  mediaReferences postMediaReference[]
+  operationLogs postOperationLog[]
 
   @@index([categoryId])
   @@index([folderId])
   @@index([createdBy])
   @@index([status])
   @@index([publishedAt])
+  @@index([status, updatedAt, createdAt])
+  @@index([status, publishedAt, createdAt])
+  @@index([status, categoryId, publishedAt])
+  @@index([status, folderId, updatedAt])
 }
 
 model folder {
@@ -165,6 +173,7 @@ model postTag {
 
 model siteSetting {
   id              String   @id @default(uuid())
+  scopeKey        String   @unique @default("default")
   siteTitle       String
   siteSubtitle    String?
   siteDescription String?  @db.Text
@@ -192,8 +201,56 @@ model media {
   alt             String?  @db.Text
   createdAt       DateTime @default(now())
 
+  postReferences  postMediaReference[]
+
   @@index([mimeType])
   @@index([createdAt])
   @@index([storageProvider])
   @@index([storageProvider, storageKey])
+}
+
+model postMediaReference {
+  postId String
+  mediaId String
+  usage String
+
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media media @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([postId, mediaId, usage])
+  @@index([postId])
+  @@index([mediaId, usage])
+}
+
+model contentSpaceSavedView {
+  id        String   @id @default(uuid())
+  name      String
+  nameKey   String
+  filters   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy String
+  author    user @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@unique([createdBy, nameKey])
+  @@index([createdBy, createdAt])
+}
+
+model postOperationLog {
+  id          String   @id @default(uuid())
+  operation   String
+  summary     String
+  detail      Json
+  createdAt   DateTime @default(now())
+
+  postId      String?
+  post        post?    @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  createdBy   String
+  author      user     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([createdBy, createdAt])
+  @@index([postId, createdAt])
 }

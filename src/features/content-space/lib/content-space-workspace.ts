@@ -1,4 +1,5 @@
 import type { ContentTreeFolder } from "./content-space-tree";
+import type { PostGovernanceDebtKey } from "@/features/posts/lib/post-governance";
 
 export type WorkspacePostSummary = {
   id: string;
@@ -17,7 +18,8 @@ export type WorkspacePostSummary = {
 };
 
 export type ContentSpaceEntry =
-  | "all"
+  | "library"
+  | "recent"
   | "drafts"
   | "ready"
   | "folder"
@@ -28,7 +30,19 @@ export type ContentSpaceParams = {
   folder?: string;
   postId?: string;
   view?: string;
+  page?: string;
+  status?: string;
+  categoryId?: string;
+  tagId?: string;
+  debt?: string;
   q?: string;
+};
+
+export type ContentLibraryFilters = {
+  status?: string;
+  categoryId?: string;
+  tagId?: string;
+  debt?: PostGovernanceDebtKey;
 };
 
 export type ResolvedContentSpaceState = {
@@ -44,14 +58,20 @@ export type ResolvedContentSpaceState = {
   contextPosts: WorkspacePostSummary[];
 };
 
+export type ContentSpaceContextSources = {
+  folderPosts?: WorkspacePostSummary[];
+  searchResults: WorkspacePostSummary[];
+  requestedPost?: WorkspacePostSummary | null;
+};
+
 type ResolveContentSpaceStateOptions = {
   params: ContentSpaceParams;
   contentTree: ContentTreeFolder[];
-  allPosts: WorkspacePostSummary[];
+  libraryPosts: WorkspacePostSummary[];
+  recentPosts: WorkspacePostSummary[];
   draftPosts: WorkspacePostSummary[];
   readyToPublishPosts: WorkspacePostSummary[];
-  searchResults: WorkspacePostSummary[];
-  requestedPost?: WorkspacePostSummary | null;
+  contextSources: ContentSpaceContextSources;
 };
 
 type BuildContentSpaceUrlInput = {
@@ -60,6 +80,8 @@ type BuildContentSpaceUrlInput = {
     folderId?: string;
     postId?: string;
     view: "new" | "edit";
+    page?: number;
+    filters?: ContentLibraryFilters;
     q?: string;
   };
   next: Partial<{
@@ -67,6 +89,8 @@ type BuildContentSpaceUrlInput = {
     folderId?: string;
     postId?: string;
     view: "new" | "edit";
+    page?: number;
+    filters?: ContentLibraryFilters;
     q?: string;
   }>;
 };
@@ -75,13 +99,18 @@ type FolderNode = ContentTreeFolder;
 
 function normalizeEntry(value: string | undefined): ContentSpaceEntry | undefined {
   if (
-    value === "all" ||
+    value === "library" ||
+    value === "recent" ||
     value === "drafts" ||
     value === "ready" ||
     value === "folder" ||
     value === "search"
   ) {
     return value;
+  }
+
+  if (value === "all") {
+    return "library";
   }
 
   return undefined;
@@ -166,12 +195,17 @@ function resolveSearchContext(
 export function resolveContentSpaceState({
   params,
   contentTree,
-  allPosts,
+  libraryPosts,
+  recentPosts,
   draftPosts,
   readyToPublishPosts,
-  searchResults,
-  requestedPost,
+  contextSources,
 }: ResolveContentSpaceStateOptions): ResolvedContentSpaceState {
+  const {
+    folderPosts,
+    searchResults,
+    requestedPost,
+  } = contextSources;
   const searchQuery = params.q?.trim() ?? "";
   const mode = params.view === "new" ? "new" : "edit";
   const requestedEntry = normalizeEntry(params.entry);
@@ -208,6 +242,7 @@ export function resolveContentSpaceState({
           id: requestedPost.folder.id,
           name: requestedPost.folder.name,
           slug: requestedPost.folder.slug,
+          postCount: folderPosts?.length ?? 0,
           posts: [],
         },
       }
@@ -215,7 +250,9 @@ export function resolveContentSpaceState({
 
   const explicitFolder = findFolder(contentTree, params.folder);
   if (explicitFolder) {
-    const contextPosts = dedupePosts(summarizeFolderPosts(explicitFolder));
+    const contextPosts = dedupePosts(
+      folderPosts ?? summarizeFolderPosts(explicitFolder),
+    );
 
     return {
       mode,
@@ -234,7 +271,8 @@ export function resolveContentSpaceState({
   if (postContext) {
     const contextPosts = dedupePosts(
       requestedPost?.folder
-        ? allPosts.filter((post) => post.folder?.id === requestedPost.folder?.id)
+        ? folderPosts ??
+          libraryPosts.filter((post) => post.folder?.id === requestedPost.folder?.id)
         : summarizeFolderPosts(postContext.folder),
     );
 
@@ -248,7 +286,7 @@ export function resolveContentSpaceState({
         slug: postContext.folder.slug,
       },
       selectedPostId: selectPostId(
-        contextPosts.length > 0 ? contextPosts : allPosts,
+        contextPosts.length > 0 ? contextPosts : libraryPosts,
         params.postId ?? requestedPost?.id,
         mode,
       ),
@@ -261,9 +299,19 @@ export function resolveContentSpaceState({
     };
   }
 
-  const entry: Extract<ContentSpaceEntry, "all" | "folder" | "search"> =
-    requestedEntry === "folder" ? "folder" : "all";
-  const contextPosts = allPosts;
+  if (requestedEntry === "library") {
+    return {
+      mode,
+      entry: "library",
+      searchQuery,
+      selectedPostId: selectPostId(libraryPosts, params.postId, mode),
+      contextPosts: dedupePosts(libraryPosts),
+    };
+  }
+
+  const entry: Extract<ContentSpaceEntry, "recent" | "folder" | "search"> =
+    requestedEntry === "folder" ? "folder" : "recent";
+  const contextPosts = recentPosts;
 
   return {
     mode,
@@ -289,6 +337,14 @@ export function buildContentSpaceUrl(
         ? input.next.postId
         : input.current.postId,
     view: input.next.view ?? input.current.view,
+    page:
+      Object.prototype.hasOwnProperty.call(input.next, "page")
+        ? input.next.page
+        : input.current.page,
+    filters:
+      Object.prototype.hasOwnProperty.call(input.next, "filters")
+        ? input.next.filters
+        : input.current.filters,
     q:
       Object.prototype.hasOwnProperty.call(input.next, "q")
         ? input.next.q
@@ -297,9 +353,20 @@ export function buildContentSpaceUrl(
 
   const params = new URLSearchParams();
   const query = nextState.q?.trim() ?? "";
+  const normalizedFilters = nextState.entry === "library"
+    ? {
+        status: nextState.filters?.status?.trim() || undefined,
+        categoryId: nextState.filters?.categoryId?.trim() || undefined,
+        tagId: nextState.filters?.tagId?.trim() || undefined,
+        debt: nextState.filters?.debt,
+      }
+    : undefined;
 
   if (query) {
     params.set("q", query);
+    if (nextState.entry === "library") {
+      params.set("entry", "library");
+    }
     if (nextState.entry === "folder" && nextState.folderId) {
       params.set("folder", nextState.folderId);
     }
@@ -308,8 +375,28 @@ export function buildContentSpaceUrl(
       params.set("postId", nextState.postId);
     }
 
+    if (normalizedFilters?.status) {
+      params.set("status", normalizedFilters.status);
+    }
+
+    if (normalizedFilters?.categoryId) {
+      params.set("categoryId", normalizedFilters.categoryId);
+    }
+
+    if (normalizedFilters?.tagId) {
+      params.set("tagId", normalizedFilters.tagId);
+    }
+
+    if (normalizedFilters?.debt) {
+      params.set("debt", normalizedFilters.debt);
+    }
+
     const queryString = params.toString();
     return queryString ? `${pathname}?${queryString}` : pathname;
+  }
+
+  if (nextState.entry === "library") {
+    params.set("entry", "library");
   }
 
   if (nextState.entry === "drafts") {
@@ -322,6 +409,29 @@ export function buildContentSpaceUrl(
 
   if (nextState.entry === "folder" && nextState.folderId) {
     params.set("folder", nextState.folderId);
+  }
+
+  if (
+    (nextState.entry === "recent" || nextState.entry === "library") &&
+    (nextState.page ?? 1) > 1
+  ) {
+    params.set("page", String(nextState.page));
+  }
+
+  if (normalizedFilters?.status) {
+    params.set("status", normalizedFilters.status);
+  }
+
+  if (normalizedFilters?.categoryId) {
+    params.set("categoryId", normalizedFilters.categoryId);
+  }
+
+  if (normalizedFilters?.tagId) {
+    params.set("tagId", normalizedFilters.tagId);
+  }
+
+  if (normalizedFilters?.debt) {
+    params.set("debt", normalizedFilters.debt);
   }
 
   if (nextState.view === "new") {

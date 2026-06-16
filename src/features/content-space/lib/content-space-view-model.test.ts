@@ -9,7 +9,7 @@ function createInput(
   overrides?: Partial<ContentSpaceViewModelInput>,
 ): ContentSpaceViewModelInput {
   return {
-    entry: "all",
+    entry: "recent",
     posts: [
       {
         id: "post-1",
@@ -30,12 +30,37 @@ function createInput(
   };
 }
 
-test("buildContentSpaceViewModel uses all-post helper copy for all view", () => {
+test("buildContentSpaceViewModel uses recent-updates helper copy for recent view", () => {
   const viewModel = buildContentSpaceViewModel(createInput());
 
-  assert.equal(viewModel.emptyTitle, "还没有文章");
-  assert.equal(viewModel.sectionTitle, "全部文章");
-  assert.equal(viewModel.emphasis, "先从全局浏览，再进入具体结构");
+  assert.equal(viewModel.emptyTitle, "还没有最近内容");
+  assert.equal(viewModel.sectionTitle, "最近更新");
+  assert.equal(viewModel.emphasis, "先处理最新变动，再进入具体结构");
+});
+
+test("buildContentSpaceViewModel uses all-content helper copy for library view", () => {
+  const viewModel = buildContentSpaceViewModel(
+    createInput({
+      entry: "library",
+    }),
+  );
+
+  assert.equal(viewModel.sectionTitle, "全部内容");
+  assert.equal(viewModel.emphasis, "从完整内容库里整理历史文章和结构");
+  assert.equal(viewModel.emptyTitle, "还没有任何内容");
+});
+
+test("buildContentSpaceViewModel switches helper copy for governance debt views", () => {
+  const viewModel = buildContentSpaceViewModel(
+    createInput({
+      entry: "library",
+      debt: "missingSeoDescription",
+    }),
+  );
+
+  assert.equal(viewModel.sectionTitle, "缺 SEO 描述");
+  assert.equal(viewModel.emphasis, "优先补齐 SEO 描述，提升搜索摘要质量");
+  assert.equal(viewModel.emptyTitle, "没有缺 SEO 描述的文章");
 });
 
 test("buildContentSpaceViewModel changes helper copy for drafts", () => {

@@ -2,12 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import { getPosts } from "@/features/posts/queries/post.queries";
+import { getHomepageFeaturedOrLatestPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { generateSeo } from "@/infrastructure/seo";
 import { StaticPageContainer } from "@/components/blog/static-page-shell";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 /**
  * 动态生成首页的 SEO 元数据 (Meta Tags)
@@ -22,28 +22,15 @@ export async function generateMetadata() {
  * 采用 React Server Component (SSR，服务端组件) 在服务端直接读取数据并渲染页面。
  */
 export default async function HomePage() {
-  // 1. 获取全局站点配置信息（如博客名字、简介、站长头像等）
-  const site = await getResolvedSiteConfig();
-  
-  // 2. 尝试从数据库获取后台被特意标记为“推荐的/置顶的”（isFeatured为 true）的已发布文章，限制 3 篇
-  const featuredPosts = await getPosts({
-    status: "published",
-    isFeatured: true, // 只查询置顶精选文章
-    order: "published",
-    take: 3,
-  });
-  
-  // 3. 收敛/重置最终要在首页展示的文章列表：
-  // 如果后台有设置好的“精选文章” (返回结果大于0)，则优先在首页强推展示它们；
-  // 否则（作为兜底），按发布时间倒序获取系统内最新发布的 3 篇文章。
-  const latestPosts =
-    featuredPosts.length > 0
-      ? featuredPosts
-      : await getPosts({
-          status: "published",
-          order: "published", // 按照发布时间排序
-          take: 3,
-        });
+  const sitePromise = getResolvedSiteConfig();
+  const homepagePostsPromise = getHomepageFeaturedOrLatestPosts(3);
+
+  const [site, homepagePosts] = await Promise.all([
+    sitePromise,
+    homepagePostsPromise,
+  ]);
+  const latestPosts = homepagePosts.posts;
+  const showingFeaturedPosts = homepagePosts.source === "featured";
 
   return (
     // 套用静态通栏样式的页面容器
@@ -83,12 +70,12 @@ export default async function HomePage() {
 
         {/* 右侧头像展示区，响应式布局（手机端居左在最前面，桌面端靠右展示） */}
         <div className="flex justify-start sm:justify-end">
-          {site.avatarUrl ? (
+          {site.avatar ? (
             <Image
-              src={site.avatarUrl}
-              alt={site.name}
-              width={160}
-              height={160}
+              src={site.avatar.url}
+              alt={site.avatar.alt ?? site.name}
+              width={site.avatar.width ?? 160}
+              height={site.avatar.height ?? 160}
               sizes="(min-width: 640px) 160px, 128px"
               className="h-32 w-32 rounded-3xl border object-cover shadow-sm sm:h-40 sm:w-40"
             />
@@ -109,7 +96,7 @@ export default async function HomePage() {
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">
                 {/* 动态计算展示的标题语境：取决于上方第2步和第3步最终检索到的是精选文章还是兜底文章 */}
-                {featuredPosts.length > 0 ? "精选文章" : "最新文章"}
+                {showingFeaturedPosts ? "精选文章" : "最新文章"}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 后台置顶和已发布的内容会优先出现在这里。

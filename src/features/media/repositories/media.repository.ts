@@ -1,5 +1,4 @@
 import { db } from "@/infrastructure/db";
-import { Prisma } from "@/generated/prisma/client";
 
 export type FindMediaOptions = {
   mimeTypePrefix?: string;
@@ -24,6 +23,35 @@ export async function findMedia(options?: FindMediaOptions) {
 
 export async function findMediaById(id: string) {
   return db.media.findUnique({ where: { id } });
+}
+
+export async function countPostMediaReferences(mediaId: string) {
+  return db.postMediaReference.count({
+    where: {
+      mediaId,
+    },
+  });
+}
+
+export async function findMediaByUrls(urls: string[]) {
+  if (urls.length === 0) {
+    return [];
+  }
+
+  return db.media.findMany({
+    where: {
+      url: {
+        in: urls,
+      },
+    },
+    select: {
+      id: true,
+      url: true,
+      width: true,
+      height: true,
+      alt: true,
+    },
+  });
 }
 
 export async function countMedia(mimeTypePrefix?: string) {
@@ -61,6 +89,8 @@ export async function updateMediaFile(
     filename: string;
     mimeType: string;
     size: number;
+    width: number | null;
+    height: number | null;
   },
 ) {
   return db.media.update({
@@ -71,65 +101,4 @@ export async function updateMediaFile(
 
 export async function deleteMedia(id: string) {
   return db.media.delete({ where: { id } });
-}
-
-export type MediaReference = {
-  id: string;
-  title: string;
-  status: string;
-  updatedAt: Date;
-  folder: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
-  usage: Array<"cover" | "content">;
-};
-
-export async function findMediaReferences(url: string): Promise<MediaReference[]> {
-  const posts = await db.post.findMany({
-    where: {
-      OR: [
-        { coverImageUrl: url },
-        { contentHtml: { contains: url } },
-      ],
-    },
-    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      updatedAt: true,
-      coverImageUrl: true,
-      contentHtml: true,
-      folder: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-    },
-  });
-
-  return posts.map((post) => {
-    const usage: MediaReference["usage"] = [];
-
-    if (post.coverImageUrl === url) {
-      usage.push("cover");
-    }
-
-    if (post.contentHtml.includes(url)) {
-      usage.push("content");
-    }
-
-    return {
-      id: post.id,
-      title: post.title,
-      status: post.status,
-      updatedAt: post.updatedAt,
-      folder: post.folder,
-      usage,
-    };
-  });
 }

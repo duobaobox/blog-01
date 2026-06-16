@@ -1,8 +1,11 @@
 import type { ContentSpaceEntry, WorkspacePostSummary } from "./content-space-workspace";
+import { getPostGovernanceDebtDefinition } from "@/features/posts/lib/post-governance";
+import type { PostGovernanceDebtKey } from "@/features/posts/lib/post-governance";
 
 export type ContentSpaceViewModelInput = {
   entry: ContentSpaceEntry;
   posts: WorkspacePostSummary[];
+  debt?: PostGovernanceDebtKey;
 };
 
 export type ContentSpaceViewModel = {
@@ -16,6 +19,20 @@ export type ContentSpaceViewModel = {
 export function buildContentSpaceViewModel(
   input: ContentSpaceViewModelInput,
 ): ContentSpaceViewModel {
+  if (input.entry === "library") {
+    const debtDefinition = input.debt
+      ? getPostGovernanceDebtDefinition(input.debt)
+      : undefined;
+
+    return {
+      sectionTitle: debtDefinition?.label ?? "全部内容",
+      emphasis: debtDefinition?.emphasis ?? "从完整内容库里整理历史文章和结构",
+      emptyTitle: debtDefinition?.emptyTitle ?? "还没有任何内容",
+      showContextHint: false,
+      showContextPath: false,
+    };
+  }
+
   if (input.entry === "drafts") {
     return {
       sectionTitle: "草稿",
@@ -57,9 +74,9 @@ export function buildContentSpaceViewModel(
   }
 
   return {
-    sectionTitle: "全部文章",
-    emphasis: "先从全局浏览，再进入具体结构",
-    emptyTitle: "还没有文章",
+    sectionTitle: "最近更新",
+    emphasis: "先处理最新变动，再进入具体结构",
+    emptyTitle: "还没有最近内容",
     showContextHint: false,
     showContextPath: false,
   };

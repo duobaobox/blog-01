@@ -1,0 +1,82 @@
+import { parseStoredContentJsonStrict } from "@/features/editor/content-types";
+import {
+  normalizeOptionalString,
+  requireOneOf,
+  validateOptionalHttpUrl,
+} from "@/shared/lib/validation";
+
+export const POST_STATUSES = ["draft", "review", "published", "archived"] as const;
+
+export type PostStatus = (typeof POST_STATUSES)[number];
+
+export function isPostStatus(value: string | undefined): value is PostStatus {
+  return Boolean(value) && POST_STATUSES.includes(value as PostStatus);
+}
+
+export type PostWriteInput = {
+  title: string;
+  slug?: string;
+  contentJson: unknown;
+  excerpt: string | null;
+  coverImageUrl: string | null;
+  categoryId: string | null;
+  folderId: string | null;
+  status: PostStatus;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  canonicalUrl: string | null;
+  isFeatured: boolean;
+  tagIds: string[];
+};
+
+function parseContentJson(formData: FormData) {
+  const raw = formData.get("contentJson");
+
+  if (typeof raw !== "string" || !raw.trim()) {
+    return parseStoredContentJsonStrict("");
+  }
+
+  return parseStoredContentJsonStrict(raw);
+}
+
+function parseTagIds(formData: FormData) {
+  const uniqueIds = new Set<string>();
+
+  for (const value of formData.getAll("tagIds")) {
+    const normalized = normalizeOptionalString(value);
+
+    if (normalized) {
+      uniqueIds.add(normalized);
+    }
+  }
+
+  return [...uniqueIds];
+}
+
+export function parsePostWriteFormData(formData: FormData): PostWriteInput {
+  const canonicalUrl = normalizeOptionalString(formData.get("canonicalUrl"));
+  validateOptionalHttpUrl(
+    canonicalUrl,
+    "Canonical URL 格式不正确，请填写完整的 http/https 地址",
+  );
+
+  return {
+    title: normalizeOptionalString(formData.get("title")) ?? "",
+    slug: normalizeOptionalString(formData.get("slug")) ?? undefined,
+    contentJson: parseContentJson(formData),
+    excerpt: normalizeOptionalString(formData.get("excerpt")),
+    coverImageUrl: normalizeOptionalString(formData.get("coverImageUrl")),
+    categoryId: normalizeOptionalString(formData.get("categoryId")),
+    folderId: normalizeOptionalString(formData.get("folderId")),
+    status: requireOneOf(
+      formData.get("status"),
+      POST_STATUSES,
+      "文章状态无效",
+    ),
+    seoTitle: normalizeOptionalString(formData.get("seoTitle")),
+    seoDescription: normalizeOptionalString(formData.get("seoDescription")),
+    canonicalUrl,
+    isFeatured: formData.get("isFeatured") === "true",
+    tagIds: parseTagIds(formData),
+  };
+}

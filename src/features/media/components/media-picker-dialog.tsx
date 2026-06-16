@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import type { MediaItem } from "@/features/media/types/storage.types";
@@ -35,6 +35,7 @@ export function MediaPickerDialog({
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
   const [justUploaded, setJustUploaded] = useState<MediaItem | null>(null);
+  const uploadResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchMedia = useCallback(async () => {
     setLoading(true);
@@ -49,16 +50,6 @@ export function MediaPickerDialog({
       setLoading(false);
     }
   }, [mimeTypePrefix]);
-
-  useEffect(() => {
-    if (!open) {
-      setSelectedItem(null);
-      setJustUploaded(null);
-      setActiveTab("library");
-      return;
-    }
-    fetchMedia();
-  }, [fetchMedia, open]);
 
   function handleConfirm() {
     if (selectedItem) {
@@ -76,8 +67,11 @@ export function MediaPickerDialog({
     setItems((prev) => [media, ...prev]);
     setSelectedItem(media);
     setJustUploaded(media);
+    if (uploadResetTimerRef.current) {
+      clearTimeout(uploadResetTimerRef.current);
+    }
     // 300ms 后自动切换到媒体库，让用户看到上传成功的状态
-    setTimeout(() => {
+    uploadResetTimerRef.current = setTimeout(() => {
       setActiveTab("library");
       setJustUploaded(null);
     }, 1200);
@@ -86,7 +80,25 @@ export function MediaPickerDialog({
   const isImage = (item: MediaItem) => item.mimeType.startsWith("image/");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          if (uploadResetTimerRef.current) {
+            clearTimeout(uploadResetTimerRef.current);
+            uploadResetTimerRef.current = null;
+          }
+          setSelectedItem(null);
+          setJustUploaded(null);
+          setActiveTab("library");
+          onOpenChange(false);
+          return;
+        }
+
+        void fetchMedia();
+        onOpenChange(true);
+      }}
+    >
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>选择媒体</DialogTitle>

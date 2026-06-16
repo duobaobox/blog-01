@@ -13,12 +13,14 @@ test("buildContentTree nests posts under subtopics and topics", () => {
         name: "内容系统",
         slug: "content-system",
         sortOrder: 2,
+        postCount: 2,
       },
       {
         id: "folder-2",
         name: "工程实践",
         slug: "engineering-practice",
         sortOrder: 1,
+        postCount: 1,
       },
     ],
     posts: [
@@ -52,6 +54,8 @@ test("buildContentTree nests posts under subtopics and topics", () => {
     "engineering-practice",
     "content-system",
   ]);
+  assert.equal(result[0]?.postCount, 1);
+  assert.equal(result[1]?.postCount, 2);
   assert.deepEqual(
     result[1]?.posts.map((post) => post.id),
     ["post-2", "post-1"],
@@ -66,6 +70,7 @@ test("buildContentTree keeps empty folders for creation affordances", () => {
         name: "内容系统",
         slug: "content-system",
         sortOrder: 1,
+        postCount: 0,
       },
     ],
     posts: [],

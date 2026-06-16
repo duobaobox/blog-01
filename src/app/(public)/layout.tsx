@@ -23,7 +23,7 @@ export default async function PublicLayout({
     // 确保当页面中间内容较少时，Footer 依然能保持在页面最底部而不会浮层悬空。
     <div className="flex min-h-dvh min-w-0 flex-col">
       {/* 网站顶部导航栏：展示 Logo、站点名称和各类导航菜单 */}
-      <Header siteName={site.name} logoUrl={site.logoUrl} nav={site.nav} />
+      <Header siteName={site.name} logo={site.logo} nav={site.nav} />
       
       {/* 网站主体内容：flex-1 会自适应撑满 Header 和 Footer 之间的全部剩余屏幕空间 */}
       <main className="min-w-0 flex-1">{children}</main>

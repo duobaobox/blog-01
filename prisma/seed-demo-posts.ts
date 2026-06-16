@@ -2,6 +2,10 @@ import "dotenv/config";
 import readingTime from "reading-time";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Prisma } from "../src/generated/prisma/client";
+import {
+  expandDemoPostSeeds,
+  parseDemoPostSeedScale,
+} from "../src/features/posts/lib/demo-post-seed-scale";
 
 type DemoPostSeed = {
   title: string;
@@ -730,14 +734,13 @@ async function resetContentData() {
 }
 
 async function ensureSiteSettings() {
-  const existing = await db.siteSetting.findFirst({
-    select: { id: true },
-  });
-
-  if (existing) return;
-
-  await db.siteSetting.create({
-    data: {
+  await db.siteSetting.upsert({
+    where: {
+      scopeKey: "default",
+    },
+    update: {},
+    create: {
+      scopeKey: "default",
       siteTitle: "duobao",
       siteSubtitle: "内容工作台演示站",
       siteDescription: "用于验证后台内容工作台和前台博客体验的演示数据。",
@@ -749,7 +752,14 @@ async function ensureSiteSettings() {
 }
 
 async function main() {
+  const seedScale = parseDemoPostSeedScale({
+    argv: process.argv.slice(2),
+    env: process.env,
+  });
+  const scaledDemoPosts = expandDemoPostSeeds(demoPosts, seedScale);
+
   console.log("Resetting and seeding demo content...");
+  console.log(`Demo post seed scale: ${seedScale} (${scaledDemoPosts.length} posts)`);
 
   const adminUser =
     (await db.user.findFirst({
@@ -803,7 +813,7 @@ async function main() {
     tagMap.set(saved.slug, saved.id);
   }
 
-  for (const seed of demoPosts) {
+  for (const seed of scaledDemoPosts) {
     const contentJson = buildContentJson(seed);
     const contentHtml = buildContentHtml(seed);
     const contentText = buildContentText(seed);
@@ -870,7 +880,7 @@ async function main() {
   }
 
   console.log(
-    `Demo content seeded: ${folders.length} folders, ${categories.length} categories, ${tags.length} tags, ${demoPosts.length} posts.`,
+    `Demo content seeded: ${folders.length} folders, ${categories.length} categories, ${tags.length} tags, ${scaledDemoPosts.length} posts.`,
   );
 }
 

@@ -4,16 +4,8 @@ import { Separator } from "@/shared/ui/separator";
 import { PostsPagination } from "@/components/blog/posts-pagination";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import {
-  getPostCount,
-  getPosts,
-} from "@/features/posts/queries/post.queries";
-import {
-  getTotalPages,
-  parsePageParam,
-  PUBLIC_POSTS_PER_PAGE,
-} from "@/features/posts/lib/pagination";
-import { getCategoryBySlug } from "@/features/taxonomy/queries/category.queries";
+import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
+import { getPublicCategoryBySlug } from "@/features/taxonomy/queries/category.queries";
 import { generateSeo } from "@/infrastructure/seo";
 
 export const revalidate = 300;
@@ -24,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const category = await getPublicCategoryBySlug(slug);
   if (!category) return { title: "分类未找到" };
   return generateSeo({
     title: `分类: ${category.name}`,
@@ -43,28 +35,18 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const currentSearchParams = await searchParams;
-  const currentPage = parsePageParam(currentSearchParams.page);
-  if (!currentPage) notFound();
 
-  const category = await getCategoryBySlug(slug);
+  const category = await getPublicCategoryBySlug(slug);
 
   if (!category) notFound();
 
-  const totalPosts = await getPostCount({
-    status: "published",
+  const { posts, totalPages, totalPosts, currentPage, isValidPage, isOutOfRange } =
+    await resolvePublicPostsPage({
+      page: currentSearchParams.page,
     categoryId: category.id,
-  });
-  const totalPages = getTotalPages(totalPosts, PUBLIC_POSTS_PER_PAGE);
+    });
 
-  if (currentPage > totalPages) notFound();
-
-  const posts = await getPosts({
-    status: "published",
-    categoryId: category.id,
-    order: "published",
-    take: PUBLIC_POSTS_PER_PAGE,
-    skip: (currentPage - 1) * PUBLIC_POSTS_PER_PAGE,
-  });
+  if (!isValidPage || isOutOfRange) notFound();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">

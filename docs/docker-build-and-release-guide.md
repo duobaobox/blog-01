@@ -17,6 +17,39 @@ flowchart LR
   Compose --> DB["postgres:16"]
 ```
 
+当前数据库交付仍是双轨状态：
+
+- 新仓库资产已经包含 `prisma/migrations` baseline，可作为后续 `prisma migrate deploy` 的起点
+- 实际部署链路默认已经切到 `DB_SCHEMA_SYNC_MODE=auto`
+- 历史环境是否适合切到 `migrate deploy`，应先通过 `npm run db:check:migrations` 判断
+
+当前推荐把 `npm run db:check:migrations` 的结论理解为：
+
+- `environment kind=empty`：新环境，优先考虑 `DB_SCHEMA_SYNC_MODE=migrate`
+- `environment kind=legacy-without-history`：历史 `db push` 环境，先继续 `push`，做完 baseline resolve 再切 `migrate`
+- `environment kind=baseline-ready`：baseline 已记录，已经具备走 `migrate deploy` 的前提，但仍要关注仓库里后续 migration 是否也已经应用
+- `environment kind=migration-ready`：仓库里的 migration 已全部应用到当前环境，可优先使用 `DB_SCHEMA_SYNC_MODE=migrate`
+- `environment kind=migration-blocked`：migration 状态异常，先排查，不要直接切 `migrate`
+
+发布操作只按下面路径选择：
+
+| 环境路径 | 覆盖的 `environment kind` | 发布模式 | 发布动作 |
+| --- | --- | --- | --- |
+| 新环境 | `empty` | `DB_SCHEMA_SYNC_MODE=migrate` | 先跑 `npm run db:preflight:release -- --schema`，通过后用共享 `schema-sync.sh` 入口执行 `migrate deploy` |
+| 历史 baseline 过渡 | `legacy-without-history` | 继续 `auto` 或显式 `push`，不要直接切 `migrate` | 先跑 `npm run db:rehearse:baseline`，再执行 `npm run db:baseline -- --apply`，重新预检进入 baseline-ready 后再切 migrate |
+| 已纳入 migration 管理 | `baseline-ready` / `migration-ready` | `DB_SCHEMA_SYNC_MODE=migrate` | `db:check:migration-coverage` 必须完整；缺失仓库 migration 时先应用缺失项，再宣称 fully migration-ready |
+| 异常阻断 | `migration-blocked` | 暂停发布 | 先用 `db:check:migrations` 和 `npx prisma migrate status` 排查失败或未完成 migration |
+
+部署配置层面，当前统一通过 `DB_SCHEMA_SYNC_MODE` 表达 schema 同步策略：
+
+- `auto`：默认，按数据库状态自动在 `migrate` 和 `push` 之间选择
+- `push`：显式兼容现状
+- `migrate`：目标环境已 baseline 后使用
+- `skip`：完全交给外部流程
+
+旧变量 `RUN_DB_PUSH` 仍保留兼容，但 compose 默认已经不再主动注入它；后续应优先只使用 `DB_SCHEMA_SYNC_MODE`，只有迁移旧部署环境时才临时依赖 `RUN_DB_PUSH`。
+当前 app 容器首启和 `migrate` 工具服务都复用同一个 `schema-sync.sh` 解析入口，因此模式解析和执行语义是一致的，不再需要分别追踪两套 `case` 分支。
+
 ## 关键文件
 
 - [Dockerfile](/Users/duobao/个人/个人-网站搭建/blog-01/Dockerfile)
@@ -47,7 +80,7 @@ BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
 BETTER_AUTH_TRUSTED_ORIGINS=https://your-domain.com
 SITE_URL=https://your-domain.com
-SEED_ADMIN_PASSWORD=replace-with-strong-admin-password
+ADMIN_SETUP_TOKEN=replace-with-one-time-setup-token
 ```
 
 启动：
@@ -56,6 +89,31 @@ SEED_ADMIN_PASSWORD=replace-with-strong-admin-password
 docker compose up -d --build db
 docker compose run --rm --profile tools migrate
 docker compose up -d app
+```
+
+如果某个环境已经完成 baseline，可以显式切换：
+
+```bash
+DB_SCHEMA_SYNC_MODE=migrate docker compose run --rm --profile tools migrate
+DB_SCHEMA_SYNC_MODE=migrate docker compose up -d app
+```
+
+如果你不想手动判断，也可以直接沿用默认 `auto`：
+
+- 空库、baseline-ready 和 migration-ready 环境会自动执行 `migrate deploy`
+- 历史无迁移环境会自动保守回落到 `db push`
+- migration 状态异常时也会保守回落到 `push`，并在输出里给出环境类型与原因
+
+如果本次版本包含 Prisma schema 变更，当前推荐先用本地或服务器环境变量预览差异：
+
+```bash
+npm run db:preflight:release -- --schema
+```
+
+如果本次还触及站点设置单例语义或初始化逻辑，建议额外执行：
+
+```bash
+npm run db:check:site-settings
 ```
 
 补测试数据：
@@ -89,6 +147,48 @@ docker save -o dist/app-delivery/blog-01-app-release.tar blog-01-app:release
 bash scripts/release/refresh-app-delivery.sh
 tar -C dist -czf dist/app-delivery-release.tar.gz app-delivery
 ```
+
+如果本次交付包含数据库 schema 调整，建议在发布前先执行：
+
+```bash
+npm run db:preflight:release -- --schema
+```
+
+其中 `npm run db:check:sync-mode` 现在除了打印推荐模式，也会在 `db:preflight:release` 里承担门禁角色：
+
+- 如果当前还是 `DB_SCHEMA_SYNC_MODE=auto`，它主要负责解释自动决策
+- 如果你显式固定成 `push` 或 `migrate`，它会校验该模式是否和当前推荐模式一致
+
+如果 `npm run db:check:migrations` 显示“schema exists but migration history is missing”，说明当前环境仍是历史 `db push` 数据库。此时不要直接假设可以安全切到 `migrate deploy`，应先做 baseline resolve，再切换交付策略。
+如果 `npm run db:check:migrations` 显示 `environment kind=baseline-ready`，也不要直接把它当成“仓库 migration 已全部完成”；这只说明 baseline 已经记录，可以进入 migrate 语义。是否已经 fully migration-ready，需要再看 `npm run db:check:migration-coverage`。
+
+推荐顺序：
+
+```bash
+npm run db:check:sync-mode
+npm run db:check:migrations
+npm run db:check:migration-coverage
+npm run db:baseline
+npm run db:baseline -- --apply
+npx prisma migrate status
+DB_SCHEMA_SYNC_MODE=migrate docker compose run --rm --profile tools migrate
+```
+
+如果你想先在本地确认整条链路真的能跑通，再去动历史环境，建议先执行：
+
+```bash
+npm run db:rehearse:baseline
+```
+
+它会在当前 `DATABASE_URL` 所指向数据库里创建一个临时 rehearsal schema，完整模拟：
+
+- `prisma db push`
+- `db:check:migrations`
+- `db:baseline -- --apply`
+- `prisma migrate status`
+- `prisma migrate deploy`
+
+完成后会自动清理该 schema。
 
 ### 3. 上传到服务器
 

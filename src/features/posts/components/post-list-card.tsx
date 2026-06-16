@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Clock } from "lucide-react";
+import type { MediaPresentation } from "@/features/media/queries/media.queries";
+import { getPostDisplayDate } from "@/features/posts/lib/post-status";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { formatDate } from "@/shared/lib/date";
 import {
@@ -19,6 +21,7 @@ type PostListCardProps = {
     excerpt: string | null;
     contentText: string;
     coverImageUrl: string | null;
+    coverImage?: MediaPresentation;
     publishedAt: Date | null;
     createdAt: Date;
     readingTimeMinutes: number | null;
@@ -39,17 +42,21 @@ type PostListCardProps = {
 
 export function PostListCard({ post, showCategory = true }: PostListCardProps) {
   const preview = post.excerpt ?? `${post.contentText.slice(0, 120)}...`;
+  const displayDate = getPostDisplayDate(post);
+  const coverImage = post.coverImage;
+  const cardImage = coverImage?.variants?.card ?? coverImage;
+  const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
 
   return (
     <Link href={`/blog/${post.slug}`} className="block">
       <Card className="gap-0 py-0 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
-        {post.coverImageUrl ? (
+        {coverImageUrl ? (
           <div className="overflow-hidden rounded-t-xl border-b bg-muted/30">
             <Image
-              src={post.coverImageUrl}
-              alt={post.title}
-              width={1200}
-              height={630}
+              src={coverImageUrl}
+              alt={coverImage?.alt ?? post.title}
+              width={cardImage?.width ?? 1200}
+              height={cardImage?.height ?? 630}
               sizes="(min-width: 1280px) 352px, (min-width: 768px) 50vw, 100vw"
               className="h-52 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
             />
@@ -73,9 +80,7 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
             )}
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {post.publishedAt
-                ? formatDate(post.publishedAt)
-                : formatDate(post.createdAt)}
+              {displayDate ? formatDate(displayDate) : ""}
             </span>
             {post.readingTimeMinutes && (
               <>

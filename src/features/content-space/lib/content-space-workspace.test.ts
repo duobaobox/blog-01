@@ -38,6 +38,7 @@ const contentTree: ContentTreeFolder[] = [
     id: "folder-1",
     name: "内容系统",
     slug: "content-system",
+    postCount: 2,
     posts: [
       {
         id: "post-1",
@@ -59,6 +60,7 @@ const contentTree: ContentTreeFolder[] = [
     id: "folder-2",
     name: "工程实践",
     slug: "engineering-practice",
+    postCount: 1,
     posts: [
       {
         id: "post-3",
@@ -71,7 +73,7 @@ const contentTree: ContentTreeFolder[] = [
   },
 ];
 
-const allPosts = [
+const recentPosts = [
   createPost("post-3", "Docker 发布笔记", "2026-06-12T10:00:00.000Z", {
     folderId: "folder-2",
     folderName: "工程实践",
@@ -84,9 +86,13 @@ const allPosts = [
     folderSlug: "content-system",
   }),
 ];
+const libraryPosts = [
+  ...recentPosts,
+  createPost("post-4", "更早的历史文章", "2026-05-01T09:00:00.000Z"),
+];
 
 const draftPosts = [
-  allPosts[0],
+  recentPosts[0],
   createPost("post-1", "发布前检查清单", "2026-06-12T08:00:00.000Z", {
     folderId: "folder-1",
     folderName: "内容系统",
@@ -100,10 +106,21 @@ test("resolveContentSpaceState falls back to the first post inside the requested
   const state = resolveContentSpaceState({
     params: { folder: "folder-1" },
     contentTree,
-    allPosts,
+    libraryPosts,
+    recentPosts,
     draftPosts,
     readyToPublishPosts,
-    searchResults: [],
+    contextSources: {
+      folderPosts: [
+        createPost("post-1", "发布前检查清单", "2026-06-12T08:00:00.000Z", {
+          folderId: "folder-1",
+          folderName: "内容系统",
+          folderSlug: "content-system",
+        }),
+        recentPosts[1],
+      ],
+      searchResults: [],
+    },
   });
 
   assert.equal(state.entry, "folder");
@@ -119,11 +136,15 @@ test("resolveContentSpaceState restores a post context from the requested post w
   const state = resolveContentSpaceState({
     params: { postId: "post-3" },
     contentTree,
-    allPosts,
+    libraryPosts,
+    recentPosts,
     draftPosts,
     readyToPublishPosts,
-    searchResults: [],
-    requestedPost: allPosts[0],
+    contextSources: {
+      folderPosts: [recentPosts[0]],
+      searchResults: [],
+      requestedPost: recentPosts[0],
+    },
   });
 
   assert.equal(state.entry, "folder");
@@ -139,10 +160,14 @@ test("resolveContentSpaceState clears post selection for new view while keeping 
       postId: "post-1",
     },
     contentTree,
-    allPosts,
+    libraryPosts,
+    recentPosts,
     draftPosts,
     readyToPublishPosts,
-    searchResults: [],
+    contextSources: {
+      folderPosts: undefined,
+      searchResults: [],
+    },
   });
 
   assert.equal(state.mode, "new");
@@ -161,10 +186,14 @@ test("resolveContentSpaceState prioritizes search results when a query is presen
       q: "docker",
     },
     contentTree,
-    allPosts,
+    libraryPosts,
+    recentPosts,
     draftPosts,
     readyToPublishPosts,
-    searchResults: [allPosts[0]],
+    contextSources: {
+      folderPosts: undefined,
+      searchResults: [recentPosts[0]],
+    },
   });
 
   assert.equal(state.entry, "search");
@@ -183,10 +212,14 @@ test("resolveContentSpaceState keeps folder context while searching inside a fol
       q: "docker",
     },
     contentTree,
-    allPosts,
+    libraryPosts,
+    recentPosts,
     draftPosts,
     readyToPublishPosts,
-    searchResults: [allPosts[0]],
+    contextSources: {
+      folderPosts: undefined,
+      searchResults: [recentPosts[0]],
+    },
   });
 
   assert.equal(state.entry, "search");
@@ -201,6 +234,7 @@ test("buildContentSpaceUrl rewrites context params when switching from a folder 
       folderId: "folder-1",
       postId: "post-2",
       view: "edit",
+      page: undefined,
       q: "",
     },
     next: {
@@ -219,6 +253,7 @@ test("buildContentSpaceUrl clears post selection when submitting a global search
       folderId: undefined,
       postId: "post-1",
       view: "edit",
+      page: undefined,
       q: "",
     },
     next: {
@@ -237,6 +272,7 @@ test("buildContentSpaceUrl keeps q and postId when selecting a search result", (
       entry: "search",
       postId: undefined,
       view: "edit",
+      page: undefined,
       q: "docker",
     },
     next: {
@@ -256,6 +292,7 @@ test("buildContentSpaceUrl keeps folder context when searching inside a folder",
       folderId: "folder-2",
       postId: "post-3",
       view: "edit",
+      page: undefined,
       q: "",
     },
     next: {
@@ -268,17 +305,171 @@ test("buildContentSpaceUrl keeps folder context when searching inside a folder",
   assert.equal(url, "/admin/posts?q=docker&folder=folder-2");
 });
 
-test("buildContentSpaceUrl omits entry param when switching from drafts to all", () => {
+test("buildContentSpaceUrl clears the search query when switching to a quick entry", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "search",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+      page: undefined,
+      q: "docker",
+    },
+    next: {
+      entry: "drafts",
+      folderId: undefined,
+      postId: undefined,
+      q: "",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?entry=drafts");
+});
+
+test("buildContentSpaceUrl preserves folder context when clearing a folder search", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "search",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+      page: undefined,
+      q: "docker",
+    },
+    next: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: undefined,
+      q: "",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?folder=folder-2");
+});
+
+test("buildContentSpaceUrl keeps folder context when selecting a post from folder results", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: undefined,
+      view: "edit",
+      page: undefined,
+      q: "",
+    },
+    next: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?folder=folder-2&postId=post-3");
+});
+
+test("buildContentSpaceUrl clears q and keeps folder context when opening a post after folder search", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "search",
+      folderId: "folder-2",
+      postId: undefined,
+      view: "edit",
+      page: undefined,
+      q: "docker",
+    },
+    next: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+      q: "",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?folder=folder-2&postId=post-3");
+});
+
+test("buildContentSpaceUrl clears postId and keeps folder context after deleting the selected post", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+      page: undefined,
+      q: "",
+    },
+    next: {
+      entry: "folder",
+      folderId: "folder-2",
+      postId: undefined,
+      view: "edit",
+      q: "",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?folder=folder-2");
+});
+
+test("buildContentSpaceUrl keeps only the search query while clearing the selected post in search mode", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "search",
+      folderId: "folder-2",
+      postId: "post-3",
+      view: "edit",
+      page: undefined,
+      q: "docker",
+    },
+    next: {
+      entry: "search",
+      folderId: "folder-2",
+      postId: undefined,
+      view: "edit",
+      q: "docker",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?q=docker");
+});
+
+test("buildContentSpaceUrl preserves explicit library entry", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "recent",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 1,
+      filters: undefined,
+      q: "",
+    },
+    next: {
+      entry: "library",
+      page: 2,
+      filters: {
+        status: "draft",
+        categoryId: "category-1",
+      },
+    },
+  });
+
+  assert.equal(url, "/admin/posts?entry=library&page=2&status=draft&categoryId=category-1");
+});
+
+test("buildContentSpaceUrl omits entry param when switching from drafts to recent", () => {
   const url = buildContentSpaceUrl("/admin/posts", {
     current: {
       entry: "drafts",
       folderId: undefined,
       postId: "post-1",
       view: "edit",
+      page: undefined,
       q: "",
     },
     next: {
-      entry: "all",
+      entry: "recent",
       folderId: undefined,
       postId: undefined,
       view: "edit",
@@ -289,17 +480,64 @@ test("buildContentSpaceUrl omits entry param when switching from drafts to all",
   assert.equal(url, "/admin/posts");
 });
 
-test("buildContentSpaceUrl omits entry param when switching from ready to all", () => {
+test("resolveContentSpaceState treats the legacy all entry as library", () => {
+  const state = resolveContentSpaceState({
+    params: {
+      entry: "all",
+    },
+    contentTree,
+    libraryPosts,
+    recentPosts,
+    draftPosts,
+    readyToPublishPosts,
+    contextSources: {
+      folderPosts: undefined,
+      searchResults: [],
+    },
+  });
+
+  assert.equal(state.entry, "library");
+  assert.deepEqual(
+    state.contextPosts.map((post) => post.id),
+    ["post-3", "post-2", "post-4"],
+  );
+});
+
+test("resolveContentSpaceState returns the library feed when explicitly requested", () => {
+  const state = resolveContentSpaceState({
+    params: {
+      entry: "library",
+    },
+    contentTree,
+    libraryPosts,
+    recentPosts,
+    draftPosts,
+    readyToPublishPosts,
+    contextSources: {
+      folderPosts: undefined,
+      searchResults: [],
+    },
+  });
+
+  assert.equal(state.entry, "library");
+  assert.deepEqual(
+    state.contextPosts.map((post) => post.id),
+    ["post-3", "post-2", "post-4"],
+  );
+});
+
+test("buildContentSpaceUrl omits entry param when switching from ready to recent", () => {
   const url = buildContentSpaceUrl("/admin/posts", {
     current: {
       entry: "ready",
       folderId: undefined,
       postId: "post-1",
       view: "edit",
+      page: undefined,
       q: "",
     },
     next: {
-      entry: "all",
+      entry: "recent",
       folderId: undefined,
       postId: undefined,
       view: "edit",
@@ -308,4 +546,128 @@ test("buildContentSpaceUrl omits entry param when switching from ready to all", 
   });
 
   assert.equal(url, "/admin/posts");
+});
+
+test("buildContentSpaceUrl preserves page for recent pagination and omits the first page", () => {
+  const secondPageUrl = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "recent",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 1,
+      filters: undefined,
+      q: "",
+    },
+    next: {
+      entry: "recent",
+      page: 3,
+    },
+  });
+
+  const firstPageUrl = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "recent",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 3,
+      filters: undefined,
+      q: "",
+    },
+    next: {
+      entry: "recent",
+      page: 1,
+    },
+  });
+
+  assert.equal(secondPageUrl, "/admin/posts?page=3");
+  assert.equal(firstPageUrl, "/admin/posts");
+});
+
+test("buildContentSpaceUrl keeps library filters while paging and searching", () => {
+  const pagedUrl = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "library",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 1,
+      filters: {
+        status: "published",
+        tagId: "tag-9",
+      },
+      q: "",
+    },
+    next: {
+      entry: "library",
+      page: 4,
+    },
+  });
+
+  const searchUrl = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "library",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 2,
+      filters: {
+        categoryId: "category-3",
+      },
+      q: "",
+    },
+    next: {
+      entry: "library",
+      page: undefined,
+      q: "next",
+    },
+  });
+
+  assert.equal(pagedUrl, "/admin/posts?entry=library&page=4&status=published&tagId=tag-9");
+  assert.equal(searchUrl, "/admin/posts?q=next&entry=library&categoryId=category-3");
+});
+
+test("buildContentSpaceUrl keeps library debt presets in governance views", () => {
+  const debtUrl = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "library",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 1,
+      filters: {
+        debt: "unfiled",
+      },
+      q: "",
+    },
+    next: {
+      entry: "library",
+      page: 2,
+    },
+  });
+
+  assert.equal(debtUrl, "/admin/posts?entry=library&page=2&debt=unfiled");
+});
+
+test("buildContentSpaceUrl preserves metadata debt filters during library search", () => {
+  const url = buildContentSpaceUrl("/admin/posts", {
+    current: {
+      entry: "library",
+      folderId: undefined,
+      postId: undefined,
+      view: "edit",
+      page: 1,
+      filters: {
+        debt: "missingExcerpt",
+      },
+      q: "",
+    },
+    next: {
+      entry: "library",
+      q: "seo",
+    },
+  });
+
+  assert.equal(url, "/admin/posts?q=seo&entry=library&debt=missingExcerpt");
 });

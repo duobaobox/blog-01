@@ -1,57 +1,29 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
-import * as folderRepo from "@/features/content-space/repositories/folder.repository";
-import { generateSemanticSlug } from "@/shared/lib/slug";
+import { revalidateAdminPosts } from "@/infrastructure/cache/admin-cache";
+import { createFolderActionRunner } from "@/features/content-space/actions/folder-action-runner";
+import { parseFolderWriteFormData } from "@/features/content-space/lib/folder-write";
+import * as folderService from "@/features/content-space/services/folder.service";
+
+const folderActionRunner = createFolderActionRunner({
+  folderService,
+  revalidateAdminPosts,
+});
 
 export async function createFolder(formData: FormData) {
   await requireAdminSession();
-
-  const name = String(formData.get("name") ?? "").trim();
-
-  if (!name) {
-    throw new Error("文件夹名称不能为空");
-  }
-
-  const folders = await folderRepo.findFolders();
-  const folderSlug = await generateSemanticSlug(
-    async (value) => Boolean(await folderRepo.findFolderBySlug(value)),
-    { title: name, prefix: "f" },
-  );
-
-  const folder = await folderRepo.createFolder({
-    name,
-    slug: folderSlug,
-    description: null,
-    sortOrder: folders.length,
-  });
-
-  revalidatePath("/admin/posts");
-
-  return folder;
+  const input = parseFolderWriteFormData(formData);
+  return folderActionRunner.createFolder(input);
 }
 
 export async function renameFolder(id: string, formData: FormData) {
   await requireAdminSession();
-
-  const name = String(formData.get("name") ?? "").trim();
-
-  if (!name) {
-    throw new Error("文件夹名称不能为空");
-  }
-
-  await folderRepo.updateFolder(id, {
-    name,
-    description: null,
-  });
-
-  revalidatePath("/admin/posts");
+  const input = parseFolderWriteFormData(formData);
+  await folderActionRunner.renameFolder(id, input);
 }
 
 export async function deleteFolder(id: string) {
   await requireAdminSession();
-
-  await folderRepo.deleteFolder(id);
-  revalidatePath("/admin/posts");
+  await folderActionRunner.deleteFolder(id);
 }

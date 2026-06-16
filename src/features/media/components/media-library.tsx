@@ -77,8 +77,22 @@ export function MediaLibrary({ initialItems }: MediaLibraryProps) {
 
   async function handleDeleteConfirmed() {
     if (!confirmId) return;
-    await deleteMedia(confirmId);
-    router.refresh();
+    try {
+      await deleteMedia(confirmId);
+      router.refresh();
+      showFeedback({
+        tone: "success",
+        message: "文件已删除。",
+      });
+    } catch (error) {
+      showFeedback({
+        tone: "error",
+        message:
+          error instanceof Error ? error.message : "删除失败，请稍后重试。",
+      });
+    } finally {
+      setConfirmId(null);
+    }
   }
 
   function handleUploadComplete() {

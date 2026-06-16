@@ -98,6 +98,47 @@ replace_env_value() {
   sed -i "s#^${key}=.*#${key}=${value}#" "$ENV_FILE"
 }
 
+print_schema_sync_hint() {
+  local mode="${1:-unknown}"
+  local env_kind="${2:-unknown}"
+
+  echo
+  echo "Schema sync decision:"
+  echo "  mode: $mode"
+  echo "  environment kind: $env_kind"
+}
+
+inspect_schema_sync_mode() {
+  local output=""
+
+  if ! docker compose version >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! output="$(docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" run --rm --no-deps blog /usr/local/bin/schema-sync.sh --print-mode 2>/dev/null)"; then
+    return 0
+  fi
+
+  local mode env_kind
+  mode="$(printf '%s\n' "$output" | awk -F': ' '/Resolved DB schema sync mode:/ { print $2; exit }')"
+  env_kind="$(printf '%s\n' "$output" | awk -F': ' '/environment kind:/ { print $2; exit }')"
+
+  if [[ -n "$mode" ]]; then
+    print_schema_sync_hint "$mode" "${env_kind:-unknown}"
+    echo "$output" | sed 's/^/  detail: /'
+  fi
+}
+
+start_database_only() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up -d db
+    return 0
+  fi
+
+  echo "docker compose is not available."
+  exit 1
+}
+
 prepare_env_file() {
   local app_port server_ip default_site_url
 
@@ -113,7 +154,7 @@ prepare_env_file() {
 
   replace_env_value "POSTGRES_PASSWORD" "$(generate_secret)"
   replace_env_value "BETTER_AUTH_SECRET" "$(generate_secret)"
-  replace_env_value "SEED_ADMIN_PASSWORD" "$(generate_secret | cut -c1-16)"
+  replace_env_value "ADMIN_SETUP_TOKEN" "$(generate_secret | cut -c1-24)"
   replace_env_value "BETTER_AUTH_URL" "$default_site_url"
   replace_env_value "BETTER_AUTH_TRUSTED_ORIGINS" "$default_site_url"
   replace_env_value "SITE_URL" "$default_site_url"
@@ -160,7 +201,7 @@ maybe_edit_env() {
 
 start_stack() {
   if docker compose version >/dev/null 2>&1; then
-    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up --wait
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" up --wait blog
     return 0
   fi
 
@@ -180,10 +221,15 @@ maybe_edit_env
 print_header "[2/4] Loading app image"
 docker load -i "$IMAGE_TAR"
 
-print_header "[3/4] Starting stack"
-start_stack
+print_header "[3/5] Starting database"
+start_database_only
 
-print_header "[4/4] Stack is ready"
+print_header "[4/5] Inspecting schema sync mode"
+inspect_schema_sync_mode
+
+print_header "[5/5] Starting app"
+start_stack
+print_header "Stack is ready"
 
 set -a
 # shellcheck disable=SC1090
@@ -207,9 +253,10 @@ if printf '%s' "$APP_URL" | grep -Eq '://(10\.|127\.|192\.168\.|172\.(1[6-9]|2[0
   echo "  update BETTER_AUTH_URL / BETTER_AUTH_TRUSTED_ORIGINS / SITE_URL before browser testing."
 fi
 echo
-echo "Admin login:"
-echo "  Account:  ${SEED_ADMIN_USERNAME:-admin}"
-echo "  Password: ${SEED_ADMIN_PASSWORD:-admin123456}"
+echo "Admin setup:"
+echo "  Open:  ${APP_URL%/}/admin/setup"
+echo "  Token: ${ADMIN_SETUP_TOKEN:-<set ADMIN_SETUP_TOKEN in .env.release>}"
+echo "  Create your own admin account in the setup form before logging in."
 echo
 echo "Useful commands:"
 echo "  Logs:     docker compose --env-file .env.release -f docker-compose.release.yml logs -f blog"

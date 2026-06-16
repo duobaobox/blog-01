@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import { FileText, FolderOpen, Tags, TrendingUp } from "lucide-react";
 import {
@@ -10,48 +8,26 @@ import {
   CardContent,
   CardDescription,
 } from "@/shared/ui/card";
-import { getPostCount } from "@/features/posts/queries/post.queries";
-import { getCategories } from "@/features/taxonomy/queries/category.queries";
-import { getTags } from "@/features/taxonomy/queries/tag.queries";
+import {
+  getAdminDashboardPageData,
+} from "@/features/posts/queries/post.queries";
+
+const DASHBOARD_STAT_ICONS = {
+  post: FileText,
+  folder: FolderOpen,
+  tag: Tags,
+  trend: TrendingUp,
+} as const;
 
 export default async function AdminDashboard() {
-  const [postCount, draftCount, categories, tags] = await Promise.all([
-    getPostCount("published"),
-    getPostCount("draft"),
-    getCategories(),
-    getTags(),
-  ]);
+  const dashboard = await getAdminDashboardPageData(8);
 
-  const stats = [
-    {
-      label: "已发布文章",
-      value: postCount,
-      description: "公开可见的文章",
-      icon: FileText,
-      href: "/admin/posts",
-    },
-    {
-      label: "草稿",
-      value: draftCount,
-      description: "未发布的草稿",
-      icon: TrendingUp,
-      href: "/admin/posts",
-    },
-    {
-      label: "分类",
-      value: categories.length,
-      description: "内容分类数量",
-      icon: FolderOpen,
-      href: "/admin/categories",
-    },
-    {
-      label: "标签",
-      value: tags.length,
-      description: "文章标签数量",
-      icon: Tags,
-      href: "/admin/tags",
-    },
-  ];
+  const activityTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -63,9 +39,9 @@ export default async function AdminDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+          {dashboard.statCards.map((stat) => {
+            const Icon = DASHBOARD_STAT_ICONS[stat.iconKey];
             return (
               <Link key={stat.label} href={stat.href} className="group">
                 <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
@@ -91,6 +67,55 @@ export default async function AdminDashboard() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>最近内容操作</CardTitle>
+              <CardDescription>
+                记录最近的文章创建、更新、归档和批量治理动作。
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {dashboard.recentActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  还没有内容操作记录。
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {dashboard.recentActivity.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{item.summary}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {item.author?.name || item.author?.username || item.author?.email || "管理员"} · {activityTimeFormatter.format(new Date(item.createdAt))}
+                        </p>
+                      </div>
+                      {item.post ? (
+                        <Link
+                          href={`/admin/posts?postId=${item.post.id}&view=edit`}
+                          className="shrink-0 text-xs text-primary hover:underline"
+                        >
+                          查看文章
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/admin/posts?entry=library"
+                          className="shrink-0 text-xs text-primary hover:underline"
+                        >
+                          查看内容库
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

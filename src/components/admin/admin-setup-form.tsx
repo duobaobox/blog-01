@@ -15,9 +15,16 @@ import {
   CardContent,
 } from "@/shared/ui/card";
 
-export function AdminSetupForm() {
+type AdminSetupFormProps = {
+  requireSetupToken?: boolean;
+};
+
+export function AdminSetupForm({
+  requireSetupToken = true,
+}: AdminSetupFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -39,12 +46,18 @@ export function AdminSetupForm() {
       return;
     }
 
+    if (requireSetupToken && !setupToken.trim()) {
+      setError("请输入初始化口令");
+      return;
+    }
+
     setLoading(true);
 
     const { error: signUpError } = await authClient.signUp.email({
       name,
       email,
       password,
+      username,
       fetchOptions: {
         headers: {
           "x-admin-setup-token": setupToken.trim(),
@@ -106,6 +119,18 @@ export function AdminSetupForm() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="username">登录账号</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoCapitalize="none"
+                autoCorrect="off"
+                placeholder="admin"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="password">密码</Label>
               <PasswordInput
                 id="password"
@@ -131,7 +156,8 @@ export function AdminSetupForm() {
                 id="setupToken"
                 value={setupToken}
                 onChange={(e) => setSetupToken(e.target.value)}
-                placeholder="生产环境必填"
+                required={requireSetupToken}
+                placeholder={requireSetupToken ? "必填" : "开发环境可留空"}
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { updateSiteSettings } from "@/features/settings/actions/settings.actions";
+import { getErrorMessage } from "@/shared/lib/app-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -70,9 +71,7 @@ export function SettingsForm({
       router.refresh();
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
-      setSaveError(
-        error instanceof Error ? error.message : "保存失败，请稍后重试。",
-      );
+      setSaveError(getErrorMessage(error, "保存失败，请稍后重试。"));
     } finally {
       setSaving(false);
     }

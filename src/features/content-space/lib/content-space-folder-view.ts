@@ -15,7 +15,7 @@ export function buildContentSpaceFolderView(
       id: folder.id,
       name: folder.name,
       slug: folder.slug,
-      postCount: folder.posts.length,
+      postCount: folder.postCount,
     };
   });
 }

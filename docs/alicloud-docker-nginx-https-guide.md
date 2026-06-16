@@ -56,9 +56,10 @@ POSTGRES_PASSWORD=replace-with-strong-password
 BETTER_AUTH_SECRET=replace-with-strong-random-secret
 BETTER_AUTH_URL=https://your-domain.com
 SITE_URL=https://your-domain.com
+ADMIN_SETUP_TOKEN=replace-with-one-time-setup-token
 ```
 
-默认会自动准备管理员账号，直接访问 `/admin/login` 登录即可。`ADMIN_SETUP_TOKEN` 仅保留给高级初始化场景。
+管理员初始化走显式 setup 入口：首次访问 `/admin/login` 时，如果数据库里还没有任何用户，系统会跳转到 `/admin/setup`。生产环境不会自动创建默认管理员，需要在表单里填写昵称、邮箱、登录账号、密码和 `ADMIN_SETUP_TOKEN` 初始化口令。只有本地开发且未设置 `ADMIN_SETUP_TOKEN` 时，才会自动创建默认管理员用于快速开发。
 
 启动：
 

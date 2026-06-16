@@ -1,66 +1,31 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/infrastructure/auth";
-import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
-import { generateSemanticSlug } from "@/shared/lib/slug";
+import { revalidateAdminCategories } from "@/infrastructure/cache/admin-cache";
+import { revalidateCategoryContent } from "@/infrastructure/cache/content-cache";
+import { createTaxonomyActionRunner } from "@/features/taxonomy/actions/taxonomy-action-runner";
+import { parseCategoryWriteFormData } from "@/features/taxonomy/lib/taxonomy-write";
+import * as taxonomyService from "@/features/taxonomy/services/taxonomy.service";
+
+const taxonomyActionRunner = createTaxonomyActionRunner({
+  taxonomyService,
+  revalidateAdminCategories,
+  revalidateCategoryContent,
+});
 
 export async function createCategory(formData: FormData) {
   await requireAdminSession();
-  const name = ((formData.get("name") as string) || "").trim();
-  const description = ((formData.get("description") as string) || "").trim();
-
-  if (!name) {
-    throw new Error("分类名称不能为空");
-  }
-
-  const slug = await generateSemanticSlug(
-    async (value) => Boolean(await categoryRepo.findCategoryBySlug(value)),
-    { title: name, prefix: "c" },
-  );
-
-  await categoryRepo.createCategory({
-    name,
-    slug,
-    description: description || null,
-  });
-  revalidatePath("/admin/categories");
-  revalidatePath("/");
-  revalidatePath("/blog");
-  revalidatePath("/blog/categories", "layout");
+  const input = parseCategoryWriteFormData(formData);
+  await taxonomyActionRunner.createCategory(input);
 }
 
 export async function updateCategory(id: string, formData: FormData) {
   await requireAdminSession();
-  const name = ((formData.get("name") as string) || "").trim();
-  const description = ((formData.get("description") as string) || "").trim();
-
-  if (!name) {
-    throw new Error("分类名称不能为空");
-  }
-
-  const category = await categoryRepo.findCategoryById(id);
-
-  if (!category) {
-    throw new Error("分类不存在");
-  }
-
-  await categoryRepo.updateCategory(id, {
-    name,
-    slug: category.slug,
-    description: description || null,
-  });
-  revalidatePath("/admin/categories");
-  revalidatePath("/");
-  revalidatePath("/blog");
-  revalidatePath("/blog/categories", "layout");
+  const input = parseCategoryWriteFormData(formData);
+  await taxonomyActionRunner.updateCategory(id, input);
 }
 
 export async function deleteCategory(id: string) {
   await requireAdminSession();
-  await categoryRepo.deleteCategory(id);
-  revalidatePath("/admin/categories");
-  revalidatePath("/");
-  revalidatePath("/blog");
-  revalidatePath("/blog/categories", "layout");
+  await taxonomyActionRunner.deleteCategory(id);
 }

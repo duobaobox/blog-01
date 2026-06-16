@@ -1,13 +1,61 @@
 import { db } from "@/infrastructure/db";
 
+const CONTENT_TREE_POST_PREVIEW_LIMIT = 3;
+
 export async function findFolders() {
   return db.folder.findMany({
+    include: {
+      _count: {
+        select: {
+          posts: {
+            where: {
+              status: {
+                in: ["draft", "review", "published"],
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+}
+
+export async function findFoldersWithPostPreviews() {
+  return db.folder.findMany({
+    include: {
+      _count: {
+        select: {
+          posts: true,
+        },
+      },
+      posts: {
+        where: {
+          status: {
+            in: ["draft", "review", "published"],
+          },
+        },
+        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+        take: CONTENT_TREE_POST_PREVIEW_LIMIT,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          updatedAt: true,
+          folderId: true,
+        },
+      },
+    },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 }
 
 export async function findFolderBySlug(slug: string) {
   return db.folder.findUnique({ where: { slug } });
+}
+
+export async function findFolderById(id: string) {
+  return db.folder.findUnique({ where: { id } });
 }
 
 export async function createFolder(data: {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ExternalLink, LoaderCircle } from "lucide-react";
+import { getPostStatusLabel } from "@/features/posts/lib/post-status";
 import type { MediaItem } from "@/features/media/types/storage.types";
 import { Badge } from "@/shared/ui/badge";
 import {
@@ -127,7 +128,7 @@ export function MediaReferencesDialog({
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     <Badge variant="outline">
-                      {reference.status === "published" ? "已发布" : "草稿"}
+                      {getPostStatusLabel(reference)}
                     </Badge>
                     {reference.folder ? (
                       <Badge variant="secondary">{reference.folder.name}</Badge>

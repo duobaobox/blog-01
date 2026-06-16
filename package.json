@@ -8,7 +8,19 @@
     "start": "next start",
     "test": "tsx --tsconfig tsconfig.test.json --test",
     "lint": "eslint",
+    "db:sync": "sh scripts/schema-sync.sh",
     "db:push": "prisma db push",
+    "db:diff": "sh scripts/check-schema-diff.sh",
+    "db:baseline": "tsx scripts/baseline-migration.ts",
+    "db:rehearse:baseline": "tsx scripts/rehearse-migration-baseline.ts",
+    "db:check:migrations": "tsx scripts/check-migration-state.ts",
+    "db:check:migration-coverage": "tsx scripts/check-migration-coverage.ts",
+    "db:check:sync-mode": "node scripts/resolve-schema-sync-mode.mjs --details",
+    "db:check:site-settings": "tsx scripts/check-site-settings-singleton.ts",
+    "db:preflight:release": "tsx scripts/preflight-release-db.ts",
+    "db:backfill:post-media-references": "tsx scripts/backfill-post-media-references.ts",
+    "db:explain:posts": "tsx scripts/explain-post-queries.ts",
+    "db:explain:posts:analyze": "tsx scripts/explain-post-queries.ts --analyze",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo-posts": "tsx prisma/seed-demo-posts.ts",
     "db:generate": "prisma generate"
@@ -68,6 +80,6 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  ADMIN_RECENT_POSTS_PER_PAGE,
   buildPageHref,
   getPaginationPages,
   getTotalPages,
   parsePageParam,
 } from "./pagination";
+
+test("admin recent feed uses a dedicated page size", () => {
+  assert.equal(ADMIN_RECENT_POSTS_PER_PAGE, 20);
+});
 
 test("parsePageParam returns the first page when no query is provided", () => {
   assert.equal(parsePageParam(undefined), 1);

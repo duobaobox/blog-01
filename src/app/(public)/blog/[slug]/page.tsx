@@ -6,6 +6,10 @@ import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { parseToc } from "@/features/editor/content-types";
 import {
+  getPostDisplayDate,
+  isPublishedPost,
+} from "@/features/posts/lib/post-status";
+import {
   getPostBySlug,
   getPublishedSlugs,
 } from "@/features/posts/queries/post.queries";
@@ -37,7 +41,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post || post.status !== "published") {
+  if (!post || !isPublishedPost(post)) {
     return { title: "文章未找到" };
   }
 
@@ -59,9 +63,13 @@ export default async function PostPage({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
-  if (!post || post.status !== "published") notFound();
+  if (!post || !isPublishedPost(post)) notFound();
 
   const toc = parseToc(post.contentToc);
+  const displayDate = getPostDisplayDate(post);
+  const coverImage = post.coverImage;
+  const originalCoverImage = coverImage?.variants?.original ?? coverImage;
+  const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
@@ -76,13 +84,13 @@ export default async function PostPage({
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_200px]">
         <article className="min-w-0">
           <header className="mb-8">
-            {post.coverImageUrl ? (
+            {coverImageUrl ? (
               <div className="mb-6 overflow-hidden rounded-2xl border bg-muted/30">
                 <Image
-                  src={post.coverImageUrl}
-                  alt={post.title}
-                  width={1600}
-                  height={900}
+                  src={coverImageUrl}
+                  alt={coverImage?.alt ?? post.title}
+                  width={originalCoverImage?.width ?? 1600}
+                  height={originalCoverImage?.height ?? 900}
                   sizes="(min-width: 1024px) 896px, 100vw"
                   className="h-auto w-full object-cover"
                 />
@@ -105,9 +113,7 @@ export default async function PostPage({
               </span>
               <span className="inline-flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                {post.publishedAt
-                  ? formatDate(post.publishedAt)
-                  : formatDate(post.createdAt)}
+                {displayDate ? formatDate(displayDate) : ""}
               </span>
               {post.readingTimeMinutes && (
                 <span className="inline-flex items-center gap-1">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
+import type { MediaPresentation } from "@/features/media/queries/media.queries";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 import { Button } from "@/shared/ui/button";
 import {
@@ -19,14 +20,14 @@ import { cn } from "@/shared/lib/utils";
 
 interface HeaderProps {
   siteName: string;
-  logoUrl?: string;
+  logo?: MediaPresentation;
   nav: ReadonlyArray<{
     label: string;
     href: string;
   }>;
 }
 
-export function Header({ siteName, logoUrl, nav }: HeaderProps) {
+export function Header({ siteName, logo, nav }: HeaderProps) {
   const pathname = usePathname();
   const [openPathname, setOpenPathname] = useState<string | null>(null);
   const navigationOpen = openPathname === pathname;
@@ -40,12 +41,12 @@ export function Header({ siteName, logoUrl, nav }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 min-w-0 max-w-5xl items-center px-4 sm:px-6">
         <Link href="/" className="mr-4 flex min-w-0 items-center gap-3 font-bold sm:mr-6">
-          {logoUrl ? (
+          {logo ? (
             <Image
-              src={logoUrl}
-              alt={siteName}
-              width={32}
-              height={32}
+              src={logo.url}
+              alt={logo.alt ?? siteName}
+              width={logo.width ?? 32}
+              height={logo.height ?? 32}
               sizes="32px"
               className="size-8 rounded-lg border object-cover"
             />

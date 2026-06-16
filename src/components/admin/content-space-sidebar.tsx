@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   Ellipsis,
@@ -9,8 +8,6 @@ import {
 } from "lucide-react";
 import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
 import { buildContentSpaceFolderView } from "@/features/content-space/lib/content-space-folder-view";
-import type { ContentSpaceEntry } from "@/features/content-space/lib/content-space-workspace";
-import { deleteFolder } from "@/features/content-space/actions/folder.actions";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { TooltipProvider } from "@/shared/ui/tooltip";
@@ -25,30 +22,23 @@ import {
 
 type ContentSpaceSidebarProps = {
   tree: ContentTreeFolder[];
-  activeEntry: ContentSpaceEntry;
   activeFolderId?: string;
   onSelectFolder: (folderId: string) => void | Promise<void>;
-  onSelectEntry?: (
-    entry: Extract<ContentSpaceEntry, "all" | "drafts" | "ready">,
-  ) => void | Promise<void>;
   onFolderCreated?: (folder: {
     id: string;
     name: string;
     slug: string;
   }) => void | Promise<void>;
-  onFolderDeleted?: (folderId: string) => void | Promise<void>;
+  onDeleteFolder?: (folderId: string) => void | Promise<void>;
 };
 
 export function ContentSpaceSidebar({
   tree,
-  activeEntry,
   activeFolderId,
   onSelectFolder,
-  onSelectEntry,
   onFolderCreated,
-  onFolderDeleted,
+  onDeleteFolder,
 }: ContentSpaceSidebarProps) {
-  const router = useRouter();
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<{
     id: string;
@@ -56,28 +46,8 @@ export function ContentSpaceSidebar({
   } | null>(null);
   const folderView = useMemo(() => buildContentSpaceFolderView(tree), [tree]);
 
-
   async function handleDeleteFolder(folderId: string) {
-    await deleteFolder(folderId);
-    await onFolderDeleted?.(folderId);
-
-    if (activeFolderId !== folderId) {
-      router.refresh();
-      return;
-    }
-
-    const currentIndex = folderView.findIndex((folder) => folder.id === folderId);
-    const fallbackFolder =
-      folderView[currentIndex + 1] ??
-      folderView[currentIndex - 1];
-
-    if (fallbackFolder) {
-      await onSelectFolder(fallbackFolder.id);
-    } else if (onSelectEntry) {
-      await onSelectEntry("all");
-    }
-
-    router.refresh();
+    await onDeleteFolder?.(folderId);
   }
 
   return (
@@ -190,6 +160,7 @@ export function ContentSpaceSidebar({
       </TooltipProvider>
 
       <FolderCreateDialog
+        key={editingFolder?.id ?? (folderDialogOpen ? "new-open" : "new-closed")}
         open={folderDialogOpen}
         onOpenChange={(open) => {
           setFolderDialogOpen(open);

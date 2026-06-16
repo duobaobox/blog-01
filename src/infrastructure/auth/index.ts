@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
 import { db } from "@/infrastructure/db";
+import { ForbiddenError, UnauthorizedError } from "@/shared/lib/app-error";
 import { headers } from "next/headers";
 
 export const auth = betterAuth({
@@ -48,7 +49,7 @@ export async function getSession() {
 export async function requireSession() {
   const session = await getSession();
   if (!session) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   return session;
 }
@@ -56,7 +57,7 @@ export async function requireSession() {
 export async function requireAdminSession() {
   const session = await requireSession();
   if (session.user.role !== "admin") {
-    throw new Error("Forbidden");
+    throw new ForbiddenError();
   }
   return session;
 }

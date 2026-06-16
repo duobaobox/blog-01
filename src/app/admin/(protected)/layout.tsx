@@ -1,15 +1,11 @@
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getSession } from "@/infrastructure/auth";
-import {
-  backfillAdminUsername,
-  isDefaultAdminPasswordActive,
-  needsSiteBasicSetup,
-} from "@/infrastructure/auth/bootstrap";
+import { redirect } from "next/navigation";
+import { getAdminShellPageData } from "@/features/settings/queries/settings.queries";
 import { AdminOnboardingBanner } from "@/components/admin/admin-onboarding-banner";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { SidebarInset, SidebarProvider } from "@/shared/ui/sidebar";
+import { getAdminShellAuthRedirect } from "./admin-layout-auth";
 
 export const metadata = {
   robots: "noindex, nofollow",
@@ -20,26 +16,25 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const cookieStorePromise = cookies();
+  const pageDataPromise = getAdminShellPageData();
 
-  if (!session) {
-    redirect("/admin/login");
-  }
-
-  if (session.user.role !== "admin") {
-    redirect("/");
-  }
-
-  if (!session.user.username) {
-    await backfillAdminUsername(session.user.id);
-  }
-
-  const cookieStore = await cookies();
+  const cookieStore = await cookieStorePromise;
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
-  const [showPasswordReminder, showSiteReminder] = await Promise.all([
-    isDefaultAdminPasswordActive(session.user.id),
-    needsSiteBasicSetup(),
-  ]);
+
+  let pageData: Awaited<ReturnType<typeof getAdminShellPageData>>;
+
+  try {
+    pageData = await pageDataPromise;
+  } catch (error) {
+    const redirectTo = getAdminShellAuthRedirect(error);
+
+    if (redirectTo) {
+      redirect(redirectTo);
+    }
+
+    throw error;
+  }
 
   return (
     <SidebarProvider defaultOpen={defaultOpen} className="h-dvh overflow-hidden">
@@ -47,8 +42,8 @@ export default async function AdminLayout({
       <SidebarInset>
         <AdminHeader />
         <AdminOnboardingBanner
-          needsPasswordChange={showPasswordReminder}
-          needsSiteSetup={showSiteReminder}
+          needsPasswordChange={pageData.shellStatus.security.needsPasswordChange}
+          needsSiteSetup={pageData.shellStatus.onboarding.needsSiteSetup}
         />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {children}
