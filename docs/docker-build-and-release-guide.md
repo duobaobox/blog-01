@@ -52,11 +52,11 @@ flowchart LR
 
 ## 关键文件
 
-- [Dockerfile](/Users/duobao/个人/个人-网站搭建/blog-01/Dockerfile)
-- [docker-compose.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.yml)
-- [docker-compose.release.yml](/Users/duobao/个人/个人-网站搭建/blog-01/docker-compose.release.yml)
-- [delivery/release/install.sh](/Users/duobao/个人/个人-网站搭建/blog-01/delivery/release/install.sh)
-- [scripts/release/refresh-app-delivery.sh](/Users/duobao/个人/个人-网站搭建/blog-01/scripts/release/refresh-app-delivery.sh)
+- [Dockerfile](../Dockerfile)
+- [docker-compose.yml](../docker-compose.yml)
+- [docker-compose.release.yml](../docker-compose.release.yml)
+- [delivery/release/install.sh](../delivery/release/install.sh)
+- [scripts/release/refresh-app-delivery.sh](../scripts/release/refresh-app-delivery.sh)
 
 ## 一、源码部署
 

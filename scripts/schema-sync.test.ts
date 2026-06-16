@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const workdir = "/Users/duobao/个人/个人-网站搭建/blog-01";
+const workdir = process.cwd();
 
 async function runSchemaSyncPrintMode(snapshot: object) {
   const { stdout } = await execFileAsync("sh", ["scripts/schema-sync.sh", "--print-mode"], {

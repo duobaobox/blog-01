@@ -78,7 +78,7 @@ docker compose logs db --tail=100
 ```
 
 如果你现在不是源码部署，而是本地打包后上传服务器，请先按
-[docker-build-and-release-guide.md](/Users/duobao/个人/个人-网站搭建/blog-01/docs/docker-build-and-release-guide.md)
+[docker-build-and-release-guide.md](./docker-build-and-release-guide.md)
 里的“发布版交付”部分把容器跑起来，再接入下面的 Nginx。
 
 ## 3. 配置 Nginx

@@ -241,11 +241,12 @@ feature 内的 `lib` 主要放该业务域内的轻量纯函数或输入解析�
 
 ## 4. 数据库变更基线
 
-当前仓库仍以 `prisma db push` 作为主要 schema 同步方式，尚未形成完整 migrations 交付体系。
+当前仓库已经包含 Prisma baseline migration，并以 `DB_SCHEMA_SYNC_MODE=auto` 作为默认 schema 同步入口。
+空库、baseline-ready 和 migration-ready 环境会优先走 `migrate deploy`；历史无迁移记录的数据库会保守回落到 `db push`，直到完成 baseline resolve。
 
 在这个前提下，当前基线要求是：
 
-- 仓库内应保留与当前 schema 对齐的 baseline migration 资产，避免后续切换 Prisma Migrate 时从零开始补历史
+- 仓库内应持续保留与当前 schema 对齐的 migration 资产，避免后续 schema 演进重新回到黑盒 `db push`
 - 修改 `prisma/schema.prisma` 时，应同时考虑发布链路是否能安全感知这次变更
 - 对已有数据库做 schema 发布前，应优先执行 `npm run db:diff` 预览差异，避免把索引、字段或约束调整作为“黑盒变更”直接推上去
 - 对已有数据库是否已经进入 migration 模式，应优先执行 `npm run db:check:migrations` 判断；不要在未知历史状态下直接切换到 `prisma migrate deploy`
