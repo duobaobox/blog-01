@@ -27,6 +27,7 @@
 
 # misc
 .DS_Store
+._*
 *.pem
 
 # AI agent configurations
