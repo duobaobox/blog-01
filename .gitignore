@@ -24,6 +24,7 @@
 /dist
 /delivery/out
 /delivery/offline/deploy
+/delivery/*.tar
 
 # misc
 .DS_Store
