@@ -125,11 +125,13 @@ const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   onMediaClick,
+  onInsertTable,
   isMobile,
 }: {
   onHighlighterClick: () => void
   onLinkClick: () => void
   onMediaClick: () => void
+  onInsertTable: () => void
   isMobile: boolean
 }) => {
   return (
@@ -196,6 +198,13 @@ const MainToolbarContent = ({
         >
           <ImagePlusIcon className="tiptap-button-icon" />
           <span className="tiptap-button-text">媒体库</span>
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={onInsertTable}
+          aria-label="插入表格"
+        >
+          <span className="tiptap-button-text">表格</span>
         </Button>
       </ToolbarGroup>
 
@@ -344,6 +353,13 @@ export function SimpleEditor({
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
               onMediaClick={() => onRequestMedia?.()}
+              onInsertTable={() =>
+                editor
+                  ?.chain()
+                  .focus()
+                  .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                  .run()
+              }
               isMobile={isMobile}
             />
           ) : (
