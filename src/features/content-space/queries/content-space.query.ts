@@ -152,7 +152,7 @@ export function createAdminPostsPageDataQuery(
           slug: activeFolderNode.slug,
         }
       : undefined;
-    const mode = activeFolder && requestedMode === "new" ? "new" : "edit";
+    const mode: "new" | "edit" = activeFolder && requestedMode === "new" ? "new" : "edit";
 
     const folderPosts = activeFolder
       ? await dependencies.getPosts({

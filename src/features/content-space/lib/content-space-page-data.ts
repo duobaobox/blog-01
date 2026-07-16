@@ -22,8 +22,8 @@ import { isPostStatus, type PostStatus } from "@/features/posts/lib/post-write";
 import { buildContentSpaceQueryPlan } from "@/features/content-space/lib/content-space-query-plan";
 
 export type AdminPostsPageQueryParams = {
-  postId?: string;
-  view?: string;
+  postId?: string | string[];
+  view?: string | string[];
   page?: string | string[];
   entry?: string | string[];
   folder?: string | string[];
