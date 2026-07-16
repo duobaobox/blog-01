@@ -180,36 +180,6 @@ export function ContentSpaceContextPanel({
             </form>
           </div>
 
-          <div className="border-b px-3 py-3">
-            <Tabs
-              value={statusFilter}
-              onValueChange={(value) =>
-                void onSelectStatus(value as FolderPostStatusFilter)
-              }
-              suppressHydrationWarning
-            >
-              <TabsList
-                className="grid w-full grid-cols-4 rounded-xl bg-muted/70 p-1"
-                suppressHydrationWarning
-              >
-                {STATUS_TABS.map((item) => (
-                  <TabsTrigger
-                    key={item.key}
-                    value={item.key}
-                    disabled={!folder}
-                    suppressHydrationWarning
-                    className="min-w-0 rounded-lg px-1 text-[11px] text-sidebar-foreground/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring/50 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:shadow-sm"
-                  >
-                    <span className="truncate">{item.label}</span>
-                    <span className="ml-1 text-[10px] opacity-70">
-                      {statusCounts[item.key]}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-
           <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
             {posts.length === 0 ? (
               <PostsEmptyState
@@ -320,6 +290,36 @@ export function ContentSpaceContextPanel({
                 })}
               </div>
             )}
+          </div>
+
+          <div className="border-t px-3 py-3">
+            <Tabs
+              value={statusFilter}
+              onValueChange={(value) =>
+                void onSelectStatus(value as FolderPostStatusFilter)
+              }
+              suppressHydrationWarning
+            >
+              <TabsList
+                className="grid w-full grid-cols-4 rounded-xl bg-muted/70 p-1"
+                suppressHydrationWarning
+              >
+                {STATUS_TABS.map((item) => (
+                  <TabsTrigger
+                    key={item.key}
+                    value={item.key}
+                    disabled={!folder}
+                    suppressHydrationWarning
+                    className="min-w-0 rounded-lg px-1 text-[11px] text-sidebar-foreground/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring/50 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:shadow-sm"
+                  >
+                    <span className="truncate">{item.label}</span>
+                    <span className="ml-1 text-[10px] opacity-70">
+                      {statusCounts[item.key]}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
         </div>
       </TooltipProvider>

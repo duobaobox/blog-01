@@ -5,8 +5,8 @@ export default async function AdminPostsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    postId?: string | string[];
-    view?: string | string[];
+    postId?: string;
+    view?: string;
     folder?: string | string[];
     status?: string | string[];
     q?: string | string[];
