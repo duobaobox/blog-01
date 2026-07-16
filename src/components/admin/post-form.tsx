@@ -35,11 +35,7 @@ import {
   isReviewPost,
 } from "@/features/posts/lib/post-status";
 import { TagMultiSelect } from "@/features/taxonomy/components/tag-multi-select";
-import type { Editor } from "@tiptap/core";
-import {
-  EditorToolbar,
-  PostRichEditor,
-} from "@/components/admin/post-rich-editor";
+import { PostRichEditor } from "@/components/admin/post-rich-editor";
 import {
   Tooltip,
   TooltipContent,
@@ -270,7 +266,6 @@ export function PostForm({
     handleCancel: handleLeaveCancel,
     handleConfirm: handleLeaveConfirm,
   } = useConfirm();
-  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const baselineRef = useRef(
     createSnapshot(createFormState(post, { defaultFolderId })),
   );
@@ -623,9 +618,6 @@ export function PostForm({
         </div>
       </div>
 
-      {/* Editor toolbar */}
-      <EditorToolbar editor={editorInstance} />
-
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-8 py-10">
@@ -639,8 +631,8 @@ export function PostForm({
 
           <PostRichEditor
             initialJson={form.contentJson}
+            contentKey={post?.id ?? "new-post"}
             placeholder="从一句清晰的开头开始。"
-            onEditorReady={setEditorInstance}
             onChange={handleEditorChange}
           />
         </div>
