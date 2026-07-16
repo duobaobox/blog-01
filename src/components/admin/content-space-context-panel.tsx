@@ -111,26 +111,13 @@ export function ContentSpaceContextPanel({
       <TooltipProvider delay={1000}>
         <div className="flex h-full flex-col border-r bg-background">
           <div className="border-b px-3 py-3">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">
-                  {folder?.name ?? "文章管理"}
-                </div>
-                <div className="text-[11px] text-muted-foreground">
-                  {folder ? `${statusCounts.all} 篇文章` : "请先创建文件夹"}
-                </div>
+            <div className="mb-2 min-w-0">
+              <div className="truncate text-sm font-semibold">
+                {folder?.name ?? "文章管理"}
               </div>
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="outline"
-                onClick={() => void onCreateNew()}
-                disabled={!folder}
-                title={!folder ? "请先创建文件夹" : "在当前文件夹新建文章"}
-                aria-label="新建文章"
-              >
-                <FilePlus2 className="size-3.5" />
-              </Button>
+              <div className="text-[11px] text-muted-foreground">
+                {folder ? `${statusCounts.all} 篇文章` : "请先创建文件夹"}
+              </div>
             </div>
 
             <form
@@ -140,43 +127,48 @@ export function ContentSpaceContextPanel({
                 void onSearch(localSearchQuery);
               }}
             >
-              <Input
-                id="content-space-search"
-                name="search"
-                value={localSearchQuery}
-                onChange={(event) => setLocalSearchQuery(event.target.value)}
-                placeholder={folder ? `在 ${folder.name} 中搜索` : "请先选择文件夹"}
-                aria-label="搜索当前文件夹文章"
-                className="h-8 flex-1"
-                disabled={!folder}
-              />
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="content-space-search"
+                  name="search"
+                  value={localSearchQuery}
+                  onChange={(event) => setLocalSearchQuery(event.target.value)}
+                  placeholder={folder ? `在 ${folder.name} 中搜索` : "请先选择文件夹"}
+                  aria-label="搜索当前文件夹文章"
+                  className="h-8 pl-8 pr-8"
+                  disabled={!folder}
+                />
+                {searchQuery || localSearchQuery ? (
+                  <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => {
+                      setLocalSearchQuery("");
+                      void onSearch("");
+                    }}
+                    aria-label="清除搜索"
+                    title="清除搜索"
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                ) : null}
+              </div>
+
               <Button
-                type="submit"
+                type="button"
                 size="icon-sm"
                 variant="outline"
                 className="shrink-0"
+                onClick={() => void onCreateNew()}
                 disabled={!folder}
-                aria-label="执行搜索"
-                title="执行搜索"
+                title={!folder ? "请先创建文件夹" : "在当前文件夹新建文章"}
+                aria-label="新建文章"
               >
-                <Search className="size-3.5" />
+                <FilePlus2 className="size-3.5" />
               </Button>
-              {searchQuery || localSearchQuery ? (
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  className="shrink-0"
-                  onClick={() => {
-                    setLocalSearchQuery("");
-                    void onSearch("");
-                  }}
-                  aria-label="清除搜索"
-                  title="清除搜索"
-                >
-                  <X className="size-3.5" />
-                </Button>
-              ) : null}
             </form>
           </div>
 
@@ -310,12 +302,9 @@ export function ContentSpaceContextPanel({
                     value={item.key}
                     disabled={!folder}
                     suppressHydrationWarning
-                    className="min-w-0 rounded-lg px-1 text-[11px] text-sidebar-foreground/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring/50 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:shadow-sm"
+                    className="min-w-0 rounded-lg px-1.5 text-xs text-sidebar-foreground/70 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring/50 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:shadow-sm"
                   >
                     <span className="truncate">{item.label}</span>
-                    <span className="ml-1 text-[10px] opacity-70">
-                      {statusCounts[item.key]}
-                    </span>
                   </TabsTrigger>
                 ))}
               </TabsList>
