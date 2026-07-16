@@ -79,7 +79,6 @@ function getEmptyTitle(status: FolderPostStatusFilter) {
 export function ContentSpaceContextPanel({
   folder,
   statusFilter,
-  statusCounts,
   searchQuery,
   posts,
   selectedPostId,
@@ -111,15 +110,6 @@ export function ContentSpaceContextPanel({
       <TooltipProvider delay={1000}>
         <div className="flex h-full flex-col border-r bg-background">
           <div className="border-b px-3 py-3">
-            <div className="mb-2 min-w-0">
-              <div className="truncate text-sm font-semibold">
-                {folder?.name ?? "文章管理"}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                {folder ? `${statusCounts.all} 篇文章` : "请先创建文件夹"}
-              </div>
-            </div>
-
             <form
               className="flex items-center gap-2"
               onSubmit={(event) => {
