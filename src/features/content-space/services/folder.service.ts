@@ -1,5 +1,6 @@
 import * as folderRepo from "@/features/content-space/repositories/folder.repository";
 import type { FolderWriteInput } from "@/features/content-space/lib/folder-write";
+import { ValidationError } from "@/shared/lib/app-error";
 import { requireEntity } from "@/shared/lib/validation";
 import { generateSemanticSlug } from "@/shared/lib/slug";
 
@@ -31,6 +32,14 @@ export async function renameFolder(id: string, input: FolderWriteInput) {
 }
 
 export async function deleteFolder(id: string) {
-  requireEntity(await folderRepo.findFolderById(id), "文件夹不存在");
+  const folder = requireEntity(
+    await folderRepo.findFolderByIdWithPostCount(id),
+    "文件夹不存在",
+  );
+
+  if (folder._count.posts > 0) {
+    throw new ValidationError("文件夹内还有文章，请先移动或归档这些文章");
+  }
+
   await folderRepo.deleteFolder(id);
 }

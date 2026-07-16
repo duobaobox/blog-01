@@ -2,6 +2,7 @@ import { parseStoredContentJsonStrict } from "@/features/editor/content-types";
 import {
   normalizeOptionalString,
   requireOneOf,
+  requireTrimmedString,
   validateOptionalHttpUrl,
 } from "@/shared/lib/validation";
 
@@ -67,7 +68,10 @@ export function parsePostWriteFormData(formData: FormData): PostWriteInput {
     excerpt: normalizeOptionalString(formData.get("excerpt")),
     coverImageUrl: normalizeOptionalString(formData.get("coverImageUrl")),
     categoryId: normalizeOptionalString(formData.get("categoryId")),
-    folderId: normalizeOptionalString(formData.get("folderId")),
+    folderId: requireTrimmedString(
+      formData.get("folderId"),
+      "文章必须归属到一个文件夹",
+    ),
     status: requireOneOf(
       formData.get("status"),
       POST_STATUSES,

@@ -8,9 +8,7 @@ import {
   CardContent,
   CardDescription,
 } from "@/shared/ui/card";
-import {
-  getAdminDashboardPageData,
-} from "@/features/posts/queries/post.queries";
+import { getAdminDashboardPageData } from "@/features/posts/queries/post.queries";
 
 const DASHBOARD_STAT_ICONS = {
   post: FileText,
@@ -18,6 +16,10 @@ const DASHBOARD_STAT_ICONS = {
   tag: Tags,
   trend: TrendingUp,
 } as const;
+
+function resolveStatHref(href: string) {
+  return href.startsWith("/admin/posts") ? "/admin/posts" : href;
+}
 
 export default async function AdminDashboard() {
   const dashboard = await getAdminDashboardPageData(8);
@@ -43,7 +45,11 @@ export default async function AdminDashboard() {
           {dashboard.statCards.map((stat) => {
             const Icon = DASHBOARD_STAT_ICONS[stat.iconKey];
             return (
-              <Link key={stat.label} href={stat.href} className="group">
+              <Link
+                key={stat.label}
+                href={resolveStatHref(stat.href)}
+                className="group"
+              >
                 <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
                   <CardHeader className="pb-2">
                     <CardDescription className="text-sm font-medium">
@@ -74,7 +80,7 @@ export default async function AdminDashboard() {
             <CardHeader>
               <CardTitle>最近内容操作</CardTitle>
               <CardDescription>
-                记录最近的文章创建、更新、归档和批量治理动作。
+                记录最近的文章创建、更新和归档动作。
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -92,22 +98,26 @@ export default async function AdminDashboard() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{item.summary}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {item.author?.name || item.author?.username || item.author?.email || "管理员"} · {activityTimeFormatter.format(new Date(item.createdAt))}
+                          {item.author?.name ||
+                            item.author?.username ||
+                            item.author?.email ||
+                            "管理员"}{" "}
+                          · {activityTimeFormatter.format(new Date(item.createdAt))}
                         </p>
                       </div>
                       {item.post ? (
                         <Link
-                          href={`/admin/posts?postId=${item.post.id}&view=edit`}
+                          href={`/admin/posts?postId=${item.post.id}`}
                           className="shrink-0 text-xs text-primary hover:underline"
                         >
                           查看文章
                         </Link>
                       ) : (
                         <Link
-                          href="/admin/posts?entry=library"
+                          href="/admin/posts"
                           className="shrink-0 text-xs text-primary hover:underline"
                         >
-                          查看内容库
+                          查看文章管理
                         </Link>
                       )}
                     </div>

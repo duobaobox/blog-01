@@ -3,14 +3,20 @@ import test from "node:test";
 import { ValidationError } from "@/shared/lib/app-error";
 import { parsePostWriteFormData } from "./post-write";
 
-test("parsePostWriteFormData normalizes optional fields and tag ids", () => {
+function createBaseFormData(status = "draft") {
   const formData = new FormData();
+  formData.set("status", status);
+  formData.set("folderId", "folder-1");
+  return formData;
+}
+
+test("parsePostWriteFormData normalizes optional fields and requires folder", () => {
+  const formData = createBaseFormData("published");
   formData.set("title", "  Hello World  ");
   formData.set("contentJson", "");
-  formData.set("status", "published");
   formData.set("coverImageUrl", "  /media/demo.jpg  ");
   formData.set("categoryId", "  cat-1 ");
-  formData.set("folderId", " ");
+  formData.set("folderId", " folder-1 ");
   formData.set("canonicalUrl", " https://example.com/post ");
   formData.set("isFeatured", "true");
   formData.append("tagIds", " tag-1 ");
@@ -27,7 +33,7 @@ test("parsePostWriteFormData normalizes optional fields and tag ids", () => {
     excerpt: null,
     coverImageUrl: "/media/demo.jpg",
     categoryId: "cat-1",
-    folderId: null,
+    folderId: "folder-1",
     status: "published",
     seoTitle: null,
     seoDescription: null,
@@ -37,30 +43,30 @@ test("parsePostWriteFormData normalizes optional fields and tag ids", () => {
   });
 });
 
-test("parsePostWriteFormData accepts archived status", () => {
+test("parsePostWriteFormData rejects posts without a folder", () => {
   const formData = new FormData();
-  formData.set("status", "archived");
-
-  assert.equal(parsePostWriteFormData(formData).status, "archived");
-});
-
-test("parsePostWriteFormData rejects invalid status values", () => {
-  const formData = new FormData();
-  formData.set("status", "invalid-status");
+  formData.set("status", "draft");
 
   assert.throws(() => parsePostWriteFormData(formData), ValidationError);
 });
 
-test("parsePostWriteFormData accepts review status", () => {
-  const formData = new FormData();
-  formData.set("status", "review");
+test("parsePostWriteFormData accepts archived status", () => {
+  const formData = createBaseFormData("archived");
+  assert.equal(parsePostWriteFormData(formData).status, "archived");
+});
 
+test("parsePostWriteFormData rejects invalid status values", () => {
+  const formData = createBaseFormData("invalid-status");
+  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
+});
+
+test("parsePostWriteFormData accepts review status", () => {
+  const formData = createBaseFormData("review");
   assert.equal(parsePostWriteFormData(formData).status, "review");
 });
 
 test("parsePostWriteFormData rejects invalid canonical urls", () => {
-  const formData = new FormData();
-  formData.set("status", "draft");
+  const formData = createBaseFormData();
   formData.set("canonicalUrl", "/relative/path");
 
   assert.throws(() => parsePostWriteFormData(formData), ValidationError);

@@ -1,22 +1,12 @@
 import {
-  buildAdminPostsPageData,
-  buildAdminPostsQueryContext,
   toWorkspacePostSummary,
   type AdminPostsPageQueryParams,
 } from "@/features/content-space/lib/content-space-page-data";
-import * as savedViewService from "@/features/content-space/services/content-space-saved-view.service";
 import * as folderRepo from "@/features/content-space/repositories/folder.repository";
 import {
-  getAdminQuickEntryCounts,
-  getAdminLibraryPostsPageData,
-  getAdminRecentPostsPageData,
   getPostById,
   getPosts,
-  getPostsByFolder,
-  getReadyToPublishPosts as getReadyToPublishPostSummaries,
 } from "@/features/posts/queries/post.queries";
-import * as postRepo from "@/features/posts/repositories/post.repository";
-import { getAdminSessionIdentity } from "@/infrastructure/auth/admin-session";
 import { unstable_cache } from "next/cache";
 import {
   ADMIN_CACHE_REVALIDATE_SECONDS,
@@ -28,7 +18,58 @@ import {
   buildContentTree,
   type ContentTreeInput,
 } from "@/features/content-space/lib/content-space-tree";
-import type { ContentSpaceContextSources } from "@/features/content-space/lib/content-space-workspace";
+
+export type FolderPostStatusFilter = "all" | "draft" | "review" | "published";
+
+export type FolderPostStatusCounts = {
+  all: number;
+  draft: number;
+  review: number;
+  published: number;
+};
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizeStatusFilter(value: string | undefined): FolderPostStatusFilter {
+  return value === "draft" || value === "review" || value === "published"
+    ? value
+    : "all";
+}
+
+function matchesSearch(
+  post: {
+    title: string;
+    excerpt?: string | null;
+    contentText?: string | null;
+  },
+  query: string,
+) {
+  if (!query) return true;
+
+  const haystack = [post.title, post.excerpt, post.contentText]
+    .filter(Boolean)
+    .join("\n")
+    .toLocaleLowerCase();
+
+  return haystack.includes(query.toLocaleLowerCase());
+}
+
+function countFolderStatuses(
+  posts: Array<{ status: string }>,
+): FolderPostStatusCounts {
+  return posts.reduce<FolderPostStatusCounts>(
+    (counts, post) => {
+      counts.all += 1;
+      if (post.status === "draft") counts.draft += 1;
+      if (post.status === "review") counts.review += 1;
+      if (post.status === "published") counts.published += 1;
+      return counts;
+    },
+    { all: 0, draft: 0, review: 0, published: 0 },
+  );
+}
 
 export async function getContentTree() {
   return getContentTreeCached();
@@ -46,13 +87,15 @@ const getContentTreeCached = unstable_cache(
         sortOrder: folder.sortOrder,
         postCount: folder._count.posts,
       })),
-      posts: folders.flatMap((folder) => folder.posts.map((post) => ({
-        id: post.id,
-        title: post.title,
-        status: post.status,
-        updatedAt: post.updatedAt,
-        folderId: post.folderId,
-      }))),
+      posts: folders.flatMap((folder) =>
+        folder.posts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          status: post.status,
+          updatedAt: post.updatedAt,
+          folderId: post.folderId,
+        })),
+      ),
     } satisfies ContentTreeInput);
   },
   ["admin-content-tree"],
@@ -62,225 +105,92 @@ const getContentTreeCached = unstable_cache(
   },
 );
 
-export async function getDraftPosts(limit = 20) {
-  if (limit === 20) {
-    return getDraftPostsCached();
-  }
-
-  return postRepo.findDraftPosts(limit);
-}
-
-const getDraftPostsCached = unstable_cache(
-  () => postRepo.findDraftPosts(20),
-  ["admin-draft-posts"],
-  {
-    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
-    tags: [ADMIN_CACHE_TAGS.posts],
-  },
-);
-
-export async function getReadyToPublishPosts(limit = 20) {
-  return getReadyToPublishPostSummaries(limit);
-}
-
-async function buildSearchContextSources(input: {
-  getPosts: typeof getPosts;
-  shouldLoadSearchResults: boolean;
-  searchFilters?: postRepo.FindPostsOptions;
-}): Promise<Pick<ContentSpaceContextSources, "searchResults">> {
-  return {
-    searchResults: input.shouldLoadSearchResults && input.searchFilters
-      ? (await input.getPosts(input.searchFilters)).map(toWorkspacePostSummary)
-      : [],
-  };
-}
-
-function buildRequestedPostContextSummary(
-  requestedPost: NonNullable<Awaited<ReturnType<typeof getPostById>>>,
-) {
-  return toWorkspacePostSummary({
-    id: requestedPost.id,
-    title: requestedPost.title,
-    status: requestedPost.status,
-    updatedAt: requestedPost.updatedAt ?? new Date().toISOString(),
-    excerpt: requestedPost.excerpt,
-    coverImageUrl: requestedPost.coverImageUrl,
-    seoTitle: requestedPost.seoTitle,
-    seoDescription: requestedPost.seoDescription,
-    folder: requestedPost.folder
-      ? {
-          id: requestedPost.folder.id,
-          name: requestedPost.folder.name,
-          slug: requestedPost.folder.slug,
-        }
-      : null,
-  });
-}
-
-async function buildFolderContextSources(input: {
-  getPostsByFolder: typeof getPostsByFolder;
-  shouldLoadFolderPostsFromExplicitFolder: boolean;
-  requestedFolderId?: string;
-  requestedPost?: ContentSpaceContextSources["requestedPost"];
-}): Promise<Pick<ContentSpaceContextSources, "folderPosts" | "requestedPost">> {
-  const derivedFolderContextId =
-    input.requestedPost?.folder?.id;
-  const folderContextId = input.requestedFolderId ?? derivedFolderContextId;
-  const shouldLoadFolderPosts =
-    input.shouldLoadFolderPostsFromExplicitFolder || Boolean(derivedFolderContextId);
-  const folderPosts = shouldLoadFolderPosts && folderContextId
-    ? await input.getPostsByFolder(folderContextId)
-    : [];
-
-  return {
-    folderPosts: folderPosts.map(toWorkspacePostSummary),
-    requestedPost: input.requestedPost,
-  };
-}
-
 type AdminPostsPageDataDependencies = {
-  getAdminSessionIdentity: typeof getAdminSessionIdentity;
   getContentTree: typeof getContentTree;
-  getAdminRecentPostsPageData: typeof getAdminRecentPostsPageData;
-  getAdminLibraryPostsPageData: typeof getAdminLibraryPostsPageData;
-  getDraftPosts: typeof getDraftPosts;
-  getReadyToPublishPosts: typeof getReadyToPublishPosts;
-  getAdminQuickEntryCounts: typeof getAdminQuickEntryCounts;
   getCategories: typeof getCategories;
   getTags: typeof getTags;
-  getSavedContentViews: typeof savedViewService.getSavedContentViews;
   getPostById: typeof getPostById;
   getPosts: typeof getPosts;
-  getPostsByFolder: typeof getPostsByFolder;
-};
+} & Record<string, unknown>;
 
 export function createAdminPostsPageDataQuery(
   dependencies: AdminPostsPageDataDependencies = {
-    getAdminSessionIdentity,
     getContentTree,
-    getAdminRecentPostsPageData,
-    getAdminLibraryPostsPageData,
-    getDraftPosts,
-    getReadyToPublishPosts,
-    getAdminQuickEntryCounts,
     getCategories,
     getTags,
-    getSavedContentViews: savedViewService.getSavedContentViews,
     getPostById,
     getPosts,
-    getPostsByFolder,
   },
 ) {
   return async function getAdminPostsPageData(
-    params: AdminPostsPageQueryParams,
+    rawParams: AdminPostsPageQueryParams,
   ) {
-    const session = await dependencies.getAdminSessionIdentity();
-    const queryContext = buildAdminPostsQueryContext(params);
-    const {
-      requestedPage,
-      requestedPostId,
-      requestedFolderId,
-      pageTarget,
-      queryPlan,
-      libraryFilters,
-      searchFilters,
-    } = queryContext;
+    const requestedFolderId = firstParam(rawParams.folder)?.trim() || undefined;
+    const requestedPostId = firstParam(rawParams.postId)?.trim() || undefined;
+    const searchQuery = firstParam(rawParams.q)?.trim() ?? "";
+    const statusFilter = normalizeStatusFilter(firstParam(rawParams.status));
+    const requestedMode = firstParam(rawParams.view) === "new" ? "new" : "edit";
 
-    const [
-      contentTree,
-      feedPageData,
-      draftPosts,
-      readyToPublishPosts,
-      quickEntryCounts,
-      categories,
-      tags,
-      savedViews,
-    ] = await Promise.all([
+    const [tree, categories, tags, requestedPost] = await Promise.all([
       dependencies.getContentTree(),
-      pageTarget === "recent"
-        ? dependencies.getAdminRecentPostsPageData({
-            page: requestedPage,
-          })
-        : dependencies.getAdminLibraryPostsPageData({
-            page: requestedPage,
-            filters: libraryFilters,
-          }),
-      dependencies.getDraftPosts(20),
-      dependencies.getReadyToPublishPosts(20),
-      dependencies.getAdminQuickEntryCounts(),
       dependencies.getCategories(),
       dependencies.getTags(),
-      dependencies.getSavedContentViews(session.id),
+      requestedPostId ? dependencies.getPostById(requestedPostId) : undefined,
     ]);
 
-    const requestedEditablePostForContext =
-      queryPlan.shouldLoadRequestedPostForContext && requestedPostId
-        ? await dependencies.getPostById(requestedPostId)
-        : undefined;
+    const explicitFolder = requestedFolderId
+      ? tree.find((folder) => folder.id === requestedFolderId)
+      : undefined;
+    const requestedPostFolder = requestedPost?.folder
+      ? tree.find((folder) => folder.id === requestedPost.folder?.id)
+      : undefined;
+    const activeFolderNode = explicitFolder ?? requestedPostFolder ?? tree[0];
+    const activeFolder = activeFolderNode
+      ? {
+          id: activeFolderNode.id,
+          name: activeFolderNode.name,
+          slug: activeFolderNode.slug,
+        }
+      : undefined;
+    const mode = activeFolder && requestedMode === "new" ? "new" : "edit";
 
-    const [searchContextSources, folderContextSources] = await Promise.all([
-      buildSearchContextSources({
-        getPosts: dependencies.getPosts,
-        shouldLoadSearchResults: queryPlan.shouldLoadSearchResults,
-        searchFilters,
-      }),
-      buildFolderContextSources({
-        getPostsByFolder: dependencies.getPostsByFolder,
-        shouldLoadFolderPostsFromExplicitFolder:
-          queryPlan.shouldLoadFolderPostsFromExplicitFolder,
-        requestedFolderId,
-        requestedPost: requestedEditablePostForContext
-          ? buildRequestedPostContextSummary(requestedEditablePostForContext)
-          : undefined,
-      }),
-    ]);
-
-    const pageData = buildAdminPostsPageData({
-      rawParams: params,
-      contentTree,
-      libraryPosts:
-        pageTarget === "library"
-          ? feedPageData.posts.map(toWorkspacePostSummary)
-          : [],
-      libraryPage: pageTarget === "library" ? feedPageData.currentPage : 1,
-      libraryTotalPages: pageTarget === "library" ? feedPageData.totalPages : 1,
-      libraryFeedTotalPosts:
-        pageTarget === "library" ? feedPageData.totalPosts : quickEntryCounts.library,
-      recentPosts:
-        pageTarget === "recent"
-          ? feedPageData.posts.map(toWorkspacePostSummary)
-          : [],
-      recentPage: pageTarget === "recent" ? feedPageData.currentPage : 1,
-      recentTotalPages: pageTarget === "recent" ? feedPageData.totalPages : 1,
-      recentFeedTotalPosts:
-        pageTarget === "recent" ? feedPageData.totalPosts : quickEntryCounts.recent,
-      draftPosts: draftPosts.map(toWorkspacePostSummary),
-      readyToPublishPosts: readyToPublishPosts.map(toWorkspacePostSummary),
-      folderPosts: folderContextSources.folderPosts,
-      quickEntryCounts: {
-        library: quickEntryCounts.library,
-        recent: quickEntryCounts.recent,
-        drafts: quickEntryCounts.drafts,
-        ready: quickEntryCounts.ready,
-      },
-      searchResults: searchContextSources.searchResults,
-      requestedPost: folderContextSources.requestedPost,
+    const folderPosts = activeFolder
+      ? await dependencies.getPosts({
+          folderId: activeFolder.id,
+          order: "updated",
+        })
+      : [];
+    const folderStatusCounts = countFolderStatuses(folderPosts);
+    const visiblePosts = folderPosts.filter((post) => {
+      const matchesStatus =
+        statusFilter === "all" || post.status === statusFilter;
+      return matchesStatus && matchesSearch(post, searchQuery);
     });
-
-    const selectedPost =
-      pageData.state.mode === "edit" && pageData.state.selectedPostId
-        ? requestedEditablePostForContext?.id === pageData.state.selectedPostId
-          ? requestedEditablePostForContext
-          : await dependencies.getPostById(pageData.state.selectedPostId)
-        : undefined;
+    const contextPosts = visiblePosts.map(toWorkspacePostSummary);
+    const selectedPostId =
+      mode === "new"
+        ? undefined
+        : requestedPostId && contextPosts.some((post) => post.id === requestedPostId)
+          ? requestedPostId
+          : contextPosts[0]?.id;
+    const selectedPost = selectedPostId
+      ? requestedPost?.id === selectedPostId
+        ? requestedPost
+        : await dependencies.getPostById(selectedPostId)
+      : undefined;
 
     return {
-      ...pageData,
-      tree: contentTree,
+      tree,
+      activeFolder,
+      selectedPost: selectedPost ?? undefined,
+      selectedPostId,
+      contextPosts,
+      folderStatusCounts,
+      statusFilter,
       categories,
       tags,
-      savedViews,
-      selectedPost: selectedPost ?? undefined,
+      searchQuery,
+      mode,
     };
   };
 }

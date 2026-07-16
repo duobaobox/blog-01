@@ -1,246 +1,151 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { FindPostsOptions } from "@/features/posts/repositories/post.repository";
 import { createAdminPostsPageDataQuery } from "./content-space.query";
 
-function createWorkspacePostSummary(
-  id: string,
-  title: string,
-  options?: {
-    status?: string;
-    folder?: {
-      id: string;
-      name: string;
-      slug: string;
-    } | null;
-    updatedAt?: string;
-  },
-) {
-  return {
-    id,
-    title,
-    status: options?.status ?? "draft",
-    updatedAt: options?.updatedAt ?? "2026-06-15T10:00:00.000Z",
-    folder: options?.folder ?? null,
-  };
+const FOLDER_ONE = {
+  id: "folder-1",
+  name: "产品",
+  slug: "product",
+};
+
+const FOLDER_TWO = {
+  id: "folder-2",
+  name: "技术",
+  slug: "engineering",
+};
+
+function createTree() {
+  return [
+    { ...FOLDER_ONE, postCount: 3, posts: [] },
+    { ...FOLDER_TWO, postCount: 1, posts: [] },
+  ];
 }
 
-function createSelectedPost(
+function createPost(
   id: string,
   title: string,
-  options?: {
-    status?: string;
-    folder?: {
-      id: string;
-      name: string;
-      slug: string;
-    } | null;
-  },
+  status: "draft" | "review" | "published",
+  folder = FOLDER_ONE,
 ) {
   return {
     id,
     title,
     slug: `${id}-slug`,
-    excerpt: null,
-    contentJson: {},
-    contentText: `${title} body`,
-    status: options?.status ?? "draft",
+    excerpt: `${title} 摘要`,
+    contentJson: { type: "doc", content: [{ type: "paragraph" }] },
+    contentText: `${title} 正文`,
+    status,
     categoryId: null,
     seoTitle: null,
     seoDescription: null,
     canonicalUrl: null,
     isFeatured: false,
-    publishedAt: null,
-    updatedAt: "2026-06-15T10:00:00.000Z",
+    publishedAt: status === "published" ? "2026-07-01T10:00:00.000Z" : null,
+    updatedAt: "2026-07-15T10:00:00.000Z",
     readingTimeMinutes: 1,
     wordCount: 120,
     tags: [],
     coverImageUrl: null,
-    folder: options?.folder ?? null,
+    folder,
   };
 }
 
-test("createAdminPostsPageDataQuery reuses requested post context and avoids duplicate selected-post fetch", async () => {
-  const calls: string[] = [];
-  const query = createAdminPostsPageDataQuery({
-    async getAdminSessionIdentity() {
-      calls.push("session");
-      return {
-        id: "admin-1",
-        name: "Duobao",
-        role: "admin",
-      };
-    },
-    async getContentTree() {
-      calls.push("tree");
-      return [];
-    },
-    async getAdminRecentPostsPageData() {
-      throw new Error("recent feed should not load for default library context");
-    },
-    async getAdminLibraryPostsPageData() {
-      calls.push("library-feed");
-      return {
-        posts: [],
-        currentPage: 1,
-        totalPosts: 0,
-        totalPages: 1,
-      };
-    },
-    async getDraftPosts() {
-      calls.push("drafts");
-      return [];
-    },
-    async getReadyToPublishPosts() {
-      calls.push("ready");
-      return [];
-    },
-    async getAdminQuickEntryCounts() {
-      calls.push("counts");
-      return {
-        library: 10,
-        recent: 2,
-        drafts: 1,
-        ready: 1,
-      };
-    },
-    async getCategories() {
-      calls.push("categories");
-      return [];
-    },
-    async getTags() {
-      calls.push("tags");
-      return [];
-    },
-    async getSavedContentViews(userId) {
-      calls.push(`saved:${userId}`);
-      return [];
-    },
-    async getPostById(postId) {
-      calls.push(`post:${postId}`);
-      return createSelectedPost(postId, "Launch Notes", {
-        folder: {
-          id: "folder-1",
-          name: "Strategy",
-          slug: "strategy",
-        },
-      }) as never;
-    },
-    async getPosts() {
-      throw new Error("search results should not load without query");
-    },
-    async getPostsByFolder(folderId) {
-      calls.push(`folder:${folderId}`);
-      return [
-        createWorkspacePostSummary("post-1", "Launch Notes", {
-          folder: {
-            id: "folder-1",
-            name: "Strategy",
-            slug: "strategy",
-          },
-        }),
-      ] as never;
-    },
-  });
+function createDependencies(options?: {
+  requestedPost?: ReturnType<typeof createPost>;
+  posts?: ReturnType<typeof createPost>[];
+  calls?: string[];
+}) {
+  const calls = options?.calls ?? [];
+  const posts = options?.posts ?? [
+    createPost("draft-1", "产品草稿", "draft"),
+    createPost("review-1", "发布检查", "review"),
+    createPost("published-1", "产品公告", "published"),
+  ];
 
-  const result = await query({
-    postId: "post-1",
-    view: "edit",
-  });
+  return {
+    calls,
+    dependencies: {
+      async getContentTree() {
+        calls.push("tree");
+        return createTree();
+      },
+      async getCategories() {
+        return [];
+      },
+      async getTags() {
+        return [];
+      },
+      async getPostById(postId: string) {
+        calls.push(`post:${postId}`);
+        return (
+          options?.requestedPost?.id === postId
+            ? options.requestedPost
+            : posts.find((post) => post.id === postId)
+        ) as never;
+      },
+      async getPosts(filters?: FindPostsOptions) {
+        calls.push(`folder:${filters?.folderId}:${filters?.order}`);
+        return posts.filter((post) => post.folder.id === filters?.folderId) as never;
+      },
+    },
+  };
+}
 
-  assert.equal(result.state.entry, "folder");
-  assert.equal(result.state.selectedPostId, "post-1");
-  assert.equal(result.selectedPost?.id, "post-1");
-  assert.deepEqual(calls.filter((entry) => entry.startsWith("post:")), [
-    "post:post-1",
-  ]);
-  assert.ok(calls.includes("folder:folder-1"));
+test("文章工作台默认进入第一个文件夹并统计当前文件夹状态", async () => {
+  const { dependencies, calls } = createDependencies();
+  const query = createAdminPostsPageDataQuery(dependencies);
+
+  const result = await query({});
+
+  assert.equal(result.activeFolder?.id, FOLDER_ONE.id);
+  assert.deepEqual(result.folderStatusCounts, {
+    all: 3,
+    draft: 1,
+    review: 1,
+    published: 1,
+  });
+  assert.deepEqual(
+    result.contextPosts.map((post) => post.id),
+    ["draft-1", "review-1", "published-1"],
+  );
+  assert.ok(calls.includes("folder:folder-1:updated"));
+  assert.equal(calls.some((call) => call.includes("folder-2")), false);
 });
 
-test("createAdminPostsPageDataQuery loads search results and selected post from resolved search context", async () => {
-  const calls: string[] = [];
-  const query = createAdminPostsPageDataQuery({
-    async getAdminSessionIdentity() {
-      calls.push("session");
-      return {
-        id: "admin-1",
-        name: "Duobao",
-        role: "admin",
-      };
-    },
-    async getContentTree() {
-      calls.push("tree");
-      return [];
-    },
-    async getAdminRecentPostsPageData() {
-      throw new Error("recent feed should not load for explicit library search");
-    },
-    async getAdminLibraryPostsPageData() {
-      calls.push("library-feed");
-      return {
-        posts: [
-          createWorkspacePostSummary("post-1", "Library Post"),
-        ],
-        currentPage: 1,
-        totalPosts: 1,
-        totalPages: 1,
-      } as never;
-    },
-    async getDraftPosts() {
-      calls.push("drafts");
-      return [];
-    },
-    async getReadyToPublishPosts() {
-      calls.push("ready");
-      return [];
-    },
-    async getAdminQuickEntryCounts() {
-      calls.push("counts");
-      return {
-        library: 8,
-        recent: 2,
-        drafts: 1,
-        ready: 1,
-      };
-    },
-    async getCategories() {
-      calls.push("categories");
-      return [];
-    },
-    async getTags() {
-      calls.push("tags");
-      return [];
-    },
-    async getSavedContentViews(userId) {
-      calls.push(`saved:${userId}`);
-      return [];
-    },
-    async getPostById(postId) {
-      calls.push(`post:${postId}`);
-      return createSelectedPost(postId, "Search Match") as never;
-    },
-    async getPosts(filters) {
-      calls.push(`search:${filters?.query}`);
-      return [
-        createWorkspacePostSummary("post-2", "Search Match"),
-      ] as never;
-    },
-    async getPostsByFolder() {
-      throw new Error("folder posts should not load during search context");
-    },
-  });
+test("状态和搜索只筛选当前文件夹文章", async () => {
+  const { dependencies, calls } = createDependencies();
+  const query = createAdminPostsPageDataQuery(dependencies);
 
   const result = await query({
-    entry: "library",
-    q: "launch",
-    postId: "post-2",
-    view: "edit",
+    folder: FOLDER_ONE.id,
+    status: "review",
+    q: "发布",
   });
 
-  assert.equal(result.state.entry, "search");
-  assert.equal(result.state.selectedPostId, "post-2");
-  assert.equal(result.selectedPost?.id, "post-2");
-  assert.ok(calls.includes("search:launch"));
-  assert.deepEqual(calls.filter((entry) => entry.startsWith("post:")), [
-    "post:post-2",
-  ]);
+  assert.equal(result.statusFilter, "review");
+  assert.deepEqual(result.contextPosts.map((post) => post.id), ["review-1"]);
+  assert.equal(result.selectedPostId, "review-1");
+  assert.ok(calls.includes("folder:folder-1:updated"));
+});
+
+test("通过文章链接进入时恢复文章所属文件夹而不是全局列表", async () => {
+  const requestedPost = createPost(
+    "engineering-1",
+    "工程记录",
+    "draft",
+    FOLDER_TWO,
+  );
+  const { dependencies, calls } = createDependencies({
+    requestedPost,
+    posts: [requestedPost],
+  });
+  const query = createAdminPostsPageDataQuery(dependencies);
+
+  const result = await query({ postId: requestedPost.id });
+
+  assert.equal(result.activeFolder?.id, FOLDER_TWO.id);
+  assert.equal(result.selectedPostId, requestedPost.id);
+  assert.equal(result.selectedPost?.id, requestedPost.id);
+  assert.ok(calls.includes("folder:folder-2:updated"));
 });

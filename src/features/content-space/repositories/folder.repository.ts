@@ -1,6 +1,7 @@
 import { db } from "@/infrastructure/db";
 
 const CONTENT_TREE_POST_PREVIEW_LIMIT = 3;
+const ACTIVE_POST_STATUSES = ["draft", "review", "published"] as const;
 
 export async function findFolders() {
   return db.folder.findMany({
@@ -10,7 +11,7 @@ export async function findFolders() {
           posts: {
             where: {
               status: {
-                in: ["draft", "review", "published"],
+                in: [...ACTIVE_POST_STATUSES],
               },
             },
           },
@@ -26,13 +27,19 @@ export async function findFoldersWithPostPreviews() {
     include: {
       _count: {
         select: {
-          posts: true,
+          posts: {
+            where: {
+              status: {
+                in: [...ACTIVE_POST_STATUSES],
+              },
+            },
+          },
         },
       },
       posts: {
         where: {
           status: {
-            in: ["draft", "review", "published"],
+            in: [...ACTIVE_POST_STATUSES],
           },
         },
         orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
@@ -58,6 +65,25 @@ export async function findFolderById(id: string) {
   return db.folder.findUnique({ where: { id } });
 }
 
+export async function findFolderByIdWithPostCount(id: string) {
+  return db.folder.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          posts: {
+            where: {
+              status: {
+                in: [...ACTIVE_POST_STATUSES],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function createFolder(data: {
   name: string;
   slug: string;
@@ -78,5 +104,8 @@ export async function updateFolder(
 }
 
 export async function deleteFolder(id: string) {
-  return db.folder.delete({ where: { id } });
+  return db.$transaction(async (tx) => {
+    await tx.post.deleteMany({ where: { folderId: id } });
+    return tx.folder.delete({ where: { id } });
+  });
 }
