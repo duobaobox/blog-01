@@ -6,6 +6,12 @@ import {
 } from "@/features/editor/content-materializer";
 import { getPostDisplayTitle } from "@/features/posts/lib/post-title";
 
+export type PostPreviewCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 export type PostPreviewRecord = {
   id: string;
   title: string;
@@ -14,11 +20,7 @@ export type PostPreviewRecord = {
   contentJson: unknown;
   publishedAt?: Date | string | null;
   updatedAt?: Date | string | null;
-  category?: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
+  category?: PostPreviewCategory | null;
   tags: Array<{
     tag: {
       id: string;
@@ -36,7 +38,7 @@ export type PostPreviewPayload = {
   coverImageUrl: string | null;
   authorName: string;
   displayDate: string | null;
-  category: PostPreviewRecord["category"];
+  category: PostPreviewCategory | null;
   tags: Array<PostPreviewRecord["tags"][number]["tag"]>;
   contentHtml: string;
   contentToc: MaterializedPostContent["contentToc"];
