@@ -1,94 +1,29 @@
-import type { PostSaveIntent } from "@/features/posts/lib/post-save-plan";
-
-const SAVE_INTENT_PRIORITY: Record<PostSaveIntent, number> = {
-  autosave: 1,
-  manual: 2,
-  navigation: 3,
-  publish: 4,
-};
-
-type TaskWaiter = {
-  resolve(value: unknown): void;
-  reject(reason: unknown): void;
-};
-
-type PendingTask = {
-  run(): Promise<unknown>;
-  priority: number;
-  waiters: TaskWaiter[];
-};
-
-export type LatestTaskCoordinator = {
-  run<T>(task: () => Promise<T>, priority?: number): Promise<T>;
+export type PostSaveCoordinator = {
+  run<T>(task: () => Promise<T>): Promise<T>;
   isBusy(): boolean;
 };
 
-export function getPostSaveIntentPriority(intent: PostSaveIntent) {
-  return SAVE_INTENT_PRIORITY[intent];
-}
-
-export function createLatestTaskCoordinator(): LatestTaskCoordinator {
-  let active = false;
-  let pending: PendingTask | null = null;
-
-  async function execute(task: PendingTask): Promise<void> {
-    try {
-      const result = await task.run();
-      task.waiters.forEach((waiter) => waiter.resolve(result));
-    } catch (error) {
-      task.waiters.forEach((waiter) => waiter.reject(error));
-    } finally {
-      const nextTask = pending;
-      pending = null;
-
-      if (nextTask) {
-        void execute(nextTask);
-      } else {
-        active = false;
-      }
-    }
-  }
+export function createPostSaveCoordinator(): PostSaveCoordinator {
+  let queuedTasks = 0;
+  let tail: Promise<void> = Promise.resolve();
 
   return {
-    run<T>(task: () => Promise<T>, priority = 0) {
-      return new Promise<T>((resolve, reject) => {
-        const waiter: TaskWaiter = {
-          resolve(value) {
-            resolve(value as T);
-          },
-          reject,
-        };
+    run<T>(task: () => Promise<T>) {
+      queuedTasks += 1;
 
-        if (!active) {
-          active = true;
-          void execute({
-            run: task,
-            priority,
-            waiters: [waiter],
-          });
-          return;
-        }
+      const result = tail.then(task, task);
+      tail = result.then(
+        () => undefined,
+        () => undefined,
+      );
 
-        if (!pending) {
-          pending = {
-            run: task,
-            priority,
-            waiters: [waiter],
-          };
-          return;
-        }
-
-        pending.waiters.push(waiter);
-
-        if (priority >= pending.priority) {
-          pending.run = task;
-          pending.priority = priority;
-        }
+      return result.finally(() => {
+        queuedTasks -= 1;
       });
     },
 
     isBusy() {
-      return active;
+      return queuedTasks > 0;
     },
   };
 }
