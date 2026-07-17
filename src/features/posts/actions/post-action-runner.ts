@@ -18,6 +18,7 @@ type PostService = Pick<
 type PostActionRunnerDeps = {
   postService: PostService;
   revalidateAdminPosts(): void;
+  revalidateAdminPostTags?(): void;
   revalidatePostsContent(
     posts: Array<{
       slug?: string | null;
@@ -27,17 +28,26 @@ type PostActionRunnerDeps = {
   ): void;
 };
 
+function revalidateAdminAfterSave(
+  deps: PostActionRunnerDeps,
+  saveIntent: PostWriteInput["saveIntent"],
+) {
+  if (shouldRevalidateAdminAfterSave(saveIntent)) {
+    deps.revalidateAdminPosts();
+    return;
+  }
+
+  deps.revalidateAdminPostTags?.();
+}
+
 export function createPostActionRunner(deps: PostActionRunnerDeps) {
   return {
     async createPost(input: PostWriteInput & { createdBy: string }) {
       const post = await deps.postService.createPost(input);
       const workflow = buildCreatePostWorkflow(post);
 
-      if (
-        workflow.revalidateAdminPosts &&
-        shouldRevalidateAdminAfterSave(input.saveIntent)
-      ) {
-        deps.revalidateAdminPosts();
+      if (workflow.revalidateAdminPosts) {
+        revalidateAdminAfterSave(deps, input.saveIntent);
       }
       if (workflow.publicPostsToRevalidate.length > 0) {
         deps.revalidatePostsContent(workflow.publicPostsToRevalidate);
@@ -73,11 +83,8 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
         nextPost: result.post,
       });
 
-      if (
-        workflow.revalidateAdminPosts &&
-        shouldRevalidateAdminAfterSave(input.saveIntent)
-      ) {
-        deps.revalidateAdminPosts();
+      if (workflow.revalidateAdminPosts) {
+        revalidateAdminAfterSave(deps, input.saveIntent);
       }
       if (workflow.publicPostsToRevalidate.length > 0) {
         deps.revalidatePostsContent(workflow.publicPostsToRevalidate);
