@@ -40,6 +40,7 @@ test("parsePostWriteFormData normalizes optional fields", () => {
     canonicalUrl: "https://example.com/post",
     isFeatured: true,
     tagIds: ["tag-1"],
+    saveIntent: "manual",
   });
 });
 
@@ -55,6 +56,20 @@ test("parsePostWriteFormData normalizes a blank folder to null", () => {
   formData.set("folderId", "   ");
 
   assert.equal(parsePostWriteFormData(formData).folderId, null);
+});
+
+test("parsePostWriteFormData accepts a supported save intent", () => {
+  const formData = createBaseFormData();
+  formData.set("saveIntent", "autosave");
+
+  assert.equal(parsePostWriteFormData(formData).saveIntent, "autosave");
+});
+
+test("parsePostWriteFormData falls back to manual for unknown save intents", () => {
+  const formData = createBaseFormData();
+  formData.set("saveIntent", "skip-audit");
+
+  assert.equal(parsePostWriteFormData(formData).saveIntent, "manual");
 });
 
 test("parsePostWriteFormData accepts archived status", () => {
