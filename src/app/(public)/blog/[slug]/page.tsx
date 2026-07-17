@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
-import { Badge } from "@/shared/ui/badge";
-import { Separator } from "@/shared/ui/separator";
+import { ArrowLeft } from "lucide-react";
+import { PostArticleView } from "@/components/blog/post-article-view";
 import { parseToc } from "@/features/editor/content-types";
 import {
   getPostDisplayDate,
@@ -13,10 +11,7 @@ import {
   getPostBySlug,
   getPublishedSlugs,
 } from "@/features/posts/queries/post.queries";
-import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { generateSeo } from "@/infrastructure/seo";
-import { TableOfContents } from "@/components/blog/table-of-contents";
-import { formatDate } from "@/shared/lib/date";
 
 export const revalidate = 300;
 
@@ -47,7 +42,8 @@ export async function generateMetadata({
 
   return generateSeo({
     title: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt || post.contentText.slice(0, 160),
+    description:
+      post.seoDescription || post.excerpt || post.contentText.slice(0, 160),
     image: post.coverImageUrl ?? undefined,
     url: post.canonicalUrl || `/blog/${post.slug}`,
     type: "article",
@@ -81,68 +77,21 @@ export default async function PostPage({
         返回博客
       </Link>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_200px]">
-        <article className="min-w-0">
-          <header className="mb-8">
-            {coverImageUrl ? (
-              <div className="mb-6 overflow-hidden rounded-2xl border bg-muted/30">
-                <Image
-                  src={coverImageUrl}
-                  alt={coverImage?.alt ?? post.title}
-                  width={originalCoverImage?.width ?? 1600}
-                  height={originalCoverImage?.height ?? 900}
-                  sizes="(min-width: 1024px) 896px, 100vw"
-                  className="h-auto w-full object-cover"
-                />
-              </div>
-            ) : null}
-            {post.category && (
-              <div className="mb-3 flex items-center gap-2">
-                <Link href={`/blog/categories/${post.category.slug}`}>
-                  <Badge variant="secondary">{post.category.name}</Badge>
-                </Link>
-              </div>
-            )}
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              {post.title}
-            </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <User className="h-3.5 w-3.5" />
-                {post.author.name}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                {displayDate ? formatDate(displayDate) : ""}
-              </span>
-              {post.readingTimeMinutes && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  {post.readingTimeMinutes} 分钟
-                </span>
-              )}
-              {post.wordCount && <span>{post.wordCount} 字</span>}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {post.tags.map((pt) => (
-                <Link key={pt.tag.id} href={`/blog/tags/${pt.tag.slug}`}>
-                  <TagBadge name={pt.tag.name} color={pt.tag.color} />
-                </Link>
-              ))}
-            </div>
-          </header>
-
-          <Separator className="mb-8" />
-
-          <div
-            className="article-prose editor-prose prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
-            dangerouslySetInnerHTML={{ __html: post.contentHtml }}
-          />
-        </article>
-
-        {/* 文章目录 */}
-        {toc.length > 0 && <TableOfContents toc={toc} />}
-      </div>
+      <PostArticleView
+        title={post.title}
+        coverImageUrl={coverImageUrl}
+        coverImageAlt={coverImage?.alt}
+        coverImageWidth={originalCoverImage?.width}
+        coverImageHeight={originalCoverImage?.height}
+        category={post.category}
+        authorName={post.author.name}
+        displayDate={displayDate}
+        readingTimeMinutes={post.readingTimeMinutes}
+        wordCount={post.wordCount}
+        tags={post.tags.map((item) => item.tag)}
+        contentHtml={post.contentHtml}
+        toc={toc}
+      />
     </div>
   );
 }
