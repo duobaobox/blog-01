@@ -1,8 +1,16 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import type { Editor } from "@tiptap/core"
-import { parseStoredContentJson, stringifyContentJson } from "@/features/editor/content-types"
+import {
+  parseStoredContentJson,
+  stringifyContentJson,
+} from "@/features/editor/content-types"
 import {
   SimpleEditor,
   type SimpleEditorUpdate,
@@ -23,6 +31,16 @@ export type PostRichEditorProps = {
   onEditorReady?: (editor: Editor | null) => void
 }
 
+const subscribeToHydration = () => () => {}
+
+function useHasHydrated() {
+  return useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  )
+}
+
 export function PostRichEditor({
   initialJson,
   contentKey = "new-post",
@@ -30,6 +48,7 @@ export function PostRichEditor({
   onChange,
   onEditorReady,
 }: PostRichEditorProps) {
+  const hasHydrated = useHasHydrated()
   const [editor, setEditor] = useState<Editor | null>(null)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const initialContent = useMemo(
@@ -69,6 +88,15 @@ export function PostRichEditor({
     },
     [editor],
   )
+
+  if (!hasHydrated) {
+    return (
+      <div
+        className="simple-editor-wrapper min-h-[320px]"
+        aria-hidden="true"
+      />
+    )
+  }
 
   return (
     <>
