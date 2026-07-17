@@ -7,7 +7,7 @@ import { createPostActionRunner } from "@/features/posts/actions/post-action-run
 import { parsePostBulkActionFormData } from "@/features/posts/lib/post-bulk-action";
 import { parsePostWriteFormData, type PostStatus } from "@/features/posts/lib/post-write";
 import * as postService from "@/features/posts/services/post.service";
-import { requireTrimmedString } from "@/shared/lib/validation";
+import { normalizeOptionalString } from "@/shared/lib/validation";
 
 const postActionRunner = createPostActionRunner({
   postService,
@@ -26,19 +26,14 @@ export async function createPost(formData: FormData) {
 }
 
 export async function createEmptyPost(input: {
-  folderId: string;
+  folderId?: string | null;
   status?: PostStatus;
 }) {
   const session = await requireAdminSession();
 
-  const folderId = requireTrimmedString(
-    input.folderId,
-    "文章必须归属到一个文件夹",
-  );
-
   return postActionRunner.createEmptyPost({
     createdBy: session.user.id,
-    folderId,
+    folderId: normalizeOptionalString(input.folderId),
     status: input.status ?? "draft",
   });
 }
