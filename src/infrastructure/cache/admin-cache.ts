@@ -104,41 +104,61 @@ export function revalidateAdminPaths(paths: Array<string | null | undefined>) {
   applyAdminRevalidationPlan(buildAdminRevalidationPlan({ paths }));
 }
 
+export function revalidateAdminPostTags() {
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      tags: [ADMIN_CACHE_TAGS.posts, ADMIN_CACHE_TAGS.dashboard],
+    }),
+  );
+}
+
 export function revalidateAdminPosts() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/posts"],
-    tags: [ADMIN_CACHE_TAGS.dashboard],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/posts"],
+      tags: [ADMIN_CACHE_TAGS.dashboard],
+    }),
+  );
 }
 
 export function revalidateAdminMedia() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/media"],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/media"],
+    }),
+  );
 }
 
 export function revalidateAdminPostsAndMedia() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/posts", "/admin/media"],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/posts", "/admin/media"],
+    }),
+  );
 }
 
 export function revalidateAdminCategories() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/categories"],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/categories"],
+    }),
+  );
 }
 
 export function revalidateAdminTags() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/tags"],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/tags"],
+    }),
+  );
 }
 
 export function revalidateAdminSettings() {
-  applyAdminRevalidationPlan(buildAdminRevalidationPlan({
-    paths: ["/admin/settings"],
-  }));
+  applyAdminRevalidationPlan(
+    buildAdminRevalidationPlan({
+      paths: ["/admin/settings"],
+    }),
+  );
 }
 
 export function revalidateAdminAccount() {
