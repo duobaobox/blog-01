@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  startTransition,
   useCallback,
   useEffect,
   useEffectEvent,
@@ -9,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import readingTime from "reading-time";
 import { HelpCircle, SlidersHorizontal, Trash2 } from "lucide-react";
@@ -22,6 +20,10 @@ import {
   createPost,
   updatePost,
 } from "@/features/posts/actions/post.actions";
+import {
+  getPostAutosaveDelay,
+  POST_AUTOSAVE_MAX_WAIT_MS,
+} from "@/features/posts/lib/post-autosave";
 import {
   UNTITLED_POST_TITLE,
   getPostDisplayTitle,
@@ -134,11 +136,13 @@ type FormState = {
   status: string;
 };
 
+type SaveIntent = "autosave" | "manual" | "navigation" | "publish";
+
 type SaveOptions = {
   targetStatus?: string;
-  redirectAfterCreate?: boolean;
-  refreshAfterCreate?: boolean;
+  updateUrlAfterCreate?: boolean;
   silent?: boolean;
+  intent?: SaveIntent;
 };
 
 function getSuggestedNextReviewStatus(canPublish: boolean) {
@@ -209,8 +213,6 @@ function prepareFormForSave(
 ) {
   const hasTitle = Boolean(form.title.trim());
   const title = hasTitle ? form.title : UNTITLED_POST_TITLE;
-  // New posts: omit slug — server derives it from the title.
-  // Existing posts: preserve the existing slug unchanged.
   const slug = existingSlug ?? null;
 
   return {
@@ -223,7 +225,11 @@ function prepareFormForSave(
   };
 }
 
-function buildPostFormData(form: FormState, slug: string | null) {
+function buildPostFormData(
+  form: FormState,
+  slug: string | null,
+  intent: SaveIntent,
+) {
   const formData = new FormData();
   formData.set("title", form.title);
   if (slug) formData.set("slug", slug);
@@ -237,6 +243,7 @@ function buildPostFormData(form: FormState, slug: string | null) {
   formData.set("seoTitle", form.seoTitle);
   formData.set("seoDescription", form.seoDescription);
   formData.set("canonicalUrl", form.canonicalUrl);
+  formData.set("saveIntent", intent);
   form.selectedTagIds.forEach((id) => formData.append("tagIds", id));
   return formData;
 }
@@ -251,7 +258,6 @@ export function PostForm({
   registerBeforeLeave,
   onDeletePost,
 }: PostFormProps) {
-  const router = useRouter();
   const [form, setForm] = useState<FormState>(() =>
     createFormState(post, { defaultFolderId }),
   );
@@ -260,6 +266,9 @@ export function PostForm({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const [titleEditing, setTitleEditing] = useState(false);
+  const [activePostId, setActivePostId] = useState<string | null>(
+    post?.id ?? null,
+  );
   const deleteConfirm = useConfirm();
   const {
     open: leaveConfirmOpen,
@@ -275,6 +284,7 @@ export function PostForm({
   const postSlugRef = useRef<string | null>(post?.slug ?? null);
   const changeVersionRef = useRef(0);
   const savePromiseRef = useRef<Promise<boolean> | null>(null);
+  const autosaveMaxWaitDeadlineRef = useRef<number | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const titleBeforeEditRef = useRef("");
   const displayTitle = getPostDisplayTitle(form.title);
@@ -357,9 +367,9 @@ export function PostForm({
   const savePost = useCallback(
     async ({
       targetStatus,
-      redirectAfterCreate = true,
-      refreshAfterCreate = true,
+      updateUrlAfterCreate = true,
       silent = false,
+      intent = "manual",
     }: SaveOptions = {}) => {
       if (savePromiseRef.current) {
         await savePromiseRef.current;
@@ -397,29 +407,28 @@ export function PostForm({
         setSaveError(null);
 
         try {
+          const formData = buildPostFormData(persistedForm, slug, intent);
           const savedPost = currentPostId
-            ? await updatePost(
-                currentPostId,
-                buildPostFormData(persistedForm, slug),
-              )
-            : await createPost(buildPostFormData(persistedForm, slug));
+            ? await updatePost(currentPostId, formData)
+            : await createPost(formData);
 
           postIdRef.current = savedPost.id;
           postSlugRef.current = savedPost.slug;
+          setActivePostId(savedPost.id);
 
-          const savedForm = {
+          const acknowledgedForm = {
             ...persistedForm,
-            contentJson: stringifyContentJson(savedPost.contentJson),
-            contentText: savedPost.contentText ?? persistedForm.contentText,
+            title: savedPost.title ?? persistedForm.title,
             status: savedPost.status,
           };
-          const savedSnapshot = createSnapshot(savedForm);
+          const savedSnapshot = createSnapshot(acknowledgedForm);
 
           baselineRef.current = savedSnapshot;
+          autosaveMaxWaitDeadlineRef.current = null;
 
           if (changeVersionRef.current === changeVersionAtSaveStart) {
-            formRef.current = savedForm;
-            setForm(savedForm);
+            formRef.current = acknowledgedForm;
+            setForm(acknowledgedForm);
           } else {
             let patchedForm = formRef.current;
 
@@ -431,7 +440,10 @@ export function PostForm({
               !currentForm.title.trim() &&
               patchedForm.title === currentForm.title
             ) {
-              patchedForm = { ...patchedForm, title: savedForm.title };
+              patchedForm = {
+                ...patchedForm,
+                title: savedPost.title ?? acknowledgedForm.title,
+              };
             }
 
             if (patchedForm !== formRef.current) {
@@ -440,18 +452,14 @@ export function PostForm({
             }
           }
 
-          if (startedAsNewDraft && redirectAfterCreate) {
-            const nextFolderId = savedForm.folderId || currentForm.folderId;
+          if (startedAsNewDraft && updateUrlAfterCreate) {
+            const nextFolderId =
+              acknowledgedForm.folderId || currentForm.folderId;
             const nextUrl = nextFolderId
               ? `/admin/posts?folder=${nextFolderId}&postId=${savedPost.id}`
               : `/admin/posts?postId=${savedPost.id}`;
 
-            startTransition(() => {
-              router.replace(nextUrl);
-              if (refreshAfterCreate) {
-                router.refresh();
-              }
-            });
+            window.history.replaceState(null, "", nextUrl);
           }
 
           return true;
@@ -461,6 +469,10 @@ export function PostForm({
               ? error.message
               : "保存失败";
           setSaveError(message);
+          if (intent === "autosave") {
+            autosaveMaxWaitDeadlineRef.current =
+              Date.now() + POST_AUTOSAVE_MAX_WAIT_MS;
+          }
           if (!silent) {
             window.alert(message);
           }
@@ -480,19 +492,35 @@ export function PostForm({
         }
       }
     },
-    [router],
+    [],
   );
 
   useEffect(() => {
-    if (!isDirty || saving || !hasMeaningfulDraft(form)) return;
-    const timer = setTimeout(() => {
+    if (!isDirty || saving || !hasMeaningfulDraft(form)) {
+      if (!isDirty) {
+        autosaveMaxWaitDeadlineRef.current = null;
+      }
+      return;
+    }
+
+    const now = Date.now();
+    if (autosaveMaxWaitDeadlineRef.current === null) {
+      autosaveMaxWaitDeadlineRef.current = now + POST_AUTOSAVE_MAX_WAIT_MS;
+    }
+
+    const delay = getPostAutosaveDelay({
+      now,
+      maxWaitDeadline: autosaveMaxWaitDeadlineRef.current,
+    });
+    const timer = window.setTimeout(() => {
       void savePost({
-        redirectAfterCreate: true,
-        refreshAfterCreate: true,
+        updateUrlAfterCreate: true,
         silent: true,
+        intent: "autosave",
       });
-    }, 1800);
-    return () => clearTimeout(timer);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
   }, [form, isDirty, savePost, saving]);
 
   useEffect(() => {
@@ -502,9 +530,9 @@ export function PostForm({
       if (!isDirty) return true;
 
       const saved = await savePost({
-        redirectAfterCreate: false,
-        refreshAfterCreate: false,
+        updateUrlAfterCreate: false,
         silent: true,
+        intent: "navigation",
       });
 
       if (saved) return true;
@@ -518,17 +546,18 @@ export function PostForm({
   async function handleSubmit(targetStatus = form.status) {
     await savePost({
       targetStatus,
-      redirectAfterCreate: true,
-      refreshAfterCreate: true,
+      updateUrlAfterCreate: true,
       silent: false,
+      intent: targetStatus === form.status ? "manual" : "publish",
     });
   }
 
   async function handleDelete() {
-    if (!post || !(await deleteConfirm.confirm())) return;
+    const currentPostId = postIdRef.current;
+    if (!currentPostId || !(await deleteConfirm.confirm())) return;
 
     try {
-      await onDeletePost?.(post.id);
+      await onDeletePost?.(currentPostId);
     } catch {
       window.alert("删除失败，请稍后重试。");
     }
@@ -536,7 +565,6 @@ export function PostForm({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* Top action bar */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="min-w-0 max-w-[240px] flex-1 lg:max-w-[360px]">
@@ -600,11 +628,11 @@ export function PostForm({
               : saving
                 ? "保存中..."
                 : isDirty
-                  ? "未保存"
+                  ? "等待自动保存"
                   : "已保存"}
           </span>
 
-          {post ? (
+          {activePostId ? (
             <Button
               variant="ghost"
               size="icon-sm"
@@ -669,14 +697,13 @@ export function PostForm({
           >
             {saving
               ? "处理中..."
-              : post && isPublishedPost(form)
+              : activePostId && isPublishedPost(form)
                 ? "更新发布"
                 : "发布文章"}
           </Button>
         </div>
       </div>
 
-      {/* The editor toolbar is a separate bar between the article actions and content. */}
       <PostRichEditor
         initialJson={form.contentJson}
         contentKey={post?.id ?? "new-post"}
@@ -684,7 +711,6 @@ export function PostForm({
         onChange={handleEditorChange}
       />
 
-      {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
