@@ -259,6 +259,7 @@ export function PostForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
+  const [titleEditing, setTitleEditing] = useState(false);
   const deleteConfirm = useConfirm();
   const {
     open: leaveConfirmOpen,
@@ -274,6 +275,8 @@ export function PostForm({
   const postSlugRef = useRef<string | null>(post?.slug ?? null);
   const changeVersionRef = useRef(0);
   const savePromiseRef = useRef<Promise<boolean> | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const titleBeforeEditRef = useRef("");
   const displayTitle = getPostDisplayTitle(form.title);
   const isDirty = useMemo(
     () => createSnapshot(form) !== baselineRef.current,
@@ -283,6 +286,17 @@ export function PostForm({
   useEffect(() => {
     formRef.current = form;
   }, [form]);
+
+  useEffect(() => {
+    if (!titleEditing) return;
+
+    const input = titleInputRef.current;
+    if (!input) return;
+
+    input.focus();
+    const cursorPosition = input.value.length;
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  }, [titleEditing]);
 
   const notifyDirtyChange = useEffectEvent((dirty: boolean) => {
     onDirtyChange?.(dirty);
@@ -295,6 +309,20 @@ export function PostForm({
   useEffect(() => {
     return () => onDirtyChange?.(false);
   }, [onDirtyChange]);
+
+  function beginTitleEdit() {
+    titleBeforeEditRef.current = formRef.current.title;
+    setTitleEditing(true);
+  }
+
+  function finishTitleEdit() {
+    setTitleEditing(false);
+  }
+
+  function cancelTitleEdit() {
+    patchForm({ title: titleBeforeEditRef.current });
+    setTitleEditing(false);
+  }
 
   function handleEditorChange({ json, text }: { json: string; text: string }) {
     patchForm({ contentJson: json, contentText: text });
@@ -510,13 +538,43 @@ export function PostForm({
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Top action bar */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className="max-w-[240px] truncate text-sm font-medium text-foreground lg:max-w-[360px]"
-            title={displayTitle}
-          >
-            {displayTitle}
-          </span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="min-w-0 max-w-[240px] flex-1 lg:max-w-[360px]">
+            {titleEditing ? (
+              <Input
+                ref={titleInputRef}
+                value={form.title}
+                onChange={(event) =>
+                  patchForm({ title: event.target.value })
+                }
+                onBlur={finishTitleEdit}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    event.currentTarget.blur();
+                  }
+
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelTitleEdit();
+                  }
+                }}
+                placeholder="文章标题"
+                aria-label="文章标题"
+                className="h-7 w-full rounded-md border-transparent bg-muted/60 px-2 text-sm font-medium shadow-none placeholder:text-muted-foreground/50 focus-visible:border-ring focus-visible:bg-background focus-visible:ring-2"
+                suppressHydrationWarning
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={beginTitleEdit}
+                className="block w-full truncate rounded-md px-2 py-1 text-left text-sm font-medium text-foreground transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                title={`${displayTitle}（点击编辑）`}
+              >
+                {displayTitle}
+              </button>
+            )}
+          </div>
           <Badge
             variant={isPublishedPost(form) ? "default" : "secondary"}
             className="rounded-full px-2 py-0 text-xs"
@@ -621,14 +679,6 @@ export function PostForm({
       {/* Editor */}
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-8 py-10">
-          <Input
-            value={form.title}
-            onChange={(event) => patchForm({ title: event.target.value })}
-            placeholder="文章标题"
-            className="h-auto border-0 bg-transparent px-0 py-0 text-2xl font-semibold tracking-tight shadow-none placeholder:text-muted-foreground/40 focus-visible:ring-0 md:text-3xl"
-            suppressHydrationWarning
-          />
-
           <PostRichEditor
             initialJson={form.contentJson}
             contentKey={post?.id ?? "new-post"}
