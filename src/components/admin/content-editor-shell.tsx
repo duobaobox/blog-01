@@ -68,18 +68,18 @@ export function ContentEditorShell({
     setPreviewError(null);
 
     try {
-      const ready = await beforeLeaveRef.current?.();
-      if (ready === false) {
-        setPreviewOpen(false);
-        return;
-      }
-
       const postId =
         selectedPost?.id ??
         new URLSearchParams(window.location.search).get("postId");
 
       if (!postId) {
         throw new Error("请先等待新文章完成首次自动保存，再打开预览。");
+      }
+
+      const ready = await beforeLeaveRef.current?.();
+      if (ready === false) {
+        setPreviewOpen(false);
+        return;
       }
 
       setPreview(await getPostPreview(postId));
