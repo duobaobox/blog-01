@@ -5,6 +5,7 @@ import {
   areStringSetsEqual,
   hasPostContentChanged,
   shouldLogPostUpdate,
+  shouldRevalidateAdminAfterSave,
 } from "./post-save-plan";
 
 test("content comparison ignores server-managed heading ids", () => {
@@ -93,4 +94,10 @@ test("autosave skips routine logs but status changes remain auditable", () => {
     }),
     true,
   );
+});
+
+test("autosave does not revalidate the current admin route", () => {
+  assert.equal(shouldRevalidateAdminAfterSave("autosave"), false);
+  assert.equal(shouldRevalidateAdminAfterSave("manual"), true);
+  assert.equal(shouldRevalidateAdminAfterSave("publish"), true);
 });
