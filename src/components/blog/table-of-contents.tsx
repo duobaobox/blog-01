@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TocItem } from "@/features/editor/content-types";
 import { cn } from "@/shared/lib/utils";
 
@@ -24,6 +24,13 @@ function findHeadingElement(id: string, contentRootId?: string) {
       (element) => element.id === id,
     ) ?? null
   );
+}
+
+function getTocIndentClass(level: number) {
+  if (level <= 1) return "pl-3";
+  if (level === 2) return "pl-5";
+  if (level === 3) return "pl-7";
+  return "pl-9";
 }
 
 export function TableOfContents({
@@ -94,7 +101,10 @@ export function TableOfContents({
     };
   }, [toc, contentRootId, getActiveHeading]);
 
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const handleClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    id: string,
+  ) => {
     event.preventDefault();
     const element = findHeadingElement(id, contentRootId);
 
@@ -114,6 +124,7 @@ export function TableOfContents({
         <nav className="relative flex max-h-[calc(100dvh-8rem)] flex-col gap-0.5 overflow-y-auto">
           {toc.map((item) => {
             const isActive = activeId === item.id;
+
             return (
               <a
                 key={item.id}
@@ -121,7 +132,8 @@ export function TableOfContents({
                 onClick={(event) => handleClick(event, item.id)}
                 className={cn(
                   "relative block border-l-2 py-1 text-sm transition-all duration-200",
-                  item.level === 3 ? "pl-6" : "pl-3",
+                  getTocIndentClass(item.level),
+                  item.level === 1 && "font-medium",
                   isActive
                     ? "border-foreground font-medium text-foreground"
                     : "border-transparent text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground",
