@@ -1,39 +1,14 @@
-import type { PostSaveIntent } from "@/features/posts/lib/post-save-plan";
-import {
-  createLatestTaskCoordinator,
-  getPostSaveIntentPriority,
-} from "@/features/posts/lib/post-save-coordinator";
+import { createPostSaveCoordinator } from "@/features/posts/lib/post-save-coordinator";
 import * as serverActions from "./post.actions.server";
 
-const postWriteCoordinator = createLatestTaskCoordinator();
-
-function getSaveIntent(formData: FormData): PostSaveIntent {
-  const value = formData.get("saveIntent");
-
-  return value === "autosave" ||
-    value === "manual" ||
-    value === "navigation" ||
-    value === "publish"
-    ? value
-    : "manual";
-}
+const postWriteCoordinator = createPostSaveCoordinator();
 
 export function createPost(formData: FormData) {
-  const intent = getSaveIntent(formData);
-
-  return postWriteCoordinator.run(
-    () => serverActions.createPost(formData),
-    getPostSaveIntentPriority(intent),
-  );
+  return postWriteCoordinator.run(() => serverActions.createPost(formData));
 }
 
 export function updatePost(id: string, formData: FormData) {
-  const intent = getSaveIntent(formData);
-
-  return postWriteCoordinator.run(
-    () => serverActions.updatePost(id, formData),
-    getPostSaveIntentPriority(intent),
-  );
+  return postWriteCoordinator.run(() => serverActions.updatePost(id, formData));
 }
 
 export function createEmptyPost(
