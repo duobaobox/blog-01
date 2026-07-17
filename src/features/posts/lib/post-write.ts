@@ -1,4 +1,5 @@
 import { parseStoredContentJsonStrict } from "@/features/editor/content-types";
+import type { PostSaveIntent } from "@/features/posts/lib/post-save-plan";
 import {
   normalizeOptionalString,
   requireOneOf,
@@ -6,6 +7,12 @@ import {
 } from "@/shared/lib/validation";
 
 export const POST_STATUSES = ["draft", "review", "published", "archived"] as const;
+export const POST_SAVE_INTENTS = [
+  "autosave",
+  "manual",
+  "navigation",
+  "publish",
+] as const satisfies readonly PostSaveIntent[];
 
 export type PostStatus = (typeof POST_STATUSES)[number];
 
@@ -27,6 +34,7 @@ export type PostWriteInput = {
   canonicalUrl: string | null;
   isFeatured: boolean;
   tagIds: string[];
+  saveIntent?: PostSaveIntent;
 };
 
 function parseContentJson(formData: FormData) {
@@ -51,6 +59,13 @@ function parseTagIds(formData: FormData) {
   }
 
   return [...uniqueIds];
+}
+
+function parseSaveIntent(formData: FormData): PostSaveIntent {
+  const value = normalizeOptionalString(formData.get("saveIntent"));
+  return value && POST_SAVE_INTENTS.includes(value as PostSaveIntent)
+    ? (value as PostSaveIntent)
+    : "manual";
 }
 
 export function parsePostWriteFormData(formData: FormData): PostWriteInput {
@@ -78,5 +93,6 @@ export function parsePostWriteFormData(formData: FormData): PostWriteInput {
     canonicalUrl,
     isFeatured: formData.get("isFeatured") === "true",
     tagIds: parseTagIds(formData),
+    saveIntent: parseSaveIntent(formData),
   };
 }
