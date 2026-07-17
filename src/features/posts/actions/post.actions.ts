@@ -6,11 +6,18 @@ import { revalidatePostsContent } from "@/infrastructure/cache/content-cache";
 import { createPostActionRunner } from "@/features/posts/actions/post-action-runner";
 import { parsePostBulkActionFormData } from "@/features/posts/lib/post-bulk-action";
 import { parsePostWriteFormData, type PostStatus } from "@/features/posts/lib/post-write";
+import { updatePostIncrementally } from "@/features/posts/services/post-save.service";
 import * as postService from "@/features/posts/services/post.service";
 import { normalizeOptionalString } from "@/shared/lib/validation";
 
 const postActionRunner = createPostActionRunner({
-  postService,
+  postService: {
+    createPost: postService.createPost,
+    createEmptyPost: postService.createEmptyPost,
+    updatePost: updatePostIncrementally,
+    deletePost: postService.deletePost,
+    applyBulkAction: postService.applyBulkAction,
+  },
   revalidateAdminPosts,
   revalidatePostsContent,
 });
