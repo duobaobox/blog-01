@@ -1,7 +1,10 @@
 "use server";
 
 import { requireAdminSession } from "@/infrastructure/auth";
-import { revalidateAdminPosts } from "@/infrastructure/cache/admin-cache";
+import {
+  revalidateAdminPostTags,
+  revalidateAdminPosts,
+} from "@/infrastructure/cache/admin-cache";
 import { revalidatePostsContent } from "@/infrastructure/cache/content-cache";
 import { createPostActionRunner } from "@/features/posts/actions/post-action-runner";
 import { parsePostBulkActionFormData } from "@/features/posts/lib/post-bulk-action";
@@ -19,6 +22,7 @@ const postActionRunner = createPostActionRunner({
     applyBulkAction: postService.applyBulkAction,
   },
   revalidateAdminPosts,
+  revalidateAdminPostTags,
   revalidatePostsContent,
 });
 
