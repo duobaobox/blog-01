@@ -17,9 +17,48 @@ function createWriteInput(status: "draft" | "published") {
     isFeatured: false,
     tagIds: [],
     saveIntent: "autosave" as const,
-    updatedBy: "user-1",
   };
 }
+
+test("first draft autosave invalidates tags without refreshing the admin path", async () => {
+  const calls: string[] = [];
+  const runner = createPostActionRunner({
+    postService: {
+      async createPost() {
+        calls.push("service:create");
+        return { status: "draft", slug: "autosave-post" };
+      },
+      async createEmptyPost() {
+        throw new Error("not used");
+      },
+      async updatePost() {
+        throw new Error("not used");
+      },
+      async deletePost() {
+        throw new Error("not used");
+      },
+      async applyBulkAction() {
+        throw new Error("not used");
+      },
+    },
+    revalidateAdminPosts() {
+      calls.push("cache:admin-path");
+    },
+    revalidateAdminPostTags() {
+      calls.push("cache:admin-tags");
+    },
+    revalidatePostsContent() {
+      calls.push("cache:public");
+    },
+  });
+
+  await runner.createPost({
+    ...createWriteInput("draft"),
+    createdBy: "user-1",
+  });
+
+  assert.deepEqual(calls, ["service:create", "cache:admin-tags"]);
+});
 
 test("draft autosave invalidates tags without refreshing the admin path", async () => {
   const calls: string[] = [];
@@ -56,7 +95,10 @@ test("draft autosave invalidates tags without refreshing the admin path", async 
     },
   });
 
-  await runner.updatePost("post-1", createWriteInput("draft"));
+  await runner.updatePost("post-1", {
+    ...createWriteInput("draft"),
+    updatedBy: "user-1",
+  });
 
   assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
 });
@@ -96,7 +138,10 @@ test("published autosave refreshes public content without refreshing admin path"
     },
   });
 
-  await runner.updatePost("post-1", createWriteInput("published"));
+  await runner.updatePost("post-1", {
+    ...createWriteInput("published"),
+    updatedBy: "user-1",
+  });
 
   assert.deepEqual(calls, [
     "service:update",
