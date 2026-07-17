@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  createLatestTaskCoordinator,
-  getPostSaveIntentPriority,
-} from "./post-save-coordinator";
+import { createPostSaveCoordinator } from "./post-save-coordinator";
 
 function createDeferred() {
   let resolve!: () => void;
@@ -14,8 +11,8 @@ function createDeferred() {
   return { promise, resolve };
 }
 
-test("save coordinator executes at most one task at a time and keeps the latest pending task", async () => {
-  const coordinator = createLatestTaskCoordinator();
+test("save coordinator executes tasks strictly one at a time in call order", async () => {
+  const coordinator = createPostSaveCoordinator();
   const firstGate = createDeferred();
   const executed: string[] = [];
   let concurrent = 0;
@@ -38,48 +35,15 @@ test("save coordinator executes at most one task at a time and keeps the latest 
   firstGate.resolve();
 
   assert.equal(await first, "first");
-  assert.equal(await second, "third");
+  assert.equal(await second, "second");
   assert.equal(await third, "third");
-  assert.deepEqual(executed, ["first", "third"]);
+  assert.deepEqual(executed, ["first", "second", "third"]);
   assert.equal(maxConcurrent, 1);
   assert.equal(coordinator.isBusy(), false);
 });
 
-test("higher-priority publish task is not replaced by a later autosave", async () => {
-  const coordinator = createLatestTaskCoordinator();
-  const firstGate = createDeferred();
-  const executed: string[] = [];
-
-  const first = coordinator.run(async () => {
-    executed.push("active");
-    await firstGate.promise;
-    return "active";
-  });
-  const publish = coordinator.run(
-    async () => {
-      executed.push("publish");
-      return "publish";
-    },
-    getPostSaveIntentPriority("publish"),
-  );
-  const autosave = coordinator.run(
-    async () => {
-      executed.push("autosave");
-      return "autosave";
-    },
-    getPostSaveIntentPriority("autosave"),
-  );
-
-  firstGate.resolve();
-
-  await first;
-  assert.equal(await publish, "publish");
-  assert.equal(await autosave, "publish");
-  assert.deepEqual(executed, ["active", "publish"]);
-});
-
 test("a failed task releases the channel for the next save", async () => {
-  const coordinator = createLatestTaskCoordinator();
+  const coordinator = createPostSaveCoordinator();
   const failure = coordinator.run(async () => {
     throw new Error("save failed");
   });
