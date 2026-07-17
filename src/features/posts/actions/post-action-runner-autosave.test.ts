@@ -21,7 +21,7 @@ function createWriteInput(status: "draft" | "published") {
   };
 }
 
-test("draft autosave skips admin and public cache refreshes", async () => {
+test("draft autosave invalidates tags without refreshing the admin path", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -46,7 +46,10 @@ test("draft autosave skips admin and public cache refreshes", async () => {
       },
     },
     revalidateAdminPosts() {
-      calls.push("cache:admin");
+      calls.push("cache:admin-path");
+    },
+    revalidateAdminPostTags() {
+      calls.push("cache:admin-tags");
     },
     revalidatePostsContent() {
       calls.push("cache:public");
@@ -55,10 +58,10 @@ test("draft autosave skips admin and public cache refreshes", async () => {
 
   await runner.updatePost("post-1", createWriteInput("draft"));
 
-  assert.deepEqual(calls, ["service:update"]);
+  assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
 });
 
-test("published autosave refreshes public content without refreshing admin", async () => {
+test("published autosave refreshes public content without refreshing admin path", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -83,7 +86,10 @@ test("published autosave refreshes public content without refreshing admin", asy
       },
     },
     revalidateAdminPosts() {
-      calls.push("cache:admin");
+      calls.push("cache:admin-path");
+    },
+    revalidateAdminPostTags() {
+      calls.push("cache:admin-tags");
     },
     revalidatePostsContent() {
       calls.push("cache:public");
@@ -92,5 +98,9 @@ test("published autosave refreshes public content without refreshing admin", asy
 
   await runner.updatePost("post-1", createWriteInput("published"));
 
-  assert.deepEqual(calls, ["service:update", "cache:public"]);
+  assert.deepEqual(calls, [
+    "service:update",
+    "cache:admin-tags",
+    "cache:public",
+  ]);
 });
