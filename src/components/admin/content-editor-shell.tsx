@@ -1,6 +1,13 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
+import { Eye } from "lucide-react";
+import {
+  PostPreviewDialog,
+  type AdminPostPreview,
+} from "@/components/admin/post-preview-dialog";
 import { PostForm } from "@/components/admin/post-form";
+import { getPostPreview } from "@/features/posts/actions/post-preview.actions";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { Button } from "@/shared/ui/button";
 import type {
@@ -8,6 +15,8 @@ import type {
   AdminTag,
   ContentSpaceSelectedPost,
 } from "./content-space-types";
+
+type BeforeLeaveHandler = (() => Promise<boolean>) | null;
 
 type ContentEditorShellProps = {
   selectedPost?: ContentSpaceSelectedPost;
@@ -21,7 +30,7 @@ type ContentEditorShellProps = {
     name: string;
   }>;
   onDirtyChange: (dirty: boolean) => void;
-  registerBeforeLeave: (handler: (() => Promise<boolean>) | null) => void;
+  registerBeforeLeave: (handler: BeforeLeaveHandler) => void;
   onDeletePost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
 };
@@ -39,6 +48,53 @@ export function ContentEditorShell({
   onDeletePost,
   onCreateNew,
 }: ContentEditorShellProps) {
+  const beforeLeaveRef = useRef<BeforeLeaveHandler>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [preview, setPreview] = useState<AdminPostPreview | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  const handleRegisterBeforeLeave = useCallback(
+    (handler: BeforeLeaveHandler) => {
+      beforeLeaveRef.current = handler;
+      registerBeforeLeave(handler);
+    },
+    [registerBeforeLeave],
+  );
+
+  const handlePreview = useCallback(async () => {
+    setPreviewOpen(true);
+    setPreviewing(true);
+    setPreviewError(null);
+
+    try {
+      const ready = await beforeLeaveRef.current?.();
+      if (ready === false) {
+        setPreviewOpen(false);
+        return;
+      }
+
+      const postId =
+        selectedPost?.id ??
+        new URLSearchParams(window.location.search).get("postId");
+
+      if (!postId) {
+        throw new Error("请先等待新文章完成首次自动保存，再打开预览。");
+      }
+
+      setPreview(await getPostPreview(postId));
+    } catch (error) {
+      setPreview(null);
+      setPreviewError(
+        error instanceof Error && error.message
+          ? error.message
+          : "预览生成失败，请稍后重试。",
+      );
+    } finally {
+      setPreviewing(false);
+    }
+  }, [selectedPost?.id]);
+
   if (!selectedPost && mode !== "new") {
     return (
       <div className="flex flex-1 items-center justify-center px-8 py-12">
@@ -66,7 +122,7 @@ export function ContentEditorShell({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       <PostForm
         key={`${selectedPost?.id ?? "new"}:${selectedPost?.updatedAt ?? activeFolderId ?? "root"}`}
         post={selectedPost}
@@ -75,8 +131,28 @@ export function ContentEditorShell({
         folderOptions={folderOptions}
         defaultFolderId={selectedPost?.folder?.id ?? activeFolderId}
         onDirtyChange={onDirtyChange}
-        registerBeforeLeave={registerBeforeLeave}
+        registerBeforeLeave={handleRegisterBeforeLeave}
         onDeletePost={onDeletePost}
+      />
+
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="absolute bottom-5 right-5 z-20 shadow-lg"
+        disabled={previewing}
+        onClick={() => void handlePreview()}
+      >
+        <Eye className="size-4" />
+        {previewing ? "生成中..." : "预览"}
+      </Button>
+
+      <PostPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        preview={preview}
+        loading={previewing}
+        error={previewError}
       />
     </div>
   );
