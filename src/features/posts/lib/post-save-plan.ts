@@ -83,3 +83,9 @@ export function shouldLogPostUpdate(input: {
     input.previousStatus === input.nextStatus
   );
 }
+
+export function shouldRevalidateAdminAfterSave(
+  saveIntent?: PostSaveIntent,
+) {
+  return saveIntent !== "autosave";
+}
