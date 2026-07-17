@@ -14,7 +14,7 @@ import {
   normalizeContentJson,
   type TocItem,
 } from "@/features/editor/content-types";
-import { createPostEditorExtensions } from "@/features/editor/tiptap-extensions";
+import { createPostContentExtensions } from "@/features/editor/tiptap-extensions";
 
 type HeadingIdState = {
   seenIds: Map<string, number>;
@@ -120,7 +120,7 @@ export async function materializePostContent(
     toc,
   );
 
-  const extensions = createPostEditorExtensions();
+  const extensions = createPostContentExtensions();
   const contentHtml = await enhanceHtml(generateHTML(contentJson, extensions));
   const contentText = generateText(contentJson, extensions, {
     blockSeparator: "\n\n",
