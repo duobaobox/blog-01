@@ -21,48 +21,48 @@ import { Selection } from "@tiptap/extensions"
 import { Extension } from "@tiptap/core"
 
 // --- UI Primitives ---
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Spacer } from "@/components/tiptap-ui-primitive/spacer"
+import { Button } from "@/components/tiptap/ui-primitive/button"
+import { Spacer } from "@/components/tiptap/ui-primitive/spacer"
 import {
   Toolbar,
   ToolbarGroup,
   ToolbarSeparator,
-} from "@/components/tiptap-ui-primitive/toolbar"
+} from "@/components/tiptap/ui-primitive/toolbar"
 
 // --- Tiptap Node ---
-import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension"
-import "@/components/tiptap-node/blockquote-node/blockquote-node.scss"
-import "@/components/tiptap-node/code-block-node/code-block-node.scss"
-import "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss"
-import "@/components/tiptap-node/list-node/list-node.scss"
-import "@/components/tiptap-node/image-node/image-node.scss"
-import "@/components/tiptap-node/heading-node/heading-node.scss"
-import "@/components/tiptap-node/paragraph-node/paragraph-node.scss"
+import { HorizontalRule } from "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node-extension"
+import "@/components/tiptap/nodes/blockquote-node/blockquote-node.scss"
+import "@/components/tiptap/nodes/code-block-node/code-block-node.scss"
+import "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node.scss"
+import "@/components/tiptap/nodes/list-node/list-node.scss"
+import "@/components/tiptap/nodes/image-node/image-node.scss"
+import "@/components/tiptap/nodes/heading-node/heading-node.scss"
+import "@/components/tiptap/nodes/paragraph-node/paragraph-node.scss"
 
 // --- Tiptap UI ---
-import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu"
-import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu"
-import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button"
-import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button"
+import { HeadingDropdownMenu } from "@/components/tiptap/ui/heading-dropdown-menu"
+import { ListDropdownMenu } from "@/components/tiptap/ui/list-dropdown-menu"
+import { BlockquoteButton } from "@/components/tiptap/ui/blockquote-button"
+import { CodeBlockButton } from "@/components/tiptap/ui/code-block-button"
 import {
   ColorHighlightPopover,
   ColorHighlightPopoverContent,
   ColorHighlightPopoverButton,
-} from "@/components/tiptap-ui/color-highlight-popover"
+} from "@/components/tiptap/ui/color-highlight-popover"
 import {
   LinkPopover,
   LinkContent,
   LinkButton,
-} from "@/components/tiptap-ui/link-popover"
-import { MarkButton } from "@/components/tiptap-ui/mark-button"
-import { TextAlignButton } from "@/components/tiptap-ui/text-align-button"
-import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button"
+} from "@/components/tiptap/ui/link-popover"
+import { MarkButton } from "@/components/tiptap/ui/mark-button"
+import { TextAlignButton } from "@/components/tiptap/ui/text-align-button"
+import { UndoRedoButton } from "@/components/tiptap/ui/undo-redo-button"
 
 // --- Icons ---
-import { ArrowLeftIcon } from "@/components/tiptap-icons/arrow-left-icon"
-import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon"
-import { ImagePlusIcon } from "@/components/tiptap-icons/image-plus-icon"
-import { LinkIcon } from "@/components/tiptap-icons/link-icon"
+import { ArrowLeftIcon } from "@/components/tiptap/icons/arrow-left-icon"
+import { HighlighterIcon } from "@/components/tiptap/icons/highlighter-icon"
+import { ImagePlusIcon } from "@/components/tiptap/icons/image-plus-icon"
+import { LinkIcon } from "@/components/tiptap/icons/link-icon"
 
 // --- Hooks ---
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
@@ -72,10 +72,10 @@ import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
 // --- Components ---
 // --- Lib ---
 import { MarkdownPaste } from "@/features/editor/markdown-paste"
-import { NodeBackground } from "@/components/tiptap-extension/node-background-extension"
+import { NodeBackground } from "@/components/tiptap/extensions/node-background-extension"
 
 // --- Styles ---
-import "@/components/tiptap-templates/simple/simple-editor.scss"
+import "@/components/tiptap/templates/simple/simple-editor.scss"
 
 const EMPTY_CONTENT: JSONContent = {
   type: "doc",

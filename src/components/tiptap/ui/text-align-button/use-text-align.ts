@@ -12,10 +12,10 @@ import {
 } from "@/lib/tiptap-utils"
 
 // --- Icons ---
-import { AlignCenterIcon } from "@/components/tiptap-icons/align-center-icon"
-import { AlignJustifyIcon } from "@/components/tiptap-icons/align-justify-icon"
-import { AlignLeftIcon } from "@/components/tiptap-icons/align-left-icon"
-import { AlignRightIcon } from "@/components/tiptap-icons/align-right-icon"
+import { AlignCenterIcon } from "@/components/tiptap/icons/align-center-icon"
+import { AlignJustifyIcon } from "@/components/tiptap/icons/align-justify-icon"
+import { AlignLeftIcon } from "@/components/tiptap/icons/align-left-icon"
+import { AlignRightIcon } from "@/components/tiptap/icons/align-right-icon"
 
 export type TextAlign = "left" | "center" | "right" | "justify"
 

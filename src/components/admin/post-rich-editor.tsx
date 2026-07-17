@@ -14,7 +14,7 @@ import {
 import {
   SimpleEditor,
   type SimpleEditorUpdate,
-} from "@/components/tiptap-templates/simple/simple-editor"
+} from "@/components/tiptap/templates/simple/simple-editor"
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog"
 import type { MediaItem } from "@/features/media/types/storage.types"
 

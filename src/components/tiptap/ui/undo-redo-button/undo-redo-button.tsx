@@ -12,16 +12,16 @@ import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 import type {
   UndoRedoAction,
   UseUndoRedoConfig,
-} from "@/components/tiptap-ui/undo-redo-button"
+} from "@/components/tiptap/ui/undo-redo-button"
 import {
   UNDO_REDO_SHORTCUT_KEYS,
   useUndoRedo,
-} from "@/components/tiptap-ui/undo-redo-button"
+} from "@/components/tiptap/ui/undo-redo-button"
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Badge } from "@/components/tiptap-ui-primitive/badge"
+import type { ButtonProps } from "@/components/tiptap/ui-primitive/button"
+import { Button } from "@/components/tiptap/ui-primitive/button"
+import { Badge } from "@/components/tiptap/ui-primitive/badge"
 
 export interface UndoRedoButtonProps
   extends Omit<ButtonProps, "type">, UseUndoRedoConfig {
