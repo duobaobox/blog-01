@@ -68,6 +68,10 @@ function generateHeadingId(text: string, state: HeadingIdState): string {
   return `${baseId}-${nextCount}`;
 }
 
+function isSupportedTocLevel(level: number | null): level is number {
+  return level !== null && Number.isInteger(level) && level >= 1 && level <= 4;
+}
+
 function applyHeadingIds(
   node: JSONContent | null | undefined,
   state: HeadingIdState,
@@ -86,7 +90,7 @@ function applyHeadingIds(
       const id = generateHeadingId(title, state);
       node.attrs = { ...(node.attrs ?? {}), id };
 
-      if (level === 2 || level === 3) {
+      if (isSupportedTocLevel(level)) {
         toc.push({ id, title, level });
       }
     }
