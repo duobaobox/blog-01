@@ -99,6 +99,26 @@ function applyHeadingIds(
   node.content?.forEach((child) => applyHeadingIds(child, state, toc));
 }
 
+function prepareHeadingOutline(value: unknown) {
+  const contentJson = cloneContentJson(normalizeContentJson(value));
+  const contentToc: TocItem[] = [];
+
+  applyHeadingIds(
+    contentJson,
+    {
+      seenIds: new Map(),
+      fallbackIndex: 0,
+    },
+    contentToc,
+  );
+
+  return { contentJson, contentToc };
+}
+
+export function buildPostContentToc(value: unknown): TocItem[] {
+  return prepareHeadingOutline(value).contentToc;
+}
+
 async function enhanceHtml(html: string) {
   const result = await unified()
     .use(rehypeParse, { fragment: true })
@@ -112,18 +132,7 @@ async function enhanceHtml(html: string) {
 export async function materializePostContent(
   value: unknown,
 ): Promise<MaterializedPostContent> {
-  const contentJson = cloneContentJson(normalizeContentJson(value));
-  const toc: TocItem[] = [];
-
-  applyHeadingIds(
-    contentJson,
-    {
-      seenIds: new Map(),
-      fallbackIndex: 0,
-    },
-    toc,
-  );
-
+  const { contentJson, contentToc } = prepareHeadingOutline(value);
   const extensions = createPostContentExtensions();
   const contentHtml = await enhanceHtml(generateHTML(contentJson, extensions));
   const contentText = generateText(contentJson, extensions, {
@@ -141,7 +150,7 @@ export async function materializePostContent(
     contentJson,
     contentHtml,
     contentText,
-    contentToc: toc,
+    contentToc,
     wordCount,
     readingTimeMinutes,
   };
