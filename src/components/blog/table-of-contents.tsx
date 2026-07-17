@@ -6,52 +6,66 @@ import { cn } from "@/shared/lib/utils";
 
 interface TableOfContentsProps {
   toc: TocItem[];
+  contentRootId?: string;
 }
 
-export function TableOfContents({ toc }: TableOfContentsProps) {
+function findHeadingElement(id: string, contentRootId?: string) {
+  if (!contentRootId) {
+    return document.getElementById(id);
+  }
+
+  const contentRoot = document.getElementById(contentRootId);
+  if (!contentRoot) {
+    return null;
+  }
+
+  return (
+    Array.from(contentRoot.querySelectorAll<HTMLElement>("[id]")).find(
+      (element) => element.id === id,
+    ) ?? null
+  );
+}
+
+export function TableOfContents({
+  toc,
+  contentRootId,
+}: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
+    if (typeof window === "undefined" || contentRootId) return "";
 
     const hash = window.location.hash.slice(1);
     return toc.some((item) => item.id === hash) ? hash : "";
   });
   const observerRef = useRef<IntersectionObserver | null>(null);
   const headingElementsRef = useRef<Map<string, IntersectionObserverEntry>>(
-    new Map()
+    new Map(),
   );
 
-  // 根据可见标题确定当前激活的目录项
   const getActiveHeading = useCallback(() => {
     const headingElements = headingElementsRef.current;
     const tocIds = toc.map((item) => item.id);
-
-    // 找出所有正在相交（可见）的标题
     const visibleHeadings: string[] = [];
+
     headingElements.forEach((entry, id) => {
       if (entry.isIntersecting && tocIds.includes(id)) {
         visibleHeadings.push(id);
       }
     });
 
-    // 如果有可见的标题，选择在文档中出现最早的那个
     if (visibleHeadings.length > 0) {
-      const sorted = visibleHeadings.sort((a, b) => {
-        return tocIds.indexOf(a) - tocIds.indexOf(b);
-      });
-      return sorted[0];
+      return visibleHeadings.sort(
+        (a, b) => tocIds.indexOf(a) - tocIds.indexOf(b),
+      )[0];
     }
 
     return null;
   }, [toc]);
 
   useEffect(() => {
-    // 清理旧的 observer
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
+    observerRef.current?.disconnect();
+    headingElementsRef.current.clear();
 
     const callback: IntersectionObserverCallback = (entries) => {
-      // 更新所有标题的状态
       entries.forEach((entry) => {
         headingElementsRef.current.set(entry.target.id, entry);
       });
@@ -62,16 +76,13 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
       }
     };
 
-    // rootMargin: 顶部 -80px（给固定导航栏留空间），底部 -60% 让标题在上半部分时就触发
     observerRef.current = new IntersectionObserver(callback, {
       rootMargin: "-80px 0px -60% 0px",
       threshold: 0,
     });
 
-    // 观察所有目录中的标题元素
-    const tocIds = toc.map((item) => item.id);
-    tocIds.forEach((id) => {
-      const element = document.getElementById(id);
+    toc.forEach((item) => {
+      const element = findHeadingElement(item.id, contentRootId);
       if (element) {
         observerRef.current?.observe(element);
       }
@@ -79,22 +90,25 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
 
     return () => {
       observerRef.current?.disconnect();
+      headingElementsRef.current.clear();
     };
-  }, [toc, getActiveHeading]);
+  }, [toc, contentRootId, getActiveHeading]);
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    const element = document.getElementById(id);
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    event.preventDefault();
+    const element = findHeadingElement(id, contentRootId);
+
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
-      // 更新 URL hash（不触发跳转）
-      window.history.replaceState(null, "", `#${id}`);
+      if (!contentRootId) {
+        window.history.replaceState(null, "", `#${id}`);
+      }
       setActiveId(id);
     }
   };
 
   return (
-    <aside className="hidden lg:block sticky top-20">
+    <aside className="sticky top-20 hidden lg:block">
       <div>
         <h3 className="mb-3 text-sm font-semibold">目录</h3>
         <nav className="relative flex max-h-[calc(100dvh-8rem)] flex-col gap-0.5 overflow-y-auto">
@@ -104,7 +118,7 @@ export function TableOfContents({ toc }: TableOfContentsProps) {
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                onClick={(e) => handleClick(e, item.id)}
+                onClick={(event) => handleClick(event, item.id)}
                 className={cn(
                   "relative block border-l-2 py-1 text-sm transition-all duration-200",
                   item.level === 3 ? "pl-6" : "pl-3",
