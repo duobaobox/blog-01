@@ -3,22 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { Editor, JSONContent } from "@tiptap/core"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
-import { Table2 } from "lucide-react"
-
-// --- Tiptap Core Extensions ---
-import { StarterKit } from "@tiptap/starter-kit"
-import { Image } from "@tiptap/extension-image"
-import { TaskItem, TaskList } from "@tiptap/extension-list"
-import { TextAlign } from "@tiptap/extension-text-align"
-import { Typography } from "@tiptap/extension-typography"
-import { Highlight } from "@tiptap/extension-highlight"
-import { Subscript } from "@tiptap/extension-subscript"
-import { Superscript } from "@tiptap/extension-superscript"
-import Placeholder from "@tiptap/extension-placeholder"
-import { TableKit } from "@tiptap/extension-table"
 import { Markdown } from "@tiptap/markdown"
 import { Selection } from "@tiptap/extensions"
-import { Extension } from "@tiptap/core"
+import { Table2 } from "lucide-react"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap/ui-primitive/button"
@@ -29,8 +16,7 @@ import {
   ToolbarSeparator,
 } from "@/components/tiptap/ui-primitive/toolbar"
 
-// --- Tiptap Node ---
-import { HorizontalRule } from "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node-extension"
+// --- Tiptap Node Styles ---
 import "@/components/tiptap/nodes/blockquote-node/blockquote-node.scss"
 import "@/components/tiptap/nodes/code-block-node/code-block-node.scss"
 import "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node.scss"
@@ -69,10 +55,9 @@ import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
 import { useWindowSize } from "@/hooks/use-window-size"
 import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
 
-// --- Components ---
-// --- Lib ---
+// --- Editor Extensions ---
 import { MarkdownPaste } from "@/features/editor/markdown-paste"
-import { NodeBackground } from "@/components/tiptap/extensions/node-background-extension"
+import { createPostEditorExtensions } from "@/features/editor/tiptap-extensions"
 
 // --- Styles ---
 import "@/components/tiptap/templates/simple/simple-editor.scss"
@@ -81,27 +66,6 @@ const EMPTY_CONTENT: JSONContent = {
   type: "doc",
   content: [{ type: "paragraph" }],
 }
-
-const HeadingIdAttribute = Extension.create({
-  name: "headingIdAttribute",
-  addGlobalAttributes() {
-    return [
-      {
-        types: ["heading"],
-        attributes: {
-          id: {
-            default: null,
-            parseHTML: (element: HTMLElement) => element.getAttribute("id"),
-            renderHTML: (attributes: { id?: string | null }) =>
-              typeof attributes.id === "string" && attributes.id
-                ? { id: attributes.id }
-                : {},
-          },
-        },
-      },
-    ]
-  },
-})
 
 export type SimpleEditorUpdate = {
   json: JSONContent
@@ -270,26 +234,7 @@ export function SimpleEditor({
       },
     },
     extensions: [
-      StarterKit.configure({
-        horizontalRule: false,
-        link: {
-          openOnClick: false,
-          enableClickSelection: true,
-        },
-      }),
-      HeadingIdAttribute,
-      NodeBackground,
-      HorizontalRule,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight.configure({ multicolor: true }),
-      Image,
-      Typography,
-      Superscript,
-      Subscript,
-      Placeholder.configure({ placeholder }),
-      TableKit,
+      ...createPostEditorExtensions({ placeholder }),
       MarkdownPaste,
       Markdown,
       Selection,
