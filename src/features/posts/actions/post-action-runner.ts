@@ -1,4 +1,5 @@
 import type { PostBulkActionInput } from "@/features/posts/lib/post-bulk-action";
+import { shouldRevalidateAdminAfterSave } from "@/features/posts/lib/post-save-plan";
 import type { PostStatus, PostWriteInput } from "@/features/posts/lib/post-write";
 import type * as postServiceModule from "@/features/posts/services/post.service";
 import {
@@ -32,7 +33,10 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
       const post = await deps.postService.createPost(input);
       const workflow = buildCreatePostWorkflow(post);
 
-      if (workflow.revalidateAdminPosts) {
+      if (
+        workflow.revalidateAdminPosts &&
+        shouldRevalidateAdminAfterSave(input.saveIntent)
+      ) {
         deps.revalidateAdminPosts();
       }
       if (workflow.publicPostsToRevalidate.length > 0) {
@@ -69,7 +73,10 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
         nextPost: result.post,
       });
 
-      if (workflow.revalidateAdminPosts) {
+      if (
+        workflow.revalidateAdminPosts &&
+        shouldRevalidateAdminAfterSave(input.saveIntent)
+      ) {
         deps.revalidateAdminPosts();
       }
       if (workflow.publicPostsToRevalidate.length > 0) {
