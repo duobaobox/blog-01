@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PostArticleView } from "@/components/blog/post-article-view";
-import { parseToc } from "@/features/editor/content-types";
+import { buildPostContentToc } from "@/features/editor/content-materializer";
 import {
   getPostDisplayDate,
   isPublishedPost,
@@ -61,7 +61,7 @@ export default async function PostPage({
 
   if (!post || !isPublishedPost(post)) notFound();
 
-  const toc = parseToc(post.contentToc);
+  const toc = buildPostContentToc(post.contentJson);
   const displayDate = getPostDisplayDate(post);
   const coverImage = post.coverImage;
   const originalCoverImage = coverImage?.variants?.original ?? coverImage;
