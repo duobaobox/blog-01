@@ -10,7 +10,7 @@ function createBaseFormData(status = "draft") {
   return formData;
 }
 
-test("parsePostWriteFormData normalizes optional fields and requires folder", () => {
+test("parsePostWriteFormData normalizes optional fields", () => {
   const formData = createBaseFormData("published");
   formData.set("title", "  Hello World  ");
   formData.set("contentJson", "");
@@ -43,11 +43,18 @@ test("parsePostWriteFormData normalizes optional fields and requires folder", ()
   });
 });
 
-test("parsePostWriteFormData rejects posts without a folder", () => {
+test("parsePostWriteFormData accepts posts without a folder", () => {
   const formData = new FormData();
   formData.set("status", "draft");
 
-  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
+  assert.equal(parsePostWriteFormData(formData).folderId, null);
+});
+
+test("parsePostWriteFormData normalizes a blank folder to null", () => {
+  const formData = createBaseFormData();
+  formData.set("folderId", "   ");
+
+  assert.equal(parsePostWriteFormData(formData).folderId, null);
 });
 
 test("parsePostWriteFormData accepts archived status", () => {
