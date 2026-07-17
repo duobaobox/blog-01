@@ -91,8 +91,8 @@ function ListDropdownMenuImpl(
           tabIndex={-1}
           disabled={!canToggle}
           data-disabled={!canToggle}
-          aria-label="List options"
-          tooltip="List"
+          aria-label="列表选项"
+          tooltip="列表"
           {...props}
           ref={ref}
         >

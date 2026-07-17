@@ -21,61 +21,61 @@ import { HighlighterIcon } from "@/components/tiptap-icons/highlighter-icon"
 export const COLOR_HIGHLIGHT_SHORTCUT_KEY = "mod+shift+h"
 export const HIGHLIGHT_COLORS = [
   {
-    label: "Default background",
+    label: "默认背景色",
     value: "var(--tt-bg-color)",
     colorValue: "#ffffff",
     border: "var(--tt-bg-color-contrast)",
   },
   {
-    label: "Gray background",
+    label: "灰色背景",
     value: "var(--tt-color-highlight-gray)",
     colorValue: "#f8f8f7",
     border: "var(--tt-color-highlight-gray-contrast)",
   },
   {
-    label: "Brown background",
+    label: "棕色背景",
     value: "var(--tt-color-highlight-brown)",
     colorValue: "#f4eeee",
     border: "var(--tt-color-highlight-brown-contrast)",
   },
   {
-    label: "Orange background",
+    label: "橙色背景",
     value: "var(--tt-color-highlight-orange)",
     colorValue: "#fbecdd",
     border: "var(--tt-color-highlight-orange-contrast)",
   },
   {
-    label: "Yellow background",
+    label: "黄色背景",
     value: "var(--tt-color-highlight-yellow)",
     colorValue: "#fef9c3",
     border: "var(--tt-color-highlight-yellow-contrast)",
   },
   {
-    label: "Green background",
+    label: "绿色背景",
     value: "var(--tt-color-highlight-green)",
     colorValue: "#dcfce7",
     border: "var(--tt-color-highlight-green-contrast)",
   },
   {
-    label: "Blue background",
+    label: "蓝色背景",
     value: "var(--tt-color-highlight-blue)",
     colorValue: "#e0f2fe",
     border: "var(--tt-color-highlight-blue-contrast)",
   },
   {
-    label: "Purple background",
+    label: "紫色背景",
     value: "var(--tt-color-highlight-purple)",
     colorValue: "#f3e8ff",
     border: "var(--tt-color-highlight-purple-contrast)",
   },
   {
-    label: "Pink background",
+    label: "粉色背景",
     value: "var(--tt-color-highlight-pink)",
     colorValue: "#fcf1f6",
     border: "var(--tt-color-highlight-pink-contrast)",
   },
   {
-    label: "Red background",
+    label: "红色背景",
     value: "var(--tt-color-highlight-red)",
     colorValue: "#ffe4e6",
     border: "var(--tt-color-highlight-red-contrast)",
@@ -348,7 +348,7 @@ export function useColorHighlight(config: UseColorHighlightConfig) {
   const handleRemoveHighlight = useCallback(() => {
     const success = removeHighlight(editor, mode)
     if (success) {
-      onApplied?.({ color: "", label: "Remove highlight", mode })
+      onApplied?.({ color: "", label: "取消高亮", mode })
     }
     return success
   }, [editor, onApplied, mode])
@@ -372,7 +372,7 @@ export function useColorHighlight(config: UseColorHighlightConfig) {
     handleColorHighlight,
     handleRemoveHighlight,
     canColorHighlight: canColorHighlightState,
-    label: label || `Highlight`,
+    label: label || "高亮",
     shortcutKeys: COLOR_HIGHLIGHT_SHORTCUT_KEY,
     Icon: HighlighterIcon,
     mode,

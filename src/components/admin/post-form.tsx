@@ -676,17 +676,13 @@ export function PostForm({
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-8 py-10">
-          <PostRichEditor
-            initialJson={form.contentJson}
-            contentKey={post?.id ?? "new-post"}
-            placeholder="从一句清晰的开头开始。"
-            onChange={handleEditorChange}
-          />
-        </div>
-      </div>
+      {/* The editor toolbar is a separate bar between the article actions and content. */}
+      <PostRichEditor
+        initialJson={form.contentJson}
+        contentKey={post?.id ?? "new-post"}
+        placeholder="从一句清晰的开头开始。"
+        onChange={handleEditorChange}
+      />
 
       {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>

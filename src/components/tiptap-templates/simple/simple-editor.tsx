@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { Editor, JSONContent } from "@tiptap/core"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
+import { Table2 } from "lucide-react"
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit"
@@ -29,7 +30,6 @@ import {
 } from "@/components/tiptap-ui-primitive/toolbar"
 
 // --- Tiptap Node ---
-import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
 import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension"
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss"
 import "@/components/tiptap-node/code-block-node/code-block-node.scss"
@@ -41,7 +41,6 @@ import "@/components/tiptap-node/paragraph-node/paragraph-node.scss"
 
 // --- Tiptap UI ---
 import { HeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu"
-import { ImageUploadButton } from "@/components/tiptap-ui/image-upload-button"
 import { ListDropdownMenu } from "@/components/tiptap-ui/list-dropdown-menu"
 import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button"
 import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button"
@@ -71,10 +70,7 @@ import { useWindowSize } from "@/hooks/use-window-size"
 import { useCursorVisibility } from "@/hooks/use-cursor-visibility"
 
 // --- Components ---
-import { ThemeToggle } from "@/components/tiptap-templates/simple/theme-toggle"
-
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils"
 import { MarkdownPaste } from "@/features/editor/markdown-paste"
 import { NodeBackground } from "@/components/tiptap-extension/node-background-extension"
 
@@ -190,31 +186,25 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <ImageUploadButton text="上传" />
         <Button
           variant="ghost"
           onClick={onMediaClick}
           aria-label="从媒体库插入图片"
+          tooltip="从媒体库插入图片"
         >
           <ImagePlusIcon className="tiptap-button-icon" />
-          <span className="tiptap-button-text">媒体库</span>
         </Button>
         <Button
           variant="ghost"
           onClick={onInsertTable}
           aria-label="插入表格"
+          tooltip="插入表格"
         >
-          <span className="tiptap-button-text">表格</span>
+          <Table2 className="tiptap-button-icon" />
         </Button>
       </ToolbarGroup>
 
       <Spacer />
-
-      {isMobile && <ToolbarSeparator />}
-
-      <ToolbarGroup>
-        <ThemeToggle />
-      </ToolbarGroup>
     </>
   )
 }
@@ -303,13 +293,6 @@ export function SimpleEditor({
       MarkdownPaste,
       Markdown,
       Selection,
-      ImageUploadNode.configure({
-        accept: "image/*",
-        maxSize: MAX_FILE_SIZE,
-        limit: 3,
-        upload: handleImageUpload,
-        onError: (error) => console.error("Upload failed:", error),
-      }),
     ],
     content: contentRef,
     onCreate: ({ editor }) => onEditorReady?.(editor),

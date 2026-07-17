@@ -88,8 +88,8 @@ export const LinkButton = forwardRef<HTMLButtonElement, ButtonProps>(
         variant="ghost"
         role="button"
         tabIndex={-1}
-        aria-label="Link"
-        tooltip="Link"
+        aria-label="链接"
+        tooltip="链接"
         ref={ref}
         {...props}
       >
@@ -135,7 +135,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
         <CardItemGroup orientation="horizontal">
           <Input
             type="url"
-            placeholder="Paste a link..."
+            placeholder="粘贴链接…"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -150,7 +150,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
             <Button
               type="button"
               onClick={setLink}
-              title="Apply link"
+              title="应用链接"
               disabled={!url && !isActive}
               variant="ghost"
             >
@@ -165,7 +165,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
               <Button
                 type="button"
                 onClick={openLink}
-                title="Open in new window"
+                title="在新窗口打开"
                 disabled={!url && !isActive}
                 variant="ghost"
               >
@@ -177,7 +177,7 @@ const LinkMain: React.FC<LinkMainProps> = ({
               <Button
                 type="button"
                 onClick={removeLink}
-                title="Remove link"
+                title="移除链接"
                 disabled={!url && !isActive}
                 variant="ghost"
               >

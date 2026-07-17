@@ -91,15 +91,14 @@ export function PostRichEditor({
 
   if (!hasHydrated) {
     return (
-      <div
-        className="simple-editor-wrapper min-h-[320px]"
-        aria-hidden="true"
-      />
+      <div className="post-rich-editor" aria-hidden="true">
+        <div className="simple-editor-wrapper min-h-[320px]" />
+      </div>
     )
   }
 
   return (
-    <>
+    <div className="post-rich-editor">
       <SimpleEditor
         initialContent={initialContent}
         contentKey={contentKey}
@@ -115,6 +114,6 @@ export function PostRichEditor({
         onSelect={handleMediaSelect}
         mimeTypePrefix="image"
       />
-    </>
+    </div>
   )
 }
