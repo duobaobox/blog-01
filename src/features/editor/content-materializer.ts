@@ -4,11 +4,7 @@ import { generateText, type JSONContent } from "@tiptap/core";
 import { generateHTML } from "@tiptap/html/server";
 import readingTime from "reading-time";
 import { pinyin } from "pinyin-pro";
-import rehypeParse from "rehype-parse";
-import rehypePrettyCode from "rehype-pretty-code";
-import rehypeStringify from "rehype-stringify";
 import slugify from "slugify";
-import { unified } from "unified";
 import {
   cloneContentJson,
   normalizeContentJson,
@@ -119,22 +115,12 @@ export function buildPostContentToc(value: unknown): TocItem[] {
   return prepareHeadingOutline(value).contentToc;
 }
 
-async function enhanceHtml(html: string) {
-  const result = await unified()
-    .use(rehypeParse, { fragment: true })
-    .use(rehypePrettyCode, { theme: "github-dark" })
-    .use(rehypeStringify)
-    .process(html);
-
-  return String(result);
-}
-
 export async function materializePostContent(
   value: unknown,
 ): Promise<MaterializedPostContent> {
   const { contentJson, contentToc } = prepareHeadingOutline(value);
   const extensions = createPostContentExtensions();
-  const contentHtml = await enhanceHtml(generateHTML(contentJson, extensions));
+  const contentHtml = generateHTML(contentJson, extensions);
   const contentText = generateText(contentJson, extensions, {
     blockSeparator: "\n\n",
   })
