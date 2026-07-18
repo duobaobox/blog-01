@@ -216,11 +216,37 @@ export function SimpleEditor({
     "main"
   )
   const toolbarRef = useRef<HTMLDivElement>(null)
-  const contentRef = useMemo(
-    () => initialContent ?? EMPTY_CONTENT,
-    [initialContent],
-  )
+  const contentSessionRef = useRef({
+    contentKey,
+    content: initialContent ?? EMPTY_CONTENT,
+  })
+  if (contentSessionRef.current.contentKey !== contentKey) {
+    contentSessionRef.current = {
+      contentKey,
+      content: initialContent ?? EMPTY_CONTENT,
+    }
+  }
+  const contentRef = contentSessionRef.current.content
   const contentKeyRef = useRef(contentKey)
+  const onUpdateRef = useRef(onUpdate)
+  const onEditorReadyRef = useRef(onEditorReady)
+  const extensions = useMemo(
+    () => [
+      ...createPostEditorExtensions({ placeholder }),
+      MarkdownPaste,
+      Markdown,
+      Selection,
+    ],
+    [placeholder],
+  )
+
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+
+  useEffect(() => {
+    onEditorReadyRef.current = onEditorReady
+  }, [onEditorReady])
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -233,17 +259,12 @@ export function SimpleEditor({
         class: "simple-editor",
       },
     },
-    extensions: [
-      ...createPostEditorExtensions({ placeholder }),
-      MarkdownPaste,
-      Markdown,
-      Selection,
-    ],
+    extensions,
     content: contentRef,
-    onCreate: ({ editor }) => onEditorReady?.(editor),
+    onCreate: ({ editor }) => onEditorReadyRef.current?.(editor),
     onUpdate: ({ editor }) =>
-      onUpdate?.({ json: editor.getJSON(), text: editor.getText() }),
-    onDestroy: () => onEditorReady?.(null),
+      onUpdateRef.current?.({ json: editor.getJSON(), text: editor.getText() }),
+    onDestroy: () => onEditorReadyRef.current?.(null),
   })
 
   useEffect(() => {
