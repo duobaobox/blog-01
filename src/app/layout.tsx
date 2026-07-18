@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import "./globals.css";
+import "./tiptap-content.scss";
 import "./editor.css";
-import "./article-content.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getResolvedSiteConfig();
