@@ -1,6 +1,10 @@
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/infrastructure/db";
-import type { PostOperationLogDetail, PostOperationType } from "@/features/posts/lib/post-operation-log";
+import {
+  USER_INITIATED_POST_OPERATION_TYPES,
+  type PostOperationLogDetail,
+  type PostOperationType,
+} from "@/features/posts/lib/post-operation-log";
 
 export async function createPostOperationLog(data: {
   operation: PostOperationType;
@@ -22,6 +26,11 @@ export async function createPostOperationLog(data: {
 
 export async function findRecentPostOperationLogs(take = 12) {
   return db.postOperationLog.findMany({
+    where: {
+      operation: {
+        in: [...USER_INITIATED_POST_OPERATION_TYPES],
+      },
+    },
     orderBy: [{ createdAt: "desc" }],
     take,
     include: {
