@@ -73,15 +73,16 @@ export function areMediaReferenceSetsEqual(
   );
 }
 
+export function isUserInitiatedPostSave(saveIntent?: PostSaveIntent) {
+  return saveIntent === "manual" || saveIntent === "publish";
+}
+
 export function shouldLogPostUpdate(input: {
   saveIntent?: PostSaveIntent;
   previousStatus: string;
   nextStatus: string;
 }) {
-  return !(
-    input.saveIntent === "autosave" &&
-    input.previousStatus === input.nextStatus
-  );
+  return isUserInitiatedPostSave(input.saveIntent);
 }
 
 export function shouldRevalidateAdminAfterSave(
