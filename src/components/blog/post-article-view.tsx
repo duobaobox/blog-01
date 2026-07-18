@@ -132,7 +132,7 @@ export function PostArticleView({
 
         <div
           id={contentRootId}
-          className="article-prose editor-prose prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20"
+          className="tiptap ProseMirror simple-editor readonly article-prose"
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
       </article>
