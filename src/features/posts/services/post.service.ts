@@ -9,6 +9,7 @@ import {
   buildPostOperationSummary,
   getPostBulkOperationType,
 } from "@/features/posts/lib/post-operation-log";
+import { isUserInitiatedPostSave } from "@/features/posts/lib/post-save-plan";
 import {
   getUntitledPostTitleByIndex,
   UNTITLED_POST_TITLE,
@@ -126,23 +127,27 @@ export async function createPost(
     mediaReferences,
   });
 
-  await postOperationLogRepo.createPostOperationLog({
-    operation: "create",
-    summary: buildPostOperationSummary({
-      type: "create",
-      title: post.title,
-    }),
-    detail: {
-      postIds: [post.id],
-      count: 1,
-      status: post.status,
-      categoryId: post.category?.id ?? null,
-      folderId: post.folderId ?? null,
-      tagIds: post.tags.map((item) => item.tag.id),
-    },
-    createdBy: input.createdBy,
-    postId: post.id,
-  });
+  if (isUserInitiatedPostSave(input.saveIntent)) {
+    const operation = input.saveIntent === "publish" ? "publish" : "create";
+
+    await postOperationLogRepo.createPostOperationLog({
+      operation,
+      summary: buildPostOperationSummary({
+        type: operation,
+        title: post.title,
+      }),
+      detail: {
+        postIds: [post.id],
+        count: 1,
+        status: post.status,
+        categoryId: post.category?.id ?? null,
+        folderId: post.folderId ?? null,
+        tagIds: post.tags.map((item) => item.tag.id),
+      },
+      createdBy: input.createdBy,
+      postId: post.id,
+    });
+  }
 
   return post;
 }
@@ -165,6 +170,7 @@ export async function createEmptyPost(input: {
     canonicalUrl: null,
     isFeatured: false,
     tagIds: [],
+    saveIntent: "manual",
     createdBy: input.createdBy,
   });
 }
@@ -225,23 +231,27 @@ export async function updatePost(
     mediaReferences,
   });
 
-  await postOperationLogRepo.createPostOperationLog({
-    operation: "update",
-    summary: buildPostOperationSummary({
-      type: "update",
-      title: post.title,
-    }),
-    detail: {
-      postIds: [post.id],
-      count: 1,
-      status: post.status,
-      categoryId: post.category?.id ?? null,
-      folderId: post.folderId ?? null,
-      tagIds: post.tags.map((item) => item.tag.id),
-    },
-    createdBy: input.updatedBy,
-    postId: post.id,
-  });
+  if (isUserInitiatedPostSave(input.saveIntent)) {
+    const operation = input.saveIntent === "publish" ? "publish" : "save";
+
+    await postOperationLogRepo.createPostOperationLog({
+      operation,
+      summary: buildPostOperationSummary({
+        type: operation,
+        title: post.title,
+      }),
+      detail: {
+        postIds: [post.id],
+        count: 1,
+        status: post.status,
+        categoryId: post.category?.id ?? null,
+        folderId: post.folderId ?? null,
+        tagIds: post.tags.map((item) => item.tag.id),
+      },
+      createdBy: input.updatedBy,
+      postId: post.id,
+    });
+  }
 
   return {
     previousPost: existingPost,
