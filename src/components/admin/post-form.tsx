@@ -31,6 +31,7 @@ import {
 import { getPostPublishability } from "@/features/posts/lib/post-publishability";
 import {
   getPostStatusLabel,
+  getPostStatusTone,
   isArchivedPost,
   isDraftPost,
   isPublishedPost,
@@ -144,6 +145,17 @@ type SaveOptions = {
   silent?: boolean;
   intent?: SaveIntent;
 };
+
+const POST_STATUS_BADGE_CLASSES = {
+  draft:
+    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
+  review:
+    "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300",
+  published:
+    "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300",
+  archived:
+    "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300",
+} as const;
 
 function getSuggestedNextReviewStatus(canPublish: boolean) {
   return canPublish ? "review" : "draft";
@@ -567,6 +579,14 @@ export function PostForm({
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
         <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Badge
+            variant="outline"
+            className={`rounded-full border px-2 py-0 text-xs ${POST_STATUS_BADGE_CLASSES[getPostStatusTone(form)]}`}
+            title={`当前状态：${getPostStatusLabel(form)}`}
+          >
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+            {getPostStatusLabel(form)}
+          </Badge>
           <div className="min-w-0 max-w-[240px] flex-1 lg:max-w-[360px]">
             {titleEditing ? (
               <Input
@@ -603,12 +623,6 @@ export function PostForm({
               </button>
             )}
           </div>
-          <Badge
-            variant={isPublishedPost(form) ? "default" : "secondary"}
-            className="rounded-full px-2 py-0 text-xs"
-          >
-            {getPostStatusLabel(form)}
-          </Badge>
           {form.isFeatured ? (
             <Badge variant="outline" className="rounded-full px-2 py-0 text-xs">
               置顶
