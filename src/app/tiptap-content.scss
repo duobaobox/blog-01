@@ -1,12 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
-
-@import "../components/tiptap/nodes/blockquote-node/blockquote-node.scss";
-@import "../components/tiptap/nodes/code-block-node/code-block-node.scss";
-@import "../components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node.scss";
-@import "../components/tiptap/nodes/list-node/list-node.scss";
-@import "../components/tiptap/nodes/image-node/image-node.scss";
-@import "../components/tiptap/nodes/heading-node/heading-node.scss";
-@import "../components/tiptap/nodes/paragraph-node/paragraph-node.scss";
+@use "../components/tiptap/nodes/blockquote-node/blockquote-node";
+@use "../components/tiptap/nodes/code-block-node/code-block-node";
+@use "../components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node";
+@use "../components/tiptap/nodes/list-node/list-node";
+@use "../components/tiptap/nodes/image-node/image-node";
+@use "../components/tiptap/nodes/heading-node/heading-node";
+@use "../components/tiptap/nodes/paragraph-node/paragraph-node";
 
 /*
  * Both the editable document and the published article use the same Tiptap
