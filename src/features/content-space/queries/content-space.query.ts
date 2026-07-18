@@ -157,7 +157,7 @@ export function createAdminPostsPageDataQuery(
     const folderPosts = activeFolder
       ? await dependencies.getPosts({
           folderId: activeFolder.id,
-          order: "updated",
+          order: "created",
         })
       : [];
     const folderStatusCounts = countFolderStatuses(folderPosts);
