@@ -64,10 +64,9 @@ test("buildPostOperationSummary formats single-post and bulk operation copy", ()
 });
 
 test("user initiated operations exclude legacy update noise", () => {
-  assert.equal(USER_INITIATED_POST_OPERATION_TYPES.includes("save"), true);
-  assert.equal(USER_INITIATED_POST_OPERATION_TYPES.includes("publish"), true);
-  assert.equal(
-    USER_INITIATED_POST_OPERATION_TYPES.some((type) => type === "update"),
-    false,
-  );
+  const operations = USER_INITIATED_POST_OPERATION_TYPES as readonly string[];
+
+  assert.equal(operations.includes("save"), true);
+  assert.equal(operations.includes("publish"), true);
+  assert.equal(operations.includes("update"), false);
 });
