@@ -202,9 +202,17 @@ const MobileToolbarContent = ({
   </>
 )
 
-export function SimpleEditor({
+export function SimpleEditor(props: SimpleEditorProps) {
+  return (
+    <SimpleEditorInstance
+      key={props.contentKey ?? "default-editor-content"}
+      {...props}
+    />
+  )
+}
+
+function SimpleEditorInstance({
   initialContent,
-  contentKey,
   placeholder = "从一句清晰的开头开始。",
   onUpdate,
   onEditorReady,
@@ -216,18 +224,9 @@ export function SimpleEditor({
     "main"
   )
   const toolbarRef = useRef<HTMLDivElement>(null)
-  const contentSessionRef = useRef({
-    contentKey,
-    content: initialContent ?? EMPTY_CONTENT,
-  })
-  if (contentSessionRef.current.contentKey !== contentKey) {
-    contentSessionRef.current = {
-      contentKey,
-      content: initialContent ?? EMPTY_CONTENT,
-    }
-  }
-  const contentRef = contentSessionRef.current.content
-  const contentKeyRef = useRef(contentKey)
+  const [contentRef] = useState<JSONContent>(
+    () => initialContent ?? EMPTY_CONTENT,
+  )
   const onUpdateRef = useRef(onUpdate)
   const onEditorReadyRef = useRef(onEditorReady)
   const extensions = useMemo(
@@ -266,12 +265,6 @@ export function SimpleEditor({
       onUpdateRef.current?.({ json: editor.getJSON(), text: editor.getText() }),
     onDestroy: () => onEditorReadyRef.current?.(null),
   })
-
-  useEffect(() => {
-    if (!editor || contentKeyRef.current === contentKey) return
-    contentKeyRef.current = contentKey
-    editor.commands.setContent(contentRef, { emitUpdate: false })
-  }, [contentKey, contentRef, editor])
 
   const rect = useCursorVisibility({
     editor,
