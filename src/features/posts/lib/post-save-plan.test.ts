@@ -69,31 +69,28 @@ test("tag and media comparisons are order independent", () => {
   );
 });
 
-test("autosave skips routine logs but status changes remain auditable", () => {
-  assert.equal(
-    shouldLogPostUpdate({
-      saveIntent: "autosave",
-      previousStatus: "draft",
-      nextStatus: "draft",
-    }),
-    false,
-  );
-  assert.equal(
-    shouldLogPostUpdate({
-      saveIntent: "autosave",
-      previousStatus: "draft",
-      nextStatus: "published",
-    }),
-    true,
-  );
-  assert.equal(
-    shouldLogPostUpdate({
-      saveIntent: "manual",
-      previousStatus: "draft",
-      nextStatus: "draft",
-    }),
-    true,
-  );
+test("only explicit save and publish actions enter operation history", () => {
+  for (const saveIntent of ["autosave", "navigation"] as const) {
+    assert.equal(
+      shouldLogPostUpdate({
+        saveIntent,
+        previousStatus: "draft",
+        nextStatus: "published",
+      }),
+      false,
+    );
+  }
+
+  for (const saveIntent of ["manual", "publish"] as const) {
+    assert.equal(
+      shouldLogPostUpdate({
+        saveIntent,
+        previousStatus: "draft",
+        nextStatus: saveIntent === "publish" ? "published" : "draft",
+      }),
+      true,
+    );
+  }
 });
 
 test("autosave does not revalidate the current admin route", () => {
