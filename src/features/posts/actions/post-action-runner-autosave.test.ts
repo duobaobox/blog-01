@@ -20,7 +20,7 @@ function createWriteInput(status: "draft" | "published") {
   };
 }
 
-test("first draft autosave invalidates tags without refreshing the admin path", async () => {
+test("first draft autosave skips cache refreshes that can remount the editor", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -57,10 +57,10 @@ test("first draft autosave invalidates tags without refreshing the admin path", 
     createdBy: "user-1",
   });
 
-  assert.deepEqual(calls, ["service:create", "cache:admin-tags"]);
+  assert.deepEqual(calls, ["service:create"]);
 });
 
-test("draft autosave invalidates tags without refreshing the admin path", async () => {
+test("draft autosave skips cache refreshes that can remount the editor", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -100,7 +100,7 @@ test("draft autosave invalidates tags without refreshing the admin path", async 
     updatedBy: "user-1",
   });
 
-  assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
+  assert.deepEqual(calls, ["service:update"]);
 });
 
 test("published autosave avoids path refreshes that can reset the editor", async () => {
@@ -143,5 +143,5 @@ test("published autosave avoids path refreshes that can reset the editor", async
     updatedBy: "user-1",
   });
 
-  assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
+  assert.deepEqual(calls, ["service:update"]);
 });
