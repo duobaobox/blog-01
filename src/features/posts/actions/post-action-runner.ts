@@ -32,12 +32,11 @@ function revalidateAdminAfterSave(
   deps: PostActionRunnerDeps,
   saveIntent: PostWriteInput["saveIntent"],
 ) {
-  if (shouldRevalidateAdminAfterSave(saveIntent)) {
-    deps.revalidateAdminPosts();
+  if (!shouldRevalidateAdminAfterSave(saveIntent)) {
     return;
   }
 
-  deps.revalidateAdminPostTags?.();
+  deps.revalidateAdminPosts();
 }
 
 export function createPostActionRunner(deps: PostActionRunnerDeps) {
