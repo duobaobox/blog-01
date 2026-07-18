@@ -2,18 +2,40 @@
 
 一个基于 Next.js App Router、PostgreSQL、Prisma、Better Auth 和 Tiptap 的个人博客系统。
 
-当前产品已经进入可内测状态：前台博客、后台内容工作台、媒体库、分类标签、站点设置、RSS、sitemap、Docker 交付和数据库迁移基线都已经收口。About / Projects / 首页仍采用代码维护的静态页骨架，暂不做后台页面管理。
+核心功能开发已基本完成，项目当前进入稳定化和发布准备阶段。前台博客、后台内容工作台、编辑器、媒体库、内容治理、站点设置、SEO 输出、Docker 交付和数据库迁移基线均已落地。About、Projects 和首页仍采用代码维护的静态页面骨架，暂不纳入后台页面管理。
+
+## 当前状态
+
+已经稳定的主流程：
+
+- 管理员初始化、登录和账户设置
+- 文章新建、编辑、自动保存、手动保存、发布和归档
+- 文件夹、分类、标签、筛选、搜索和批量治理
+- 媒体上传、替换、引用追踪和文章封面
+- 前台文章列表、详情、分类、标签、RSS 和 sitemap
+- Docker standalone 构建、数据库同步和发布包交付
+
+当前阶段不建议继续扩张大功能。发布前优先完成：
+
+- 真实内容与真实媒体的完整回归
+- 生产环境变量、管理员初始化和 HTTPS 验证
+- 历史数据库 baseline / migration 演练
+- `lint`、测试、构建和数据库预检
+- 备份、发布与回滚流程演练
 
 ## 功能概览
 
-- 文章创建、编辑、草稿、发布、归档、批量治理
+- 文章创建、编辑、草稿、待发布、发布、归档和批量治理
 - Tiptap 富文本编辑，支持 Markdown 粘贴导入
+- 编辑器后台自动保存，不刷新页面、不重建编辑会话
+- 文章列表按创建时间稳定排序，保存和发布不会改变位置
+- 概览仅记录用户主动的新建、保存、发布、归档和批量操作
 - 前台博客列表、分类页、标签页和文章详情页
 - 后台内容工作台、文件夹、保存视图、筛选和分页
 - 媒体上传、媒体库、替换、引用关系和基础元数据
-- 分类、标签、站点设置、管理员账户设置
+- 分类、标签、站点设置和管理员账户设置
 - RSS、robots.txt、sitemap、深色 / 浅色主题
-- Docker 本地运行、发布包交付、Prisma baseline migration
+- Docker 本地运行、发布包交付和 Prisma baseline migration
 
 ## 技术栈
 
@@ -74,6 +96,25 @@ npm run dev
 - 后台：<http://localhost:3000/admin/login>
 
 本地开发且未设置 `ADMIN_SETUP_TOKEN` 时，首次访问后台会自动准备默认管理员。生产环境或设置了 `ADMIN_SETUP_TOKEN` 时，`/admin/setup` 会显示初始化表单，由初始化口令创建管理员。
+
+## 质量检查
+
+常规改动至少执行：
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+涉及 Prisma schema、数据库发布或部署时，再执行：
+
+```bash
+npm run db:diff
+npm run db:check:migrations
+npm run db:check:migration-coverage
+npm run db:preflight:release
+```
 
 ## Docker
 
@@ -138,12 +179,13 @@ npm run db:seed:demo-posts
 ```text
 src/
   app/              Next.js App Router 页面和 API
-  components/       UI 组件
-  features/         业务模块：posts、media、taxonomy、settings、content-space
-  infrastructure/   auth、db、cache 等基础设施
+  components/       页面组合与 UI 组件
+  features/         posts、media、taxonomy、settings、content-space 等业务模块
+  infrastructure/   auth、db、cache、storage 等基础设施
   shared/           跨模块 UI 与工具
-prisma/             schema、migrations、seed
-scripts/            数据库检查、发布包刷新、迁移辅助脚本
+  generated/        Prisma 生成代码，不手动编辑
+prisma/             schema、migrations 和 seed
+scripts/            数据库检查、发布包刷新和迁移辅助脚本
 docs/               当前维护文档
 delivery/release/   发布包模板文件
 media/              本地媒体挂载目录
@@ -151,16 +193,22 @@ media/              本地媒体挂载目录
 
 ## 核心约定
 
-- 正文唯一事实源是 Tiptap JSON，HTML / Text / TOC 是服务端物化结果
+- 正文唯一事实源是 Tiptap JSON，HTML、Text 和 TOC 是服务端物化结果
 - 后台页面只消费 page-data query，不直接组装数据库读模型
-- 写路径优先走 action runner / service / repository 的分层
+- 写路径遵循 parser → action → service → repository → cache invalidation
+- 自动保存和切换文章保存属于后台持久化，不进入最近操作历史
+- 手动保存和发布必须使用明确的 save intent，并生成对应操作记录
+- 编辑器组件的生命周期只跟文章 ID 关联，不能跟 `updatedAt` 或保存响应关联
+- 内容工作台文章列表按 `createdAt` 排序，避免更新后跳位
+- Tiptap 本地 Sass 聚合使用 `@use`，全局字体入口放在 `globals.css`
 - 媒体记录保存 provider、storage key、URL 和基础元数据
 - 生产初始化使用 `ADMIN_SETUP_TOKEN`，不要依赖默认管理员密码
 
-架构边界见 [当前架构基线](./docs/architecture-baseline.md)。
+更完整的开发约束见 [AGENTS.md](./AGENTS.md)，架构边界见 [当前架构基线](./docs/architecture-baseline.md)。
 
 ## 文档
 
+- [协作与维护约定](./AGENTS.md)
 - [文档索引](./docs/README.md)
 - [当前架构基线](./docs/architecture-baseline.md)
 - [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
