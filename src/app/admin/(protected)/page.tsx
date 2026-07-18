@@ -78,9 +78,9 @@ export default async function AdminDashboard() {
         <div className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>最近内容操作</CardTitle>
+              <CardTitle>最近操作</CardTitle>
               <CardDescription>
-                记录最近的文章创建、更新和归档动作。
+                仅记录手动保存、发布等主动操作。
               </CardDescription>
             </CardHeader>
             <CardContent>
