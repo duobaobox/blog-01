@@ -132,10 +132,12 @@ export async function updatePostIncrementally(
       nextStatus: post.status,
     })
   ) {
+    const operation = input.saveIntent === "publish" ? "publish" : "save";
+
     await postOperationLogRepo.createPostOperationLog({
-      operation: "update",
+      operation,
       summary: buildPostOperationSummary({
-        type: "update",
+        type: operation,
         title: post.title,
       }),
       detail: {
