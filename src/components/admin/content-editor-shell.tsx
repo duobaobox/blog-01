@@ -124,7 +124,7 @@ export function ContentEditorShell({
   return (
     <div className="relative flex h-full flex-col">
       <PostForm
-        key={`${selectedPost?.id ?? "new"}:${selectedPost?.updatedAt ?? activeFolderId ?? "root"}`}
+        key={selectedPost?.id ?? `new:${activeFolderId ?? "root"}`}
         post={selectedPost}
         categories={categories}
         tags={tags}
