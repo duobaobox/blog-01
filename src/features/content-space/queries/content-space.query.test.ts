@@ -109,7 +109,7 @@ test("文章工作台默认进入第一个文件夹并统计当前文件夹状�
     result.contextPosts.map((post) => post.id),
     ["draft-1", "review-1", "published-1"],
   );
-  assert.ok(calls.includes("folder:folder-1:updated"));
+  assert.ok(calls.includes("folder:folder-1:created"));
   assert.equal(calls.some((call) => call.includes("folder-2")), false);
 });
 
@@ -126,7 +126,7 @@ test("状态和搜索只筛选当前文件夹文章", async () => {
   assert.equal(result.statusFilter, "review");
   assert.deepEqual(result.contextPosts.map((post) => post.id), ["review-1"]);
   assert.equal(result.selectedPostId, "review-1");
-  assert.ok(calls.includes("folder:folder-1:updated"));
+  assert.ok(calls.includes("folder:folder-1:created"));
 });
 
 test("通过文章链接进入时恢复文章所属文件夹而不是全局列表", async () => {
@@ -147,5 +147,5 @@ test("通过文章链接进入时恢复文章所属文件夹而不是全局列�
   assert.equal(result.activeFolder?.id, FOLDER_TWO.id);
   assert.equal(result.selectedPostId, requestedPost.id);
   assert.equal(result.selectedPost?.id, requestedPost.id);
-  assert.ok(calls.includes("folder:folder-2:updated"));
+  assert.ok(calls.includes("folder:folder-2:created"));
 });
