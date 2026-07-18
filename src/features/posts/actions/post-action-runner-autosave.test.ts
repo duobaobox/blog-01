@@ -103,7 +103,7 @@ test("draft autosave invalidates tags without refreshing the admin path", async 
   assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
 });
 
-test("published autosave refreshes public content without refreshing admin path", async () => {
+test("published autosave avoids path refreshes that can reset the editor", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -143,9 +143,5 @@ test("published autosave refreshes public content without refreshing admin path"
     updatedBy: "user-1",
   });
 
-  assert.deepEqual(calls, [
-    "service:update",
-    "cache:admin-tags",
-    "cache:public",
-  ]);
+  assert.deepEqual(calls, ["service:update", "cache:admin-tags"]);
 });
