@@ -2,6 +2,8 @@ import type { PostBulkActionInput } from "@/features/posts/lib/post-bulk-action"
 
 export const POST_OPERATION_TYPES = [
   "create",
+  "save",
+  "publish",
   "update",
   "archive",
   "bulkStatus",
@@ -13,6 +15,15 @@ export const POST_OPERATION_TYPES = [
 ] as const;
 
 export type PostOperationType = (typeof POST_OPERATION_TYPES)[number];
+export type UserInitiatedPostOperationType = Exclude<
+  PostOperationType,
+  "update"
+>;
+
+export const USER_INITIATED_POST_OPERATION_TYPES =
+  POST_OPERATION_TYPES.filter(
+    (type): type is UserInitiatedPostOperationType => type !== "update",
+  );
 
 export type PostOperationLogDetail = {
   postIds: string[];
@@ -66,7 +77,7 @@ export function getPostBulkOperationType(
 
 export function buildPostOperationSummary(input:
   | {
-      type: "create" | "update" | "archive";
+      type: "create" | "save" | "publish" | "update" | "archive";
       title: string;
     }
   | {
@@ -76,6 +87,10 @@ export function buildPostOperationSummary(input:
   switch (input.type) {
     case "create":
       return `创建文章《${input.title}》`;
+    case "save":
+      return `保存文章《${input.title}》`;
+    case "publish":
+      return `发布文章《${input.title}》`;
     case "update":
       return `更新文章《${input.title}》`;
     case "archive":
