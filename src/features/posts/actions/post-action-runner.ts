@@ -49,7 +49,10 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
       if (workflow.revalidateAdminPosts) {
         revalidateAdminAfterSave(deps, input.saveIntent);
       }
-      if (workflow.publicPostsToRevalidate.length > 0) {
+      if (
+        workflow.publicPostsToRevalidate.length > 0 &&
+        input.saveIntent !== "autosave"
+      ) {
         deps.revalidatePostsContent(workflow.publicPostsToRevalidate);
       }
 
@@ -86,7 +89,10 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
       if (workflow.revalidateAdminPosts) {
         revalidateAdminAfterSave(deps, input.saveIntent);
       }
-      if (workflow.publicPostsToRevalidate.length > 0) {
+      if (
+        workflow.publicPostsToRevalidate.length > 0 &&
+        input.saveIntent !== "autosave"
+      ) {
         deps.revalidatePostsContent(workflow.publicPostsToRevalidate);
       }
 
