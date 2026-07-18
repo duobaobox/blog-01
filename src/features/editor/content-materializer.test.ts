@@ -45,6 +45,23 @@ test("materializePostContent creates stable heading ids and toc from all editor 
   assert.match(result.contentHtml, /id="xi-jie"/);
 });
 
+test("materializePostContent keeps code blocks in native tiptap html", async () => {
+  const result = await materializePostContent({
+    type: "doc",
+    content: [
+      {
+        type: "codeBlock",
+        attrs: { language: null },
+        content: [{ type: "text", text: "const answer = 42;" }],
+      },
+    ],
+  });
+
+  assert.match(result.contentHtml, /<pre><code>/);
+  assert.doesNotMatch(result.contentHtml, /data-rehype-pretty-code/);
+  assert.doesNotMatch(result.contentHtml, /style=/);
+});
+
 test("materializePostContent derives text and reading metadata from the same json source", async () => {
   const result = await materializePostContent({
     type: "doc",
