@@ -16,9 +16,7 @@ type HomeHeroProps = {
 
 function HomeHeroVisual({ config }: Pick<HomeHeroProps, "config">) {
   return (
-    <div className="relative z-10 flex min-h-[19rem] w-full min-w-0 items-end justify-center self-end overflow-hidden sm:min-h-[24rem] lg:min-h-[29rem] lg:justify-end">
-      <div className="absolute bottom-[9%] left-[14%] h-[32%] w-[66%] rounded-[50%] bg-[#9f9cff]/[0.14] blur-3xl dark:bg-[#7770ff]/10" />
-
+    <div className="relative z-10 flex min-h-[19rem] w-full min-w-0 items-end justify-center self-end overflow-visible sm:min-h-[24rem] lg:min-h-[29rem] lg:justify-end">
       <div className="relative w-full max-w-[40rem]">
         <Image
           src={config.visual.imageUrl}
@@ -28,7 +26,7 @@ function HomeHeroVisual({ config }: Pick<HomeHeroProps, "config">) {
           priority
           unoptimized
           sizes="(min-width: 1024px) 540px, 94vw"
-          className="relative h-auto w-full object-contain object-bottom drop-shadow-[0_24px_34px_rgba(84,78,170,0.12)]"
+          className="relative h-auto w-full object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]"
         />
 
         {/* 遮住素材中笔记本底部多余的横向金属边，位置使用百分比以适配响应式缩放。 */}
@@ -53,21 +51,7 @@ export function HomeHero({
   const description = site.subtitle || config.description || site.description;
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-[#ebe9f7] bg-[radial-gradient(circle_at_14%_8%,rgba(255,255,255,0.98),transparent_38%),radial-gradient(circle_at_76%_30%,rgba(116,126,255,0.14),transparent_37%),linear-gradient(115deg,#ffffff_0%,#fafaff_45%,#f3f1ff_100%)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_76%_30%,rgba(112,102,255,0.16),transparent_36%),linear-gradient(115deg,#15151d_0%,#181823_54%,#211e35_100%)]">
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-[13%] -top-[43%] h-[150%] w-[72%] rounded-[50%] border border-[#dcdcff]/60 bg-[#eef0ff]/[0.36] dark:border-[#8880ff]/10 dark:bg-[#7770ff]/5" />
-        <div className="absolute right-[16%] top-[25%] h-[74%] w-[46%] rounded-[50%] border border-[#e4e2ff]/65 bg-white/10 dark:border-[#8d83ff]/10" />
-        <div className="absolute -bottom-28 left-[35%] size-[26rem] rounded-full bg-[#d9dcff]/[0.28] blur-3xl dark:bg-[#665cff]/10" />
-
-        <div className="absolute right-0 top-0 hidden h-full w-[20%] opacity-40 blur-[1.5px] lg:block">
-          <div className="absolute right-[14%] top-0 h-full w-px bg-[#dfe1ff]/75 dark:bg-[#8b84ff]/10" />
-          <div className="absolute right-[34%] top-0 h-full w-px bg-[#e4e4ff]/65 dark:bg-[#8b84ff]/10" />
-          <div className="absolute right-[6%] top-[16%] h-2 w-[70%] rounded-full bg-white/85 shadow-[0_24px_0_rgba(255,255,255,0.74),0_48px_0_rgba(255,255,255,0.66),0_72px_0_rgba(255,255,255,0.58)] dark:bg-white/5 dark:shadow-[0_24px_0_rgba(255,255,255,0.04),0_48px_0_rgba(255,255,255,0.035),0_72px_0_rgba(255,255,255,0.03)]" />
-          <div className="absolute right-[13%] top-[20%] h-24 w-8 rounded-t-full bg-[#a8a5ff]/[0.28]" />
-          <div className="absolute right-[43%] top-[21%] h-20 w-6 rounded-t-full bg-[#c9c8ff]/[0.38]" />
-        </div>
-      </div>
-
+    <section className="relative isolate overflow-hidden">
       <div className="relative mx-auto grid min-h-[34rem] max-w-5xl min-w-0 items-center gap-5 px-4 pt-12 sm:px-6 sm:pt-14 lg:grid-cols-[0.94fr_1.06fr] lg:pt-0">
         <div className="relative z-20 min-w-0 pb-11 pt-2 sm:pb-14 lg:py-16">
           <div className="inline-flex items-center rounded-full border border-[#dedcff] bg-white/[0.78] px-3.5 py-1.5 text-sm font-medium tracking-wide text-[#6d63f2] shadow-[0_8px_24px_-16px_rgba(100,91,235,0.5)] backdrop-blur dark:border-[#8b84ff]/20 dark:bg-white/5 dark:text-[#b9b5ff]">
