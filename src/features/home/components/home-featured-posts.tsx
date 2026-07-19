@@ -17,21 +17,21 @@ type HomeFeaturedPostsProps = {
 const placeholderStyles = [
   {
     surface:
-      "from-violet-100 via-indigo-50 to-white dark:from-violet-950/70 dark:via-indigo-950/45 dark:to-slate-950",
-    halo: "bg-violet-400/25 dark:bg-violet-500/15",
-    icon: "from-violet-500 to-indigo-600 shadow-violet-500/25",
+      "from-[#f2efff] via-[#f8f7ff] to-white dark:from-violet-950/65 dark:via-indigo-950/40 dark:to-slate-950",
+    halo: "bg-[#9086ff]/20 dark:bg-violet-500/14",
+    icon: "from-[#7663ff] to-[#5d77f7] shadow-[#7663ff]/22",
   },
   {
     surface:
-      "from-orange-100 via-amber-50 to-white dark:from-orange-950/60 dark:via-amber-950/35 dark:to-slate-950",
-    halo: "bg-orange-400/25 dark:bg-orange-500/15",
-    icon: "from-orange-400 to-orange-600 shadow-orange-500/25",
+      "from-[#fff2e4] via-[#fff8f0] to-white dark:from-orange-950/55 dark:via-amber-950/32 dark:to-slate-950",
+    halo: "bg-[#ffad67]/20 dark:bg-orange-500/14",
+    icon: "from-[#ff9b49] to-[#f07835] shadow-[#ff9b49]/22",
   },
   {
     surface:
-      "from-emerald-100 via-green-50 to-white dark:from-emerald-950/60 dark:via-green-950/35 dark:to-slate-950",
-    halo: "bg-emerald-400/25 dark:bg-emerald-500/15",
-    icon: "from-emerald-400 to-green-600 shadow-emerald-500/25",
+      "from-[#ebf8f1] via-[#f7fcf9] to-white dark:from-emerald-950/55 dark:via-green-950/32 dark:to-slate-950",
+    halo: "bg-[#6ed69a]/20 dark:bg-emerald-500/14",
+    icon: "from-[#48c982] to-[#2bae68] shadow-[#48c982]/22",
   },
 ] as const;
 
@@ -53,10 +53,10 @@ function HomePostCard({
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-violet-100/90 bg-white/90 shadow-[0_16px_40px_-32px_rgba(76,56,180,0.48)] transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_24px_48px_-30px_rgba(76,56,180,0.42)] dark:border-white/10 dark:bg-white/[0.055]"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[#ebe8f4] bg-white/[0.94] shadow-[0_14px_36px_-30px_rgba(82,75,155,0.34)] transition duration-300 hover:-translate-y-1 hover:border-[#dcd7ff] hover:shadow-[0_22px_44px_-29px_rgba(82,75,155,0.34)] dark:border-white/10 dark:bg-white/[0.055]"
     >
       <div
-        className={`relative aspect-[16/9] overflow-hidden border-b border-violet-100/70 bg-linear-to-br ${placeholder.surface} dark:border-white/10`}
+        className={`relative aspect-[16/9] overflow-hidden border-b border-[#eeeaf7] bg-linear-to-br ${placeholder.surface} dark:border-white/10`}
       >
         {coverImageUrl ? (
           <>
@@ -65,7 +65,7 @@ function HomePostCard({
               alt={post.coverImage?.alt ?? post.title}
               fill
               priority={priority}
-              sizes="(min-width: 1280px) 370px, (min-width: 768px) 50vw, 100vw"
+              sizes="(min-width: 1024px) 300px, (min-width: 768px) 50vw, 100vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
             />
             <div className="absolute inset-0 bg-linear-to-t from-slate-950/10 via-transparent to-white/5" />
@@ -75,19 +75,19 @@ function HomePostCard({
             <div
               className={`absolute left-[16%] top-[12%] size-28 rounded-full blur-2xl ${placeholder.halo}`}
             />
-            <div className="absolute -right-8 -top-10 size-32 rounded-full border border-white/55 bg-white/25 dark:border-white/10 dark:bg-white/5" />
-            <div className="absolute -bottom-14 -left-8 size-36 rounded-full border border-white/70 bg-white/45 dark:border-white/10 dark:bg-white/5" />
+            <div className="absolute -right-8 -top-10 size-32 rounded-full border border-white/60 bg-white/30 dark:border-white/10 dark:bg-white/5" />
+            <div className="absolute -bottom-14 -left-8 size-36 rounded-full border border-white/75 bg-white/48 dark:border-white/10 dark:bg-white/5" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className={`flex size-16 -rotate-6 items-center justify-center rounded-[1.1rem] bg-linear-to-br text-white shadow-xl transition duration-300 group-hover:rotate-0 group-hover:scale-105 ${placeholder.icon}`}
+                className={`flex size-15 -rotate-6 items-center justify-center rounded-[1.05rem] bg-linear-to-br text-white shadow-xl transition duration-300 group-hover:rotate-0 group-hover:scale-105 sm:size-16 ${placeholder.icon}`}
               >
-                <BookOpenText className="size-8" />
+                <BookOpenText className="size-7 sm:size-8" />
               </div>
             </div>
           </>
         )}
 
-        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/70 bg-white/75 text-violet-600 shadow-sm backdrop-blur transition duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55 dark:text-violet-300">
+        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/75 bg-white/[0.78] text-[#6d63f2] shadow-sm backdrop-blur transition duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55 dark:text-[#b9b5ff]">
           <ArrowUpRight className="size-4" />
         </span>
       </div>
@@ -97,21 +97,21 @@ function HomePostCard({
           {firstTag ? (
             <TagBadge name={firstTag.name} color={firstTag.color} />
           ) : post.category ? (
-            <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+            <span className="rounded-full bg-[#f3f1ff] px-2.5 py-1 text-xs font-medium text-[#6d63f2] dark:bg-violet-400/10 dark:text-[#b9b5ff]">
               {post.category.name}
             </span>
           ) : (
-            <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs text-slate-500 dark:bg-white/5 dark:text-slate-300/70">
+            <span className="rounded-full bg-[#f7f7fa] px-2.5 py-1 text-xs text-[#8b91a2] dark:bg-white/5 dark:text-slate-300/70">
               博客文章
             </span>
           )}
         </div>
 
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-slate-900 transition-colors group-hover:text-violet-700 sm:text-lg dark:text-white dark:group-hover:text-violet-300">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[#252a3e] transition-colors group-hover:text-[#5c53db] sm:text-lg dark:text-white dark:group-hover:text-[#b9b5ff]">
           {post.title}
         </h3>
 
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-4 text-xs text-slate-400 dark:text-slate-400">
+        <div className="mt-auto flex flex-wrap items-center gap-2 pt-4 text-xs text-[#9aa0b0] dark:text-slate-400">
           {post.readingTimeMinutes ? (
             <span className="inline-flex items-center gap-1">
               <Clock className="size-3.5" />
@@ -147,7 +147,7 @@ export function HomeFeaturedPosts({
       action={config.action}
       className="relative overflow-hidden"
     >
-      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-violet-200/25 blur-3xl dark:bg-violet-600/10" />
+      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-[#e5e3ff]/36 blur-3xl dark:bg-violet-600/10" />
       <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => (
           <HomePostCard
