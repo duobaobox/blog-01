@@ -40,7 +40,6 @@ import {
   LinkButton,
 } from "@/components/tiptap/ui/link-popover"
 import { MarkButton } from "@/components/tiptap/ui/mark-button"
-import { TableBubbleMenu } from "@/components/tiptap/ui/table-bubble-menu"
 import { TableDropdownMenu } from "@/components/tiptap/ui/table-dropdown-menu"
 import { TextAlignButton } from "@/components/tiptap/ui/text-align-button"
 import { UndoRedoButton } from "@/components/tiptap/ui/undo-redo-button"
@@ -296,8 +295,6 @@ function SimpleEditorInstance({
             />
           )}
         </Toolbar>
-
-        {editor ? <TableBubbleMenu editor={editor} /> : null}
 
         <EditorContent
           editor={editor}
