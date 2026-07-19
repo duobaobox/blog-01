@@ -20,7 +20,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <>
+    <div className="home-page-surface relative isolate min-h-full overflow-hidden">
       {homeConfig.sections.hero.enabled ? (
         <HomeHero
           site={site}
@@ -30,13 +30,8 @@ export default async function HomePage() {
         />
       ) : null}
 
-      <div className="relative overflow-hidden bg-[radial-gradient(circle_at_70%_0%,rgba(112,123,255,0.07),transparent_31%),linear-gradient(180deg,#fbfbff_0%,#ffffff_74%)] dark:bg-[radial-gradient(circle_at_70%_0%,rgba(107,96,255,0.11),transparent_34%),linear-gradient(180deg,#171720_0%,#111116_74%)]">
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-36 top-20 size-80 rounded-full bg-[#e9eaff]/40 blur-3xl dark:bg-[#685fff]/10" />
-          <div className="absolute -right-44 bottom-0 size-96 rounded-full bg-[#edf1ff]/55 blur-3xl dark:bg-[#5578ff]/10" />
-        </div>
-
-        <div className="relative mx-auto max-w-5xl px-4 py-7 sm:px-6 sm:py-9">
+      <div className="relative">
+        <div className="mx-auto max-w-5xl px-4 py-7 sm:px-6 sm:py-9">
           {homeConfig.sections.featuredPosts.enabled ? (
             <HomeFeaturedPosts
               posts={homepagePosts.posts}
@@ -46,6 +41,6 @@ export default async function HomePage() {
           ) : null}
         </div>
       </div>
-    </>
+    </div>
   );
 }
