@@ -13,13 +13,16 @@ src/features/home/
 │   └── home-section-shell.tsx
 └── config/
     └── home.config.ts
+public/home/
+└── hero-visual.svg
 ```
 
 - `page.tsx`：只负责读取数据和组合首页模块。
 - `home.config.ts`：控制首页文案、按钮、文章数量和模块开关。
-- `home-hero.tsx`：首页首屏主视觉。
+- `home-hero.tsx`：首页首屏布局、CSS 背景与主视觉排版。
 - `home-featured-posts.tsx`：精选文章优先、最新文章兜底的文章展示区。
 - `home-section-shell.tsx`：首页内容模块的统一标题和容器样式。
+- `public/home/hero-visual.svg`：默认人物主视觉资源。
 
 ## 修改首页文案
 
@@ -42,13 +45,13 @@ src/features/home/config/home.config.ts
 
 ## 替换主视觉
 
-默认情况下，Hero 会使用后台配置的站点头像组合出主视觉。也可以把图片放入 `public` 目录，例如：
+最简单的方式是直接替换：
 
 ```text
-public/home/hero.webp
+public/home/hero-visual.svg
 ```
 
-然后修改配置：
+保持文件名不变时，不需要修改任何组件代码。也可以放入 PNG、WebP 或其他 SVG 文件，再修改配置：
 
 ```ts
 visual: {
@@ -57,7 +60,7 @@ visual: {
 },
 ```
 
-使用本地 `public` 资源可以避免额外配置远程图片域名，也方便开源项目用户直接替换素材。
+建议使用带透明背景的素材。页面中的浅紫渐变、圆形光晕、远景层次和暗色模式背景均由 CSS 生成，不需要把背景烘焙进人物图片。
 
 ## 启用和关闭模块
 
