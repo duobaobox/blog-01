@@ -26,7 +26,7 @@ export default async function PublicLayout({
       <Header siteName={site.name} logo={site.logo} nav={site.nav} />
       
       {/* 网站主体内容：flex-1 会自适应撑满 Header 和 Footer 之间的全部剩余屏幕空间 */}
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1 -mt-14">{children}</main>
       
       {/* 网站底部信息栏：展示版权声明、社交账号链接等尾部文本 */}
       <Footer

@@ -38,9 +38,12 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/20 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="mx-auto flex h-14 min-w-0 max-w-5xl items-center px-4 sm:px-6">
-        <Link href="/" className="mr-4 flex min-w-0 items-center gap-3 font-bold sm:mr-6">
+        <Link
+          href="/"
+          className="mr-4 flex min-w-0 items-center gap-3 font-bold sm:mr-6"
+        >
           {logo ? (
             <Image
               src={logo.url}
@@ -86,7 +89,10 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
               <Menu />
               <span className="sr-only">菜单</span>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[min(20rem,calc(100vw-1rem))] gap-0 px-0">
+            <SheetContent
+              side="right"
+              className="w-[min(20rem,calc(100vw-1rem))] gap-0 px-0"
+            >
               <SheetHeader className="border-b px-4 py-3">
                 <SheetTitle>导航菜单</SheetTitle>
                 <SheetDescription>快速跳转到站点的主要页面。</SheetDescription>
