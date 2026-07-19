@@ -33,34 +33,6 @@
     white-space: pre;
   }
 
-  .tiptap.ProseMirror table {
-    width: 100%;
-    margin-block: 1.5rem;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-  }
-
-  .tiptap.ProseMirror th,
-  .tiptap.ProseMirror td {
-    border: 1px solid var(--border);
-    padding: 0.5rem 0.75rem;
-    vertical-align: top;
-  }
-
-  .tiptap.ProseMirror th {
-    background-color: color-mix(in oklab, var(--muted) 70%, transparent);
-    font-weight: 600;
-  }
-
-  .tiptap.ProseMirror:not(.readonly) .selectedCell {
-    background-color: color-mix(in oklab, var(--primary) 10%, transparent);
-  }
-
-  .tiptap.ProseMirror:not(.readonly) .column-resize-handle {
-    background-color: color-mix(in oklab, var(--primary) 30%, transparent);
-  }
-
   .article-prose {
     overflow-x: clip;
   }
