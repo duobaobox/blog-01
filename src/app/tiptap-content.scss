@@ -5,6 +5,7 @@
 @use "../components/tiptap/nodes/image-node/image-node";
 @use "../components/tiptap/nodes/heading-node/heading-node";
 @use "../components/tiptap/nodes/paragraph-node/paragraph-node";
+@use "../components/tiptap/nodes/table-node/table-node";
 
 /*
  * Both the editable document and the published article use the same Tiptap
