@@ -51,7 +51,9 @@ export function TableDropdownMenu({
     <DropdownMenu
       modal={modal}
       open={isOpen}
-      onOpenChange={(open) => editor && setIsOpen(open)}
+      onOpenChange={(open) => {
+        if (editor) setIsOpen(open)
+      }}
     >
       <DropdownMenuTrigger asChild>
         <Button
