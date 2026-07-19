@@ -35,42 +35,6 @@ export const HeadingIdAttribute = Extension.create({
   },
 });
 
-export const TableRowHeightAttribute = Extension.create({
-  name: "tableRowHeightAttribute",
-  addGlobalAttributes() {
-    return [
-      {
-        types: ["tableRow"],
-        attributes: {
-          rowHeight: {
-            default: null,
-            parseHTML: (element) => {
-              const value =
-                element.style.height ||
-                element.getAttribute("data-row-height") ||
-                "";
-              const rowHeight = Number.parseInt(value, 10);
-              return Number.isFinite(rowHeight) && rowHeight > 0
-                ? rowHeight
-                : null;
-            },
-            renderHTML: (attributes) => {
-              const rowHeight = Number(attributes.rowHeight);
-              if (!Number.isFinite(rowHeight) || rowHeight <= 0) return {};
-
-              const normalizedHeight = Math.round(rowHeight);
-              return {
-                "data-row-height": String(normalizedHeight),
-                style: `height: ${normalizedHeight}px`,
-              };
-            },
-          },
-        },
-      },
-    ];
-  },
-});
-
 export function createPostContentExtensions(): Extensions {
   return [
     StarterKit.configure({
@@ -81,7 +45,6 @@ export function createPostContentExtensions(): Extensions {
       link: false,
     }),
     HeadingIdAttribute,
-    TableRowHeightAttribute,
     NodeBackground,
     HorizontalRule,
     Link.configure({
