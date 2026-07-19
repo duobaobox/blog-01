@@ -195,6 +195,8 @@ test("client editor extends the same persisted content contract", () => {
   }).map((extension) => extension.name);
 
   assert.deepEqual(editorNames.slice(0, contentNames.length), contentNames);
+  assert.equal(contentNames.includes("tableHandles"), false);
+  assert.equal(editorNames.includes("tableHandles"), true);
   assert.equal(editorNames.at(-1), "placeholder");
 });
 
@@ -218,7 +220,10 @@ test("server renderer supports every persisted rich-content feature", () => {
   assert.match(html, /<img[^>]*alt="示例图片"/);
   assert.match(html, /loading="lazy"/);
   assert.match(html, /decoding="async"/);
-  assert.match(html, /<table/);
+  assert.match(html, /class="tableWrapper"/);
+  assert.match(html, /<table[^>]*class="tiptap-table"/);
+  assert.match(html, /class="tiptap-table-header"/);
+  assert.match(html, /class="tiptap-table-cell"/);
   assert.match(html, /const ready = true;/);
 
   for (const expectedText of [
