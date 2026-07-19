@@ -5,7 +5,6 @@ import type { Editor, JSONContent } from "@tiptap/core"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 import { Markdown } from "@tiptap/markdown"
 import { Selection } from "@tiptap/extensions"
-import { Table2 } from "lucide-react"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap/ui-primitive/button"
@@ -41,6 +40,8 @@ import {
   LinkButton,
 } from "@/components/tiptap/ui/link-popover"
 import { MarkButton } from "@/components/tiptap/ui/mark-button"
+import { TableBubbleMenu } from "@/components/tiptap/ui/table-bubble-menu"
+import { TableDropdownMenu } from "@/components/tiptap/ui/table-dropdown-menu"
 import { TextAlignButton } from "@/components/tiptap/ui/text-align-button"
 import { UndoRedoButton } from "@/components/tiptap/ui/undo-redo-button"
 
@@ -85,13 +86,11 @@ const MainToolbarContent = ({
   onHighlighterClick,
   onLinkClick,
   onMediaClick,
-  onInsertTable,
   isMobile,
 }: {
   onHighlighterClick: () => void
   onLinkClick: () => void
   onMediaClick: () => void
-  onInsertTable: () => void
   isMobile: boolean
 }) => {
   return (
@@ -158,14 +157,7 @@ const MainToolbarContent = ({
         >
           <ImagePlusIcon className="tiptap-button-icon" />
         </Button>
-        <Button
-          variant="ghost"
-          onClick={onInsertTable}
-          aria-label="插入表格"
-          tooltip="插入表格"
-        >
-          <Table2 className="tiptap-button-icon" />
-        </Button>
+        <TableDropdownMenu modal={false} />
       </ToolbarGroup>
 
       <Spacer />
@@ -295,13 +287,6 @@ function SimpleEditorInstance({
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
               onMediaClick={() => onRequestMedia?.()}
-              onInsertTable={() =>
-                editor
-                  ?.chain()
-                  .focus()
-                  .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                  .run()
-              }
               isMobile={isMobile}
             />
           ) : (
@@ -311,6 +296,8 @@ function SimpleEditorInstance({
             />
           )}
         </Toolbar>
+
+        {editor ? <TableBubbleMenu editor={editor} /> : null}
 
         <EditorContent
           editor={editor}
