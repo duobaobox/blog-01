@@ -5,7 +5,7 @@ export const homeConfig = {
       eyebrow: "记录 · 分享 · 成长",
       greeting: "Hi~",
       title: "欢迎来到我的博客",
-      description: "记录设计灵感，分享学习成长，探索更多值得长期积累的内容。",
+      description: "记录设计灵感，分享学习成长，探索无限可能。",
       primaryAction: {
         label: "查看最新文章",
         href: "/blog",
@@ -15,10 +15,9 @@ export const homeConfig = {
         href: "/about",
       },
       visual: {
-        // 可替换为 public 目录中的本地图片，例如 /home/hero.webp。
-        // 留空时使用后台配置的站点头像生成默认主视觉。
-        imageUrl: null as string | null,
-        imageAlt: "博客首页主视觉",
+        // 默认主视觉位于 public/home，可直接替换同名文件完成换肤。
+        imageUrl: "/home/hero-visual.svg",
+        imageAlt: "坐在电脑前创作的博客作者三维插画",
       },
     },
     featuredPosts: {
