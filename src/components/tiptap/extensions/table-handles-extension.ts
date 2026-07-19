@@ -10,12 +10,14 @@
 
 import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { CellSelection } from '@tiptap/pm/tables';
 
 // 菜单项
 interface MenuItem {
   label: string;
   action: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }
 
 const getTableWrapper = (table: HTMLElement) =>
@@ -57,7 +59,9 @@ function createMenu(
     button.type = 'button';
     button.className = `table-handle-menu-item${item.danger ? ' danger' : ''}`;
     button.textContent = item.label;
+    button.disabled = Boolean(item.disabled);
     button.setAttribute('role', 'menuitem');
+    button.setAttribute('aria-disabled', String(Boolean(item.disabled)));
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -173,6 +177,37 @@ export const TableHandles = Extension.create({
       }, 200);
     };
 
+    const selectCellForMenu = (cell: HTMLTableCellElement) => {
+      if (editor.state.selection instanceof CellSelection) return;
+
+      const pos = editor.view.posAtDOM(cell, 0);
+      editor.commands.setTextSelection(pos);
+    };
+
+    const getCellItems = (): MenuItem[] => [
+      {
+        label: '合并选中单元格',
+        action: () => editor.chain().focus().mergeCells().run(),
+        disabled: !editor.can().mergeCells(),
+      },
+      {
+        label: '拆分当前单元格',
+        action: () => editor.chain().focus().splitCell().run(),
+        disabled: !editor.can().splitCell(),
+      },
+    ];
+
+    const positionMenu = (menu: HTMLDivElement, x: number, y: number) => {
+      menu.style.position = 'fixed';
+      document.body.appendChild(menu);
+
+      const rect = menu.getBoundingClientRect();
+      const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
+      const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+    };
+
     /**
      * 显示行菜单
      */
@@ -182,9 +217,7 @@ export const TableHandles = Extension.create({
       if (currentTable) {
         const row = currentTable.rows[rowIndex];
         if (row && row.cells[0]) {
-          const cell = row.cells[0];
-          const pos = editor.view.posAtDOM(cell, 0);
-          editor.commands.setTextSelection(pos);
+          selectCellForMenu(row.cells[0]);
         }
       }
 
@@ -198,6 +231,12 @@ export const TableHandles = Extension.create({
           action: () => editor.chain().focus().addRowAfter().run(),
         },
         {
+          label: '切换表头行',
+          action: () => editor.chain().focus().toggleHeaderRow().run(),
+          disabled: !editor.can().toggleHeaderRow(),
+        },
+        ...getCellItems(),
+        {
           label: '删除行',
           action: () => editor.chain().focus().deleteRow().run(),
           danger: true,
@@ -210,10 +249,7 @@ export const TableHandles = Extension.create({
       ];
 
       currentMenu = createMenu(items, removeMenu);
-      currentMenu.style.position = 'fixed';
-      currentMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 168))}px`;
-      currentMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - 184))}px`;
-      document.body.appendChild(currentMenu);
+      positionMenu(currentMenu, x, y);
       bindMenuCloseHandler();
     };
 
@@ -226,9 +262,7 @@ export const TableHandles = Extension.create({
       if (currentTable) {
         const firstRow = currentTable.rows[0];
         if (firstRow && firstRow.cells[colIndex]) {
-          const cell = firstRow.cells[colIndex];
-          const pos = editor.view.posAtDOM(cell, 0);
-          editor.commands.setTextSelection(pos);
+          selectCellForMenu(firstRow.cells[colIndex]);
         }
       }
 
@@ -242,6 +276,12 @@ export const TableHandles = Extension.create({
           action: () => editor.chain().focus().addColumnAfter().run(),
         },
         {
+          label: '切换表头列',
+          action: () => editor.chain().focus().toggleHeaderColumn().run(),
+          disabled: !editor.can().toggleHeaderColumn(),
+        },
+        ...getCellItems(),
+        {
           label: '删除列',
           action: () => editor.chain().focus().deleteColumn().run(),
           danger: true,
@@ -254,10 +294,7 @@ export const TableHandles = Extension.create({
       ];
 
       currentMenu = createMenu(items, removeMenu);
-      currentMenu.style.position = 'fixed';
-      currentMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 168))}px`;
-      currentMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - 184))}px`;
-      document.body.appendChild(currentMenu);
+      positionMenu(currentMenu, x, y);
       bindMenuCloseHandler();
     };
 
