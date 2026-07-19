@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Coffee, Laptop, Leaf, Sparkles } from "lucide-react";
+import { ArrowRight, BellRing, Sparkles } from "lucide-react";
 import type { PublicPostCard } from "@/features/posts/queries/post.queries";
 import { getPostDisplayDate } from "@/features/posts/lib/post-status";
 import type { ResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
@@ -8,79 +8,26 @@ import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import { formatDate } from "@/shared/lib/date";
 
 type HomeHeroProps = {
-  site: Pick<
-    ResolvedSiteConfig,
-    "name" | "description" | "subtitle" | "avatar"
-  >;
+  site: Pick<ResolvedSiteConfig, "name" | "description" | "subtitle">;
   config: HomeHeroConfig;
   highlightedPost?: PublicPostCard;
   postSource: "featured" | "latest";
 };
 
-function HomeHeroVisual({
-  site,
-  config,
-}: Pick<HomeHeroProps, "site" | "config">) {
-  if (config.visual.imageUrl) {
-    return (
-      <div className="relative min-h-[22rem] w-full sm:min-h-[28rem]">
-        <Image
-          src={config.visual.imageUrl}
-          alt={config.visual.imageAlt}
-          fill
-          priority
-          sizes="(min-width: 1024px) 480px, 100vw"
-          className="object-contain object-bottom"
-        />
-      </div>
-    );
-  }
-
+function HomeHeroVisual({ config }: Pick<HomeHeroProps, "config">) {
   return (
-    <div className="relative mx-auto min-h-[22rem] w-full max-w-[31rem] sm:min-h-[28rem]">
-      <div className="absolute inset-x-[7%] top-[8%] aspect-square rounded-full border border-primary/10 bg-background/35 shadow-inner" />
-      <div className="absolute right-[4%] top-[12%] size-24 rounded-full bg-primary/10 blur-2xl sm:size-36" />
-      <div className="absolute left-[3%] top-[34%] size-20 rounded-full bg-primary/10 blur-2xl sm:size-28" />
-
-      <div className="absolute inset-x-[3%] bottom-0 h-[24%] rounded-t-[3rem] border border-b-0 border-border/60 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_82%,transparent),var(--muted))] shadow-[0_-18px_50px_-38px_var(--foreground)]" />
-
-      <div className="absolute left-[8%] bottom-[21%] z-20 flex flex-col items-center">
-        <Leaf className="size-12 -rotate-12 text-primary/70 sm:size-16" />
-        <div className="h-10 w-12 rounded-b-2xl rounded-t-md border bg-background/85 shadow-sm sm:h-12 sm:w-14" />
-      </div>
-
-      <div className="absolute right-[7%] bottom-[19%] z-20 flex size-14 items-center justify-center rounded-2xl border bg-background/85 shadow-sm sm:size-16">
-        <Coffee className="size-7 text-primary/70" />
-      </div>
-
-      <div className="absolute left-1/2 top-[12%] z-10 -translate-x-1/2">
-        {site.avatar ? (
-          <div className="relative size-48 overflow-hidden rounded-[42%] border-4 border-background/80 bg-muted shadow-xl sm:size-60">
-            <Image
-              src={site.avatar.url}
-              alt={site.avatar.alt ?? site.name}
-              width={site.avatar.width ?? 360}
-              height={site.avatar.height ?? 360}
-              sizes="(min-width: 640px) 240px, 192px"
-              priority
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="flex size-48 items-center justify-center rounded-[42%] border-4 border-background/80 bg-primary/10 text-7xl font-bold text-primary shadow-xl sm:size-60">
-            {site.name.slice(0, 1).toUpperCase()}
-          </div>
-        )}
-      </div>
-
-      <div className="absolute bottom-[17%] left-1/2 z-30 w-[58%] -translate-x-1/2">
-        <div className="relative aspect-[16/10] rounded-t-2xl border border-border/80 bg-[linear-gradient(145deg,var(--card),var(--muted))] shadow-2xl">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Laptop className="size-12 text-primary/65 sm:size-14" />
-          </div>
-        </div>
-        <div className="mx-auto h-3 w-[112%] -translate-x-[5.5%] rounded-b-xl border border-t-0 bg-muted shadow-md" />
-      </div>
+    <div className="relative z-10 flex min-h-[20rem] w-full items-end justify-center self-end sm:min-h-[25rem] lg:min-h-[31rem] lg:justify-end">
+      <div className="absolute bottom-[8%] left-[12%] h-[34%] w-[68%] rounded-[50%] bg-violet-300/20 blur-3xl dark:bg-violet-500/10" />
+      <Image
+        src={config.visual.imageUrl}
+        alt={config.visual.imageAlt}
+        width={960}
+        height={598}
+        priority
+        unoptimized
+        sizes="(min-width: 1280px) 760px, (min-width: 1024px) 58vw, 94vw"
+        className="relative h-auto w-[min(46rem,112%)] max-w-none translate-y-px object-contain object-bottom drop-shadow-[0_28px_35px_rgba(93,72,170,0.12)] lg:-mr-12 xl:-mr-20"
+      />
     </div>
   );
 }
@@ -97,30 +44,41 @@ export function HomeHero({
   const description = site.subtitle || config.description || site.description;
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-border/70 bg-[radial-gradient(circle_at_78%_24%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_34%),linear-gradient(135deg,var(--background),color-mix(in_oklab,var(--background)_88%,var(--primary)))]">
-      <div className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(to_right,color-mix(in_oklab,var(--border)_35%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--border)_25%,transparent)_1px,transparent_1px)] [background-size:52px_52px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]" />
+    <section className="relative isolate overflow-hidden border-b border-violet-100/80 bg-[radial-gradient(circle_at_12%_6%,rgba(255,255,255,0.98),transparent_38%),radial-gradient(circle_at_74%_28%,rgba(124,92,255,0.16),transparent_35%),linear-gradient(115deg,#fcfcff_0%,#f8f7ff_48%,#f0edff_100%)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_74%_28%,rgba(124,92,255,0.18),transparent_34%),linear-gradient(115deg,#15141d_0%,#191724_55%,#211c35_100%)]">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-[10%] -top-[38%] h-[145%] w-[70%] rounded-[50%] border border-violet-200/45 bg-violet-100/20 dark:border-violet-400/10 dark:bg-violet-400/5" />
+        <div className="absolute right-[18%] top-[24%] h-[76%] w-[48%] rounded-[50%] border border-violet-200/35 bg-white/10 dark:border-violet-400/10" />
+        <div className="absolute -bottom-24 left-[32%] size-[28rem] rounded-full bg-violet-200/25 blur-3xl dark:bg-violet-700/10" />
 
-      <div className="relative mx-auto grid min-h-[34rem] max-w-5xl items-center gap-8 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-6 lg:py-10">
-        <div className="relative z-10 py-4 lg:py-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-background/70 px-3 py-1.5 text-sm font-medium text-primary shadow-sm backdrop-blur">
-            <Sparkles className="size-3.5" />
+        <div className="absolute right-0 top-0 hidden h-full w-[23%] opacity-45 blur-[1.5px] lg:block">
+          <div className="absolute right-[12%] top-0 h-full w-px bg-violet-200/70 dark:bg-violet-400/10" />
+          <div className="absolute right-[31%] top-0 h-full w-px bg-violet-200/45 dark:bg-violet-400/10" />
+          <div className="absolute right-[5%] top-[16%] h-2 w-[72%] rounded-full bg-white/80 shadow-[0_24px_0_rgba(255,255,255,0.7),0_48px_0_rgba(255,255,255,0.64),0_72px_0_rgba(255,255,255,0.58)] dark:bg-white/5 dark:shadow-[0_24px_0_rgba(255,255,255,0.04),0_48px_0_rgba(255,255,255,0.035),0_72px_0_rgba(255,255,255,0.03)]" />
+          <div className="absolute right-[12%] top-[20%] h-24 w-8 rounded-t-full bg-violet-300/35" />
+          <div className="absolute right-[42%] top-[21%] h-20 w-6 rounded-t-full bg-violet-200/40" />
+        </div>
+      </div>
+
+      <div className="relative mx-auto grid min-h-[35rem] max-w-7xl items-center gap-4 px-5 pt-14 sm:px-8 lg:grid-cols-[0.86fr_1.14fr] lg:px-10 lg:pt-0 xl:px-12">
+        <div className="relative z-20 pb-12 pt-3 sm:pb-14 lg:py-16 xl:pl-2">
+          <div className="inline-flex items-center rounded-full border border-violet-200/70 bg-white/70 px-3.5 py-1.5 text-sm font-medium tracking-wide text-violet-600 shadow-[0_8px_24px_-14px_rgba(109,78,255,0.5)] backdrop-blur dark:border-violet-400/20 dark:bg-white/5 dark:text-violet-300">
             {config.eyebrow}
           </div>
 
-          <p className="mt-7 text-6xl font-black tracking-[-0.06em] text-primary sm:text-7xl">
+          <p className="mt-7 bg-linear-to-r from-violet-600 via-indigo-500 to-violet-400 bg-clip-text text-6xl font-black leading-none tracking-[-0.07em] text-transparent sm:text-7xl lg:text-[5.2rem]">
             {config.greeting}
           </p>
-          <h1 className="mt-2 max-w-2xl text-4xl font-black tracking-[-0.045em] text-foreground sm:text-5xl lg:text-[3.4rem] lg:leading-[1.08]">
+          <h1 className="mt-3 max-w-[13ch] text-4xl font-black leading-[1.08] tracking-[-0.055em] text-slate-950 sm:text-5xl lg:text-[3.65rem] dark:text-white">
             {config.title}
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+          <p className="mt-5 max-w-xl text-base leading-8 text-slate-500 sm:text-lg dark:text-slate-300/75">
             {description}
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-4">
             <Link
               href={config.primaryAction.href}
-              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/15 transition-transform hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_-14px_rgba(91,66,230,0.75)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-14px_rgba(91,66,230,0.82)]"
             >
               <Sparkles className="size-4" />
               {config.primaryAction.label}
@@ -128,35 +86,36 @@ export function HomeHero({
             </Link>
             <Link
               href={config.secondaryAction.href}
-              className="group inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background/65 px-5 py-3 text-sm font-semibold shadow-sm backdrop-blur transition-colors hover:bg-accent"
+              className="group inline-flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
             >
               {config.secondaryAction.label}
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="size-4 text-violet-600 transition-transform group-hover:translate-x-0.5 dark:text-violet-300" />
             </Link>
           </div>
 
           {highlightedPost ? (
             <Link
               href={`/blog/${highlightedPost.slug}`}
-              className="group mt-9 flex max-w-xl items-center gap-3 border-t border-border/70 pt-5 text-sm"
+              className="group mt-9 flex max-w-xl items-center gap-2.5 border-t border-violet-100/90 pt-5 text-sm dark:border-white/10"
             >
-              <span className="shrink-0 font-medium text-primary">
-                {postSource === "featured" ? "精选推荐" : "最近更新"}
+              <BellRing className="size-4 shrink-0 text-violet-500" />
+              <span className="shrink-0 font-medium text-violet-600 dark:text-violet-300">
+                {postSource === "featured" ? "精选推荐：" : "最近更新："}
               </span>
-              <span className="min-w-0 flex-1 truncate text-muted-foreground transition-colors group-hover:text-foreground">
-                {highlightedPost.title}
+              <span className="min-w-0 flex-1 truncate text-violet-600/85 transition-colors group-hover:text-violet-700 dark:text-violet-300/80">
+                《{highlightedPost.title}》
               </span>
               {highlightedDate ? (
-                <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">
+                <span className="hidden shrink-0 text-xs text-slate-400 sm:inline dark:text-slate-400">
                   {formatDate(highlightedDate)}
                 </span>
               ) : null}
-              <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="size-4 shrink-0 text-violet-500 transition-transform group-hover:translate-x-0.5" />
             </Link>
           ) : null}
         </div>
 
-        <HomeHeroVisual site={site} config={config} />
+        <HomeHeroVisual config={config} />
       </div>
     </section>
   );
