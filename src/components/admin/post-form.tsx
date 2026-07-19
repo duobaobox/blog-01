@@ -467,11 +467,21 @@ export function PostForm({
           if (startedAsNewDraft && updateUrlAfterCreate) {
             const nextFolderId =
               acknowledgedForm.folderId || currentForm.folderId;
-            const nextUrl = nextFolderId
-              ? `/admin/posts?folder=${nextFolderId}&postId=${savedPost.id}`
-              : `/admin/posts?postId=${savedPost.id}`;
+            const nextUrl = new URL(window.location.href);
 
-            window.history.replaceState(null, "", nextUrl);
+            if (nextFolderId) {
+              nextUrl.searchParams.set("folder", nextFolderId);
+            } else {
+              nextUrl.searchParams.delete("folder");
+            }
+            nextUrl.searchParams.set("postId", savedPost.id);
+            nextUrl.searchParams.delete("view");
+
+            window.history.replaceState(
+              null,
+              "",
+              `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`,
+            );
           }
 
           return true;
