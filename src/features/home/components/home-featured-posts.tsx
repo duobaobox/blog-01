@@ -18,20 +18,20 @@ const placeholderStyles = [
   {
     surface:
       "from-[#f2efff] via-[#f8f7ff] to-white dark:from-violet-950/65 dark:via-indigo-950/40 dark:to-slate-950",
-    halo: "bg-[#9086ff]/20 dark:bg-violet-500/14",
-    icon: "from-[#7663ff] to-[#5d77f7] shadow-[#7663ff]/22",
+    halo: "bg-[#9086ff]/20 dark:bg-violet-500/[0.14]",
+    icon: "from-[#7663ff] to-[#5d77f7] shadow-[#7663ff]/[0.22]",
   },
   {
     surface:
       "from-[#fff2e4] via-[#fff8f0] to-white dark:from-orange-950/55 dark:via-amber-950/32 dark:to-slate-950",
-    halo: "bg-[#ffad67]/20 dark:bg-orange-500/14",
-    icon: "from-[#ff9b49] to-[#f07835] shadow-[#ff9b49]/22",
+    halo: "bg-[#ffad67]/20 dark:bg-orange-500/[0.14]",
+    icon: "from-[#ff9b49] to-[#f07835] shadow-[#ff9b49]/[0.22]",
   },
   {
     surface:
       "from-[#ebf8f1] via-[#f7fcf9] to-white dark:from-emerald-950/55 dark:via-green-950/32 dark:to-slate-950",
-    halo: "bg-[#6ed69a]/20 dark:bg-emerald-500/14",
-    icon: "from-[#48c982] to-[#2bae68] shadow-[#48c982]/22",
+    halo: "bg-[#6ed69a]/20 dark:bg-emerald-500/[0.14]",
+    icon: "from-[#48c982] to-[#2bae68] shadow-[#48c982]/[0.22]",
   },
 ] as const;
 
@@ -76,12 +76,12 @@ function HomePostCard({
               className={`absolute left-[16%] top-[12%] size-28 rounded-full blur-2xl ${placeholder.halo}`}
             />
             <div className="absolute -right-8 -top-10 size-32 rounded-full border border-white/60 bg-white/30 dark:border-white/10 dark:bg-white/5" />
-            <div className="absolute -bottom-14 -left-8 size-36 rounded-full border border-white/75 bg-white/48 dark:border-white/10 dark:bg-white/5" />
+            <div className="absolute -bottom-14 -left-8 size-36 rounded-full border border-white/75 bg-white/[0.48] dark:border-white/10 dark:bg-white/5" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className={`flex size-15 -rotate-6 items-center justify-center rounded-[1.05rem] bg-linear-to-br text-white shadow-xl transition duration-300 group-hover:rotate-0 group-hover:scale-105 sm:size-16 ${placeholder.icon}`}
+                className={`flex size-16 -rotate-6 items-center justify-center rounded-[1.05rem] bg-linear-to-br text-white shadow-xl transition duration-300 group-hover:rotate-0 group-hover:scale-105 ${placeholder.icon}`}
               >
-                <BookOpenText className="size-7 sm:size-8" />
+                <BookOpenText className="size-8" />
               </div>
             </div>
           </>
@@ -147,7 +147,7 @@ export function HomeFeaturedPosts({
       action={config.action}
       className="relative overflow-hidden"
     >
-      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-[#e5e3ff]/36 blur-3xl dark:bg-violet-600/10" />
+      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-[#e5e3ff]/[0.36] blur-3xl dark:bg-violet-600/10" />
       <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => (
           <HomePostCard
