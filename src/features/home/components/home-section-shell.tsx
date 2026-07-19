@@ -24,17 +24,17 @@ export function HomeSectionShell({
   return (
     <section
       className={cn(
-        "rounded-[1.6rem] border border-violet-100/90 bg-white/[0.72] p-5 shadow-[0_22px_60px_-42px_rgba(91,66,230,0.34)] backdrop-blur-xl sm:p-6 lg:p-7 dark:border-white/10 dark:bg-white/[0.045]",
+        "rounded-[1.6rem] border border-[#ebe8f5] bg-white/[0.82] p-5 shadow-[0_20px_55px_-42px_rgba(84,78,170,0.28)] backdrop-blur-xl sm:p-6 dark:border-white/10 dark:bg-white/[0.045]",
         className,
       )}
     >
       <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl dark:text-white">
+          <h2 className="text-xl font-bold tracking-tight text-[#20243a] sm:text-2xl dark:text-white">
             {title}
           </h2>
           {description ? (
-            <p className="mt-1.5 text-sm leading-6 text-slate-500 dark:text-slate-300/70">
+            <p className="mt-1.5 text-sm leading-6 text-[#7a8093] dark:text-slate-300/70">
               {description}
             </p>
           ) : null}
@@ -43,7 +43,7 @@ export function HomeSectionShell({
         {action ? (
           <Link
             href={action.href}
-            className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-violet-600 transition-colors hover:text-violet-700 dark:text-violet-300 dark:hover:text-violet-200"
+            className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[#6d63f2] transition-colors hover:text-[#554bd4] dark:text-[#b9b5ff] dark:hover:text-white"
           >
             {action.label}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
