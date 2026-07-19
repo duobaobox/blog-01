@@ -25,7 +25,7 @@ function HomePostCard({ post, priority }: { post: PublicPostCard; priority: bool
       href={`/blog/${post.slug}`}
       className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-background/75 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg"
     >
-      <div className="relative aspect-[16/10] overflow-hidden border-b border-border/60 bg-gradient-to-br from-primary/15 via-background to-muted">
+      <div className="relative aspect-[16/10] overflow-hidden border-b border-border/60 bg-linear-to-br from-primary/15 via-background to-muted">
         {coverImageUrl ? (
           <Image
             src={coverImageUrl}
