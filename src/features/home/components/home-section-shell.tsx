@@ -24,7 +24,7 @@ export function HomeSectionShell({
   return (
     <section
       className={cn(
-        "rounded-[1.6rem] border border-violet-100/90 bg-white/72 p-5 shadow-[0_22px_60px_-42px_rgba(91,66,230,0.34)] backdrop-blur-xl sm:p-6 lg:p-7 dark:border-white/10 dark:bg-white/[0.045]",
+        "rounded-[1.6rem] border border-violet-100/90 bg-white/[0.72] p-5 shadow-[0_22px_60px_-42px_rgba(91,66,230,0.34)] backdrop-blur-xl sm:p-6 lg:p-7 dark:border-white/10 dark:bg-white/[0.045]",
         className,
       )}
     >
