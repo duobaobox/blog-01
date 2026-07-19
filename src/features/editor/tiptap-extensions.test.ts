@@ -159,6 +159,7 @@ const RICH_POST_CONTENT: JSONContent = {
         },
         {
           type: "tableRow",
+          attrs: { rowHeight: 48 },
           content: [
             {
               type: "tableCell",
@@ -224,6 +225,8 @@ test("server renderer supports every persisted rich-content feature", () => {
   assert.match(html, /<table[^>]*class="tiptap-table"/);
   assert.match(html, /class="tiptap-table-header"/);
   assert.match(html, /class="tiptap-table-cell"/);
+  assert.match(html, /data-row-height="48"/);
+  assert.match(html, /height:\s*48px/);
   assert.match(html, /const ready = true;/);
 
   for (const expectedText of [
