@@ -1,0 +1,265 @@
+/*
+ * Shared table styles for editable and published Tiptap content.
+ * Interactive handles are only mounted by the editor extension.
+ */
+
+.tiptap.ProseMirror {
+  .tableWrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin-block: 1.5rem;
+    padding: 0.75rem 0 0.25rem 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    width: 100%;
+    min-width: 32rem;
+    margin: 0;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  th,
+  td {
+    position: relative;
+    min-width: 5rem;
+    border: 1px solid var(--border);
+    padding: 0.625rem 0.75rem;
+    vertical-align: top;
+    background: var(--background);
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  th {
+    background: color-mix(in oklab, var(--muted) 76%, var(--background));
+    font-weight: 600;
+    text-align: left;
+  }
+
+  th > :first-child,
+  td > :first-child {
+    margin-top: 0;
+  }
+
+  th > :last-child,
+  td > :last-child {
+    margin-bottom: 0;
+  }
+
+  .selectedCell::after {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    content: "";
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--primary) 45%, transparent);
+  }
+
+  .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    z-index: 5;
+    width: 4px;
+    pointer-events: none;
+    background: var(--primary);
+    border-radius: 999px;
+  }
+
+  &.resize-cursor,
+  &.resize-cursor * {
+    cursor: col-resize !important;
+    user-select: none;
+  }
+
+  &[contenteditable="true"] {
+    th:hover,
+    td:hover {
+      border-color: color-mix(in oklab, var(--primary) 34%, var(--border));
+    }
+  }
+
+  &[contenteditable="false"] .tableWrapper {
+    padding-top: 0;
+    padding-left: 0;
+  }
+}
+
+.table-handles-container {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.table-handle {
+  position: absolute;
+  z-index: 31;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  background: var(--popover);
+  border: 1px solid var(--border);
+  opacity: 0;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+  transition:
+    opacity 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+  will-change: transform, opacity;
+}
+
+.tableWrapper:hover .table-handle,
+.table-handles-container:hover .table-handle,
+.table-handle:focus-visible {
+  opacity: 1;
+}
+
+.table-handle:hover,
+.table-handle:focus-visible {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
+  outline: none;
+}
+
+.table-handle-row {
+  width: 10px;
+  height: 22px;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 999px;
+}
+
+.table-handle-column {
+  width: 22px;
+  height: 10px;
+  flex-direction: row;
+  gap: 2px;
+  border-radius: 999px;
+}
+
+.table-handle-dot {
+  width: 2px;
+  height: 2px;
+  flex-shrink: 0;
+  background: currentColor;
+  border-radius: 50%;
+  opacity: 0.65;
+}
+
+.table-handle-menu {
+  position: fixed;
+  z-index: 80;
+  display: flex;
+  min-width: 10rem;
+  max-width: calc(100vw - 1rem);
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.25rem;
+  color: var(--popover-foreground);
+  background: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: 0.625rem;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 16%);
+  animation: table-menu-in 120ms ease-out;
+}
+
+.table-handle-menu-item {
+  display: flex;
+  width: 100%;
+  min-height: 2rem;
+  align-items: center;
+  padding: 0.375rem 0.625rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 0.375rem;
+}
+
+.table-handle-menu-item:hover,
+.table-handle-menu-item:focus-visible {
+  background: var(--accent);
+  outline: none;
+}
+
+.table-handle-menu-item.danger {
+  color: var(--destructive);
+}
+
+.table-handle-menu-item.danger:hover,
+.table-handle-menu-item.danger:focus-visible {
+  background: color-mix(in oklab, var(--destructive) 10%, transparent);
+}
+
+@keyframes table-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .tiptap.ProseMirror {
+    .tableWrapper {
+      margin-block: 1rem;
+      padding-top: 0.625rem;
+      padding-left: 0.625rem;
+    }
+
+    table {
+      min-width: 28rem;
+      font-size: 0.8125rem;
+    }
+
+    th,
+    td {
+      min-width: 4.5rem;
+      padding: 0.5rem 0.625rem;
+    }
+  }
+}
+
+@media print {
+  .table-handles-container,
+  .table-handle-menu,
+  .column-resize-handle {
+    display: none !important;
+  }
+
+  .tiptap.ProseMirror {
+    .tableWrapper {
+      overflow: visible;
+      padding: 0;
+    }
+
+    table,
+    tr {
+      break-inside: avoid;
+    }
+  }
+}
