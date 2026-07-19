@@ -161,7 +161,8 @@ export function ContentSpaceShell({
       setSidebarOpen(false);
       navigate({
         folderId: activeFolder.id,
-        status: "draft",
+        status: statusFilter,
+        q: searchQuery,
         postId: post.id,
       });
     } catch (error) {
