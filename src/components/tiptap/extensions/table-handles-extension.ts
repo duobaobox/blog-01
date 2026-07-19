@@ -10,7 +10,6 @@
 
 import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { findTable, TableMap } from '@tiptap/pm/tables';
 
 // 菜单项
 interface MenuItem {
@@ -182,82 +181,6 @@ export const TableHandles = Extension.create({
       editor.commands.setTextSelection(pos);
     };
 
-    const focusEditorWithoutScrolling = () => {
-      editor.view.dom.focus({ preventScroll: true });
-    };
-
-    const distributeColumnWidths = () => {
-      if (!currentTable) return;
-
-      const table = findTable(editor.state.selection.$from);
-      if (!table) return;
-
-      const map = TableMap.get(table.node);
-      if (map.width < 1) return;
-
-      const measuredWidth = currentTable.getBoundingClientRect().width;
-      const tableWidth = Math.max(measuredWidth, map.width * 80);
-      const columnWidth = Math.max(80, Math.round(tableWidth / map.width));
-      const tr = editor.state.tr;
-      let changed = false;
-
-      table.node.descendants((node, pos) => {
-        const tableRole = node.type.spec.tableRole;
-        if (tableRole !== 'cell' && tableRole !== 'header_cell') return true;
-
-        const colspan = Math.max(1, Number(node.attrs.colspan) || 1);
-        const colwidth = Array.from({ length: colspan }, () => columnWidth);
-        const currentColwidth = node.attrs.colwidth as number[] | null;
-        const isEqual =
-          Array.isArray(currentColwidth) &&
-          currentColwidth.length === colwidth.length &&
-          currentColwidth.every((width, index) => width === colwidth[index]);
-
-        if (!isEqual) {
-          tr.setNodeMarkup(table.start + pos, undefined, {
-            ...node.attrs,
-            colwidth,
-          });
-          changed = true;
-        }
-
-        return false;
-      });
-
-      if (changed) editor.view.dispatch(tr);
-      focusEditorWithoutScrolling();
-    };
-
-    const distributeRowHeights = () => {
-      if (!currentTable || currentTable.rows.length < 1) return;
-
-      const table = findTable(editor.state.selection.$from);
-      if (!table) return;
-
-      const rows = Array.from(currentTable.rows);
-      const totalHeight = rows.reduce(
-        (sum, row) => sum + row.getBoundingClientRect().height,
-        0,
-      );
-      const rowHeight = Math.max(36, Math.round(totalHeight / rows.length));
-      const tr = editor.state.tr;
-      let changed = false;
-
-      table.node.forEach((row, offset) => {
-        if (row.type.spec.tableRole !== 'row') return;
-        if (Number(row.attrs.rowHeight) === rowHeight) return;
-
-        tr.setNodeMarkup(table.start + offset, undefined, {
-          ...row.attrs,
-          rowHeight,
-        });
-        changed = true;
-      });
-
-      if (changed) editor.view.dispatch(tr);
-      focusEditorWithoutScrolling();
-    };
-
     const positionMenu = (menu: HTMLDivElement, x: number, y: number) => {
       menu.style.position = 'fixed';
       document.body.appendChild(menu);
@@ -295,10 +218,6 @@ export const TableHandles = Extension.create({
           label: '切换表头行',
           action: () => editor.chain().focus().toggleHeaderRow().run(),
           disabled: !editor.can().toggleHeaderRow(),
-        },
-        {
-          label: '平均分配行高',
-          action: distributeRowHeights,
         },
         {
           label: '删除行',
@@ -343,10 +262,6 @@ export const TableHandles = Extension.create({
           label: '切换表头列',
           action: () => editor.chain().focus().toggleHeaderColumn().run(),
           disabled: !editor.can().toggleHeaderColumn(),
-        },
-        {
-          label: '平均分配列宽',
-          action: distributeColumnWidths,
         },
         {
           label: '删除列',
