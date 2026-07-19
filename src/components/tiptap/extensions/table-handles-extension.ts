@@ -43,7 +43,10 @@ function createHandleElement(type: 'row' | 'column', index: number): HTMLDivElem
 /**
  * 创建操作菜单
  */
-function createMenu(items: MenuItem[]): HTMLDivElement {
+function createMenu(
+  items: MenuItem[],
+  onClose: () => void,
+): HTMLDivElement {
   const menu = document.createElement('div');
   menu.className = 'table-handle-menu';
   menu.setAttribute('role', 'menu');
@@ -59,7 +62,7 @@ function createMenu(items: MenuItem[]): HTMLDivElement {
       e.preventDefault();
       e.stopPropagation();
       item.action();
-      menu.remove();
+      onClose();
     });
     menu.appendChild(button);
   });
@@ -87,6 +90,7 @@ export const TableHandles = Extension.create({
     let mutationObserver: MutationObserver | null = null;
     let updateHandlesFrame: number | null = null;
     let wrapperScrollHandler: (() => void) | null = null;
+    let menuCloseHandler: ((event: MouseEvent) => void) | null = null;
 
     /**
      * 清除隐藏定时器
@@ -133,10 +137,28 @@ export const TableHandles = Extension.create({
      * 移除菜单
      */
     const removeMenu = () => {
+      if (menuCloseHandler) {
+        document.removeEventListener('click', menuCloseHandler);
+        menuCloseHandler = null;
+      }
+
       if (currentMenu) {
         currentMenu.remove();
         currentMenu = null;
       }
+    };
+
+    const bindMenuCloseHandler = () => {
+      if (menuCloseHandler) {
+        document.removeEventListener('click', menuCloseHandler);
+      }
+
+      menuCloseHandler = (event: MouseEvent) => {
+        if (currentMenu && !currentMenu.contains(event.target as Node)) {
+          removeMenu();
+        }
+      };
+      document.addEventListener('click', menuCloseHandler);
     };
 
     /**
@@ -187,21 +209,12 @@ export const TableHandles = Extension.create({
         },
       ];
 
-      currentMenu = createMenu(items);
+      currentMenu = createMenu(items, removeMenu);
       currentMenu.style.position = 'fixed';
       currentMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 168))}px`;
       currentMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - 184))}px`;
       document.body.appendChild(currentMenu);
-
-      setTimeout(() => {
-        const closeHandler = (e: MouseEvent) => {
-          if (currentMenu && !currentMenu.contains(e.target as Node)) {
-            removeMenu();
-            document.removeEventListener('click', closeHandler);
-          }
-        };
-        document.addEventListener('click', closeHandler);
-      }, 0);
+      bindMenuCloseHandler();
     };
 
     /**
@@ -240,21 +253,12 @@ export const TableHandles = Extension.create({
         },
       ];
 
-      currentMenu = createMenu(items);
+      currentMenu = createMenu(items, removeMenu);
       currentMenu.style.position = 'fixed';
       currentMenu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - 168))}px`;
       currentMenu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - 184))}px`;
       document.body.appendChild(currentMenu);
-
-      setTimeout(() => {
-        const closeHandler = (e: MouseEvent) => {
-          if (currentMenu && !currentMenu.contains(e.target as Node)) {
-            removeMenu();
-            document.removeEventListener('click', closeHandler);
-          }
-        };
-        document.addEventListener('click', closeHandler);
-      }, 0);
+      bindMenuCloseHandler();
     };
 
     /**
