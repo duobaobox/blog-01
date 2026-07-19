@@ -10,6 +10,7 @@ import { TableKit } from "@tiptap/extension-table";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Typography } from "@tiptap/extension-typography";
 import StarterKit from "@tiptap/starter-kit";
+import { TableHandles } from "@/components/tiptap/extensions/table-handles-extension";
 import { NodeBackground } from "@/components/tiptap/extensions/node-background-extension";
 import { HorizontalRule } from "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node-extension";
 
@@ -74,7 +75,34 @@ export function createPostContentExtensions(): Extensions {
     Typography,
     Superscript,
     Subscript,
-    TableKit,
+    TableKit.configure({
+      table: {
+        resizable: true,
+        handleWidth: 5,
+        cellMinWidth: 80,
+        lastColumnResizable: true,
+        allowTableNodeSelection: true,
+        renderWrapper: true,
+        HTMLAttributes: {
+          class: "tiptap-table",
+        },
+      },
+      tableCell: {
+        HTMLAttributes: {
+          class: "tiptap-table-cell",
+        },
+      },
+      tableHeader: {
+        HTMLAttributes: {
+          class: "tiptap-table-header",
+        },
+      },
+      tableRow: {
+        HTMLAttributes: {
+          class: "tiptap-table-row",
+        },
+      },
+    }),
   ];
 }
 
@@ -85,7 +113,10 @@ type CreatePostEditorExtensionsOptions = {
 export function createPostEditorExtensions(
   options: CreatePostEditorExtensionsOptions = {},
 ): Extensions {
-  const extensions = createPostContentExtensions();
+  const extensions: Extensions = [
+    ...createPostContentExtensions(),
+    TableHandles,
+  ];
 
   if (options.placeholder) {
     extensions.push(
