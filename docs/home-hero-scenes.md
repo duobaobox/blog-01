@@ -1,0 +1,27 @@
+# 首页随机场景素材
+
+首页 Hero 使用独立的透明 PNG 素材，不在 SVG 或组件源码中嵌入 Base64。场景配置位于 `src/features/home/config/home.config.ts`，渲染组件位于 `src/features/home/components/home-hero-visual.tsx`。
+
+## 当前素材
+
+```text
+public/home/scenes/
+  day-study.png
+  day-break.png
+  day-movie.png
+  night-work.png
+  night-sleep.png
+  night-relax.png
+```
+
+- `visual.light`：亮色主题场景。
+- `visual.dark`：暗色主题场景。
+- 用户进入首页后，从当前主题分组随机选择一张。
+- 用户切换明暗主题时，从新主题分组重新随机选择一张。
+- 服务端和首次水合固定使用亮色分组第一张，避免随机数导致水合不一致；主题状态可用后再完成随机选择。
+
+## 替换与扩展
+
+素材建议统一为 `1600 × 1000` 的透明 PNG，主体和桌面保持在画布内，左侧预留文案空间。替换时可以直接覆盖同名文件；新增场景时，将文件放入 `public/home/scenes`，再向对应主题数组添加 `imageUrl` 和有意义的 `imageAlt`。
+
+不要把图片转换为 Base64 写进 TSX、CSS 或 SVG。这样可以保持源码可读，并让 Next.js 独立处理图片缓存和优化。

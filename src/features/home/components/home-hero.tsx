@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BellRing, Sparkles } from "lucide-react";
 import type { PublicPostCard } from "@/features/posts/queries/post.queries";
 import { getPostDisplayDate } from "@/features/posts/lib/post-status";
 import type { ResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
+import { HomeHeroVisual } from "@/features/home/components/home-hero-visual";
 import { formatDate } from "@/shared/lib/date";
 
 type HomeHeroProps = {
@@ -13,31 +13,6 @@ type HomeHeroProps = {
   highlightedPost?: PublicPostCard;
   postSource: "featured" | "latest";
 };
-
-function HomeHeroVisual({ config }: Pick<HomeHeroProps, "config">) {
-  return (
-    <div className="relative z-10 flex min-h-[19rem] w-full min-w-0 items-end justify-center self-end overflow-visible sm:min-h-[24rem] lg:min-h-[29rem] lg:justify-end">
-      <div className="relative w-full max-w-[40rem]">
-        <Image
-          src={config.visual.imageUrl}
-          alt={config.visual.imageAlt}
-          width={960}
-          height={598}
-          priority
-          unoptimized
-          sizes="(min-width: 1024px) 540px, 94vw"
-          className="relative h-auto w-full object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]"
-        />
-
-        {/* 遮住素材中笔记本底部多余的横向金属边，位置使用百分比以适配响应式缩放。 */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-[16.2%] left-[36.5%] z-20 h-[4.4%] w-[31%] rounded-full bg-[linear-gradient(180deg,#f2d5bf_0%,#e8bd9f_100%)] shadow-[0_3px_10px_rgba(156,104,74,0.08)] blur-[0.35px] dark:opacity-90"
-        />
-      </div>
-    </div>
-  );
-}
 
 export function HomeHero({
   site,
@@ -108,7 +83,7 @@ export function HomeHero({
           ) : null}
         </div>
 
-        <HomeHeroVisual config={config} />
+        <HomeHeroVisual visual={config.visual} />
       </div>
     </section>
   );
