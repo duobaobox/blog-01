@@ -211,6 +211,7 @@ media/              本地媒体挂载目录
 - [协作与维护约定](./AGENTS.md)
 - [文档索引](./docs/README.md)
 - [当前架构基线](./docs/architecture-baseline.md)
+- [前台页面框架与主题扩展](./docs/public-page-layouts.md)
 - [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./docs/alicloud-docker-nginx-https-guide.md)
 - [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
