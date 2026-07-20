@@ -23,8 +23,8 @@ export function HomeHeroVisual({ visual }: HomeHeroVisualProps) {
   }, [resolvedTheme, visual]);
 
   return (
-    <div className="relative z-10 flex min-h-[19rem] w-full min-w-0 items-end justify-center self-end overflow-visible sm:min-h-[24rem] lg:min-h-[29rem] lg:justify-end">
-      <div className="relative w-full max-w-[40rem]">
+    <div className="relative z-10 flex min-h-[19rem] w-full min-w-0 items-end justify-center self-end overflow-visible sm:min-h-[24rem] lg:absolute lg:inset-y-0 lg:left-[30%] lg:right-[-3rem] lg:min-h-0 lg:w-auto lg:max-w-none lg:justify-end xl:left-[26%] xl:right-[-5rem]">
+      <div className="relative w-full max-w-[46rem] lg:max-w-none">
         <Image
           key={scene.imageUrl}
           src={scene.imageUrl}
@@ -32,7 +32,7 @@ export function HomeHeroVisual({ visual }: HomeHeroVisualProps) {
           width={1600}
           height={1000}
           priority
-          sizes="(min-width: 1024px) 540px, 94vw"
+          sizes="(min-width: 1280px) 840px, (min-width: 1024px) 74vw, 94vw"
           className="relative h-auto w-full object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]"
         />
       </div>
