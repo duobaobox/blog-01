@@ -4,7 +4,10 @@ import { cn } from "@/shared/lib/utils";
 import { Footer } from "@/shared/ui/footer";
 import { Header } from "@/shared/ui/header";
 
-export type PublicSurface = "default" | "home" | (string & {});
+export type PublicSurface =
+  | "default"
+  | "home"
+  | (string & Record<never, never>);
 
 type PublicShellProps = {
   children: ReactNode;
