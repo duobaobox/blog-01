@@ -11,12 +11,15 @@ jobs:
   report-tree:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out base commit
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 1
       - name: Report base commit and tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          echo "BASE_COMMIT=$(git rev-parse HEAD)"
-          echo "BASE_TREE=$(git rev-parse 'HEAD^{tree}')"
+          echo "BASE_COMMIT=$BASE_SHA"
+          curl --silent --fail \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/git/commits/$BASE_SHA" \
+            | python -c 'import json, sys; print("BASE_TREE=" + json.load(sys.stdin)["tree"]["sha"])'
