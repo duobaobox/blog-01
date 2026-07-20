@@ -127,6 +127,7 @@ page / route
 - 全局字体入口放在 `src/app/globals.css`，不要混入 Sass 模块声明之前。
 - 编辑器内容样式与编辑器外壳样式分离；前台文章和后台编辑正文应复用相同内容根样式。
 - 优先沿用 Tailwind 和现有 UI 组件，不创建重复的设计系统。
+- 前台 Header、main、Footer 统一复用 `PublicShell`；页面独立背景通过路由组布局显式传入 `surface`，不要使用 `:has()` 或改变公共 `main` 的布局模式。
 
 ## 7. 数据与数据库
 
