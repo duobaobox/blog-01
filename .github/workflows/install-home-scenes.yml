@@ -1,0 +1,130 @@
+name: Install home scene assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".scene-staging/ready"
+
+permissions:
+  contents: write
+
+jobs:
+  install-scenes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decode and install scenes
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+          mkdir -p public/home/scenes
+
+          for scene in day-work day-break day-window night-work night-sleep; do
+            cat ".scene-staging/${scene}.part1" ".scene-staging/${scene}.part2" \
+              | base64 --decode > "/tmp/${scene}.webp"
+            convert "/tmp/${scene}.webp" -resize 1600x1000\! \
+              "PNG32:public/home/scenes/${scene}.png"
+          done
+
+          rm -f \
+            public/home/scenes/day-study.png \
+            public/home/scenes/day-movie.png \
+            public/home/scenes/night-relax.png
+
+          cat > src/features/home/config/home.config.ts <<'EOF'
+          export const homePageConfig = {
+            visual: {
+              light: [
+                {
+                  imageUrl: "/home/scenes/day-work.png",
+                  imageAlt: "在明亮书房中专注工作的博客作者",
+                },
+                {
+                  imageUrl: "/home/scenes/day-break.png",
+                  imageAlt: "坐在书桌前喝咖啡放松的博客作者",
+                },
+                {
+                  imageUrl: "/home/scenes/day-window.png",
+                  imageAlt: "离开工位在窗边休息的博客作者",
+                },
+              ],
+              dark: [
+                {
+                  imageUrl: "/home/scenes/night-work.png",
+                  imageAlt: "夜间在书桌前专注工作的博客作者",
+                },
+                {
+                  imageUrl: "/home/scenes/night-sleep.png",
+                  imageAlt: "深夜趴在书桌上休息的博客作者",
+                },
+              ],
+            },
+          } as const;
+          EOF
+
+          cat > docs/home-hero-scenes.md <<'EOF'
+          # 首页随机场景素材
+
+          首页 Hero 使用独立的透明 PNG 素材，不在 SVG 或组件源码中嵌入 Base64。场景配置位于 `src/features/home/config/home.config.ts`，渲染组件位于 `src/features/home/components/home-hero-visual.tsx`。
+
+          ## 当前素材
+
+          ```text
+          public/home/scenes/
+            day-work.png      白天工作
+            day-break.png     白天摸鱼休息
+            day-window.png    离开工位在窗边
+            night-work.png    夜间工作
+            night-sleep.png   趴桌睡觉
+          ```
+
+          - `visual.light`：三个亮色主题场景。
+          - `visual.dark`：两个暗色主题场景。
+          - 用户进入首页后，从当前主题分组随机选择一张。
+          - 用户切换明暗主题时，从新主题分组重新随机选择一张。
+          - 服务端和首次水合固定使用亮色分组第一张，避免随机数导致水合不一致；主题状态可用后再完成随机选择。
+
+          ## 固定设计约束
+
+          五张素材统一使用 `1600 × 1000` 透明 PNG。桌面位置、桌面高度、电脑、盆栽、杯子和笔筒保持一致；仅人物动作、服装、光线和主题背景发生变化。桌面结构延伸到画布底边，背景使用透明渐消，左侧保留首页文案空间。
+
+          ## 替换与扩展
+
+          替换时可以直接覆盖同名文件；新增场景时，将透明 PNG 放入 `public/home/scenes`，再向对应主题数组添加 `imageUrl` 和准确的 `imageAlt`。
+
+          不要把图片转换为 Base64 写进 TSX、CSS 或 SVG。这样可以保持源码可读，并让 Next.js 独立处理图片缓存和优化。
+          EOF
+
+          python <<'PY'
+          from pathlib import Path
+          import struct
+
+          for name in ("day-work", "day-break", "day-window", "night-work", "night-sleep"):
+              path = Path("public/home/scenes") / f"{name}.png"
+              data = path.read_bytes()
+              if data[:8] != b"\x89PNG\r\n\x1a\n":
+                  raise SystemExit(f"{path} 不是有效的 PNG")
+              width, height = struct.unpack(">II", data[16:24])
+              if (width, height) != (1600, 1000):
+                  raise SystemExit(f"{path} 尺寸错误：{width}x{height}")
+          PY
+
+          rm -rf .scene-staging
+
+      - name: Commit generated PNG assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "资源：首页替换明暗主题场景素材"
+          git push
