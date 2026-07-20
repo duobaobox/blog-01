@@ -17,25 +17,25 @@ export const homeConfig = {
       visual: {
         light: [
           {
-            imageUrl: "/home/scenes/day-work.png",
+            imageUrl: "/home/scenes/day-work1.png",
             imageAlt: "在明亮书房中专注工作的博客作者",
           },
           {
-            imageUrl: "/home/scenes/day-break.png",
+            imageUrl: "/home/scenes/day-break1.png",
             imageAlt: "坐在书桌前喝咖啡放松的博客作者",
           },
           {
-            imageUrl: "/home/scenes/day-window.png",
+            imageUrl: "/home/scenes/day-window1.png",
             imageAlt: "离开工位在窗边休息的博客作者",
           },
         ],
         dark: [
           {
-            imageUrl: "/home/scenes/night-work.png",
+            imageUrl: "/home/scenes/night-work1.png",
             imageAlt: "夜间在书桌前专注工作的博客作者",
           },
           {
-            imageUrl: "/home/scenes/night-sleep.png",
+            imageUrl: "/home/scenes/night-sleep1.png",
             imageAlt: "深夜趴在书桌上休息的博客作者",
           },
         ],

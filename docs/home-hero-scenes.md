@@ -6,12 +6,11 @@
 
 ```text
 public/home/scenes/
-  day-study.png
-  day-break.png
-  day-movie.png
-  night-work.png
-  night-sleep.png
-  night-relax.png
+  day-work1.png
+  day-break1.png
+  day-window1.png
+  night-work1.png
+  night-sleep1.png
 ```
 
 - `visual.light`：亮色主题场景。
