@@ -15,33 +15,28 @@ export const homeConfig = {
         href: "/about",
       },
       visual: {
-        // 场景按主题分组；进入首页或切换主题时，从对应分组随机选择一张。
         light: [
           {
-            imageUrl: "/home/scenes/day-study.png",
-            imageAlt: "坐在书桌前学习和记录的博客作者三维插画",
+            imageUrl: "/home/scenes/day-work.png",
+            imageAlt: "在明亮书房中专注工作的博客作者",
           },
           {
             imageUrl: "/home/scenes/day-break.png",
-            imageAlt: "在书桌前吃点心看手机休息的博客作者三维插画",
+            imageAlt: "坐在书桌前喝咖啡放松的博客作者",
           },
           {
-            imageUrl: "/home/scenes/day-movie.png",
-            imageAlt: "戴着耳机在电脑前看电影的博客作者三维插画",
+            imageUrl: "/home/scenes/day-window.png",
+            imageAlt: "离开工位在窗边休息的博客作者",
           },
         ],
         dark: [
           {
             imageUrl: "/home/scenes/night-work.png",
-            imageAlt: "夜间在书桌前专注工作的博客作者三维插画",
+            imageAlt: "夜间在书桌前专注工作的博客作者",
           },
           {
             imageUrl: "/home/scenes/night-sleep.png",
-            imageAlt: "深夜趴在书桌上休息的博客作者三维插画",
-          },
-          {
-            imageUrl: "/home/scenes/night-relax.png",
-            imageAlt: "深夜在电脑前玩游戏放松的博客作者三维插画",
+            imageAlt: "深夜趴在书桌上休息的博客作者",
           },
         ],
       },
