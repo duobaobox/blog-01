@@ -20,7 +20,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <div className="home-page-surface relative isolate min-h-full overflow-hidden">
+    <div className="home-page-surface relative isolate min-h-full flex-auto shrink-0 overflow-hidden">
       {homeConfig.sections.hero.enabled ? (
         <HomeHero
           site={site}
