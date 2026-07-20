@@ -1,0 +1,22 @@
+name: Tree SHA Helper
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  report-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out base commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - name: Report base commit and tree
+        run: |
+          echo "BASE_COMMIT=$(git rev-parse HEAD)"
+          echo "BASE_TREE=$(git rev-parse 'HEAD^{tree}')"
