@@ -28,7 +28,11 @@ jobs:
           mkdir -p public/home/scenes
 
           for scene in day-work day-break day-window night-work night-sleep; do
-            cat ".scene-staging/${scene}.part1" ".scene-staging/${scene}.part2" \
+            cat \
+              ".scene-staging/${scene}.part1" \
+              ".scene-staging/${scene}.part2" \
+              ".scene-staging/${scene}.part3" \
+              ".scene-staging/${scene}.part4" \
               | base64 --decode > "/tmp/${scene}.webp"
             convert "/tmp/${scene}.webp" -resize 1600x1000\! \
               "PNG32:public/home/scenes/${scene}.png"
