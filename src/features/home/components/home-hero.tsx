@@ -62,28 +62,27 @@ export function HomeHero({
           </div>
 
           {highlightedPost ? (
-            <Link
-              href={`/blog/${highlightedPost.slug}`}
-              className="group mt-8 flex max-w-lg items-center gap-2.5 border-t border-[#eceaf7] pt-5 text-sm dark:border-white/10"
-            >
+            <div className="mt-8 flex max-w-lg items-center gap-2.5 text-sm">
               <BellRing className="size-4 shrink-0 text-[#7468f4]" />
               <span className="shrink-0 font-medium text-[#6f64ee] dark:text-[#b9b5ff]">
                 {postSource === "featured" ? "精选推荐：" : "最近更新："}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[#7e78bc] transition-colors group-hover:text-[#6258df] dark:text-[#b9b5ff]/80">
+              <Link
+                href={`/blog/${highlightedPost.slug}`}
+                className="min-w-0 flex-1 truncate rounded-sm text-[#7e78bc] transition-colors hover:text-[#6258df] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7468f4]/40 dark:text-[#b9b5ff]/80 dark:hover:text-[#d3d0ff]"
+              >
                 《{highlightedPost.title}》
-              </span>
+              </Link>
               {highlightedDate ? (
                 <span className="hidden shrink-0 text-xs text-[#9ba1b2] sm:inline dark:text-slate-400">
                   {formatDate(highlightedDate)}
                 </span>
               ) : null}
-              <ArrowRight className="size-4 shrink-0 text-[#7468f4] transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </div>
           ) : null}
         </div>
 
-        <div className="relative z-10 -mx-[7%] -mt-5 w-[114%] sm:-mx-[4%] sm:-mt-10 sm:w-[108%] lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-[-4rem] lg:top-0 lg:m-0 lg:w-auto xl:left-[24%] xl:right-[-7rem]">
+        <div className="relative z-10 -mt-5 w-full sm:-mt-10 lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-0 lg:top-0 lg:m-0 lg:w-auto xl:left-[24%]">
           <HomeHeroVisual visual={config.visual} />
         </div>
       </div>
