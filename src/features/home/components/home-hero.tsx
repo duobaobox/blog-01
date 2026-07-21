@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, BellRing, Sparkles } from "lucide-react";
 import type { PublicPostCard } from "@/features/posts/queries/post.queries";
-import { getPostDisplayDate } from "@/features/posts/lib/post-status";
 import type { ResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import { HomeHeroVisual } from "@/features/home/components/home-hero-visual";
-import { formatDate } from "@/shared/lib/date";
 
 type HomeHeroProps = {
   site: Pick<ResolvedSiteConfig, "name" | "description" | "subtitle">;
@@ -20,9 +18,6 @@ export function HomeHero({
   highlightedPost,
   postSource,
 }: HomeHeroProps) {
-  const highlightedDate = highlightedPost
-    ? getPostDisplayDate(highlightedPost)
-    : null;
   const description = site.subtitle || config.description || site.description;
 
   return (
@@ -73,16 +68,11 @@ export function HomeHero({
               >
                 《{highlightedPost.title}》
               </Link>
-              {highlightedDate ? (
-                <span className="hidden shrink-0 text-xs text-[#9ba1b2] sm:inline dark:text-slate-400">
-                  {formatDate(highlightedDate)}
-                </span>
-              ) : null}
             </div>
           ) : null}
         </div>
 
-        <div className="relative z-10 -mt-5 w-full sm:-mt-10 lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-0 lg:top-0 lg:m-0 lg:w-auto xl:left-[24%]">
+        <div className="relative z-10 -mt-5 w-full sm:-mt-10 lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-6 lg:top-0 lg:m-0 lg:w-auto xl:left-[24%]">
           <HomeHeroVisual visual={config.visual} />
         </div>
       </div>
