@@ -31,19 +31,17 @@ export function HomeHeroVisual({ visual }: HomeHeroVisualProps) {
   }, [resolvedTheme, visual, mounted]);
 
   return (
-    <div className="relative z-10 flex min-h-[24rem] w-full min-w-0 items-end justify-center self-end overflow-visible sm:min-h-[30rem] lg:min-h-[37rem] lg:justify-end">
-      <div className="relative w-full max-w-[56rem]">
-        <Image
-          key={scene.imageUrl}
-          src={scene.imageUrl}
-          alt={scene.imageAlt}
-          width={1600}
-          height={1000}
-          priority
-          sizes="(min-width: 1024px) 42vw, 94vw"
-          className="relative h-auto w-full object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]"
-        />
-      </div>
+    <div className="relative flex h-full w-full items-end justify-center lg:justify-end">
+      <Image
+        key={scene.imageUrl}
+        src={scene.imageUrl}
+        alt={scene.imageAlt}
+        width={1600}
+        height={1000}
+        priority
+        sizes="(min-width: 1280px) 960px, (min-width: 1024px) 80vw, (min-width: 640px) 108vw, 114vw"
+        className="pointer-events-none relative block h-auto w-full max-w-none select-none object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]"
+      />
     </div>
   );
 }
