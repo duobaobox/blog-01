@@ -27,8 +27,8 @@ export function HomeHero({
 
   return (
     <section className="relative isolate overflow-hidden">
-      <div className="relative mx-auto grid min-h-[34rem] max-w-5xl min-w-0 items-center gap-5 px-4 pt-12 sm:px-6 sm:pt-14 lg:grid-cols-[0.94fr_1.06fr] lg:pt-0">
-        <div className="relative z-20 min-w-0 pb-11 pt-2 sm:pb-14 lg:py-16">
+      <div className="relative mx-auto max-w-5xl min-w-0 px-4 pt-12 sm:px-6 sm:pt-14 lg:min-h-[36rem] lg:pt-0 xl:min-h-[39rem]">
+        <div className="relative z-20 min-w-0 pb-8 pt-2 sm:pb-10 lg:flex lg:min-h-[36rem] lg:w-[56%] lg:flex-col lg:justify-center lg:py-16 xl:min-h-[39rem] xl:w-[54%]">
           <div className="inline-flex items-center rounded-full border border-[#dedcff] bg-white/[0.78] px-3.5 py-1.5 text-sm font-medium tracking-wide text-[#6d63f2] shadow-[0_8px_24px_-16px_rgba(100,91,235,0.5)] backdrop-blur dark:border-[#8b84ff]/20 dark:bg-white/5 dark:text-[#b9b5ff]">
             {config.eyebrow}
           </div>
@@ -83,7 +83,9 @@ export function HomeHero({
           ) : null}
         </div>
 
-        <HomeHeroVisual visual={config.visual} />
+        <div className="relative z-10 -mx-[7%] -mt-5 w-[114%] sm:-mx-[4%] sm:-mt-10 sm:w-[108%] lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-[-4rem] lg:top-0 lg:m-0 lg:w-auto xl:left-[24%] xl:right-[-7rem]">
+          <HomeHeroVisual visual={config.visual} />
+        </div>
       </div>
     </section>
   );
