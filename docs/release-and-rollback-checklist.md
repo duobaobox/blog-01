@@ -13,7 +13,7 @@
 - [ ] 如本次涉及 posts 查询或索引优化，确认执行过 `npm run db:preflight:release -- --posts` 或单独审阅过 `db:explain:posts`
 - [ ] 确认 `BETTER_AUTH_URL` / `BETTER_AUTH_TRUSTED_ORIGINS` / `SITE_URL` 不含 `localhost`
 - [ ] 生产环境确认已设置 `ADMIN_SETUP_TOKEN`，且不会依赖开发默认管理员账号初始化
-- [ ] 确认数据库和媒体目录有备份
+- [ ] 执行 `BACKUP_RETENTION_DAYS=14 ./scripts/backup-docker.sh`，确认数据库和媒体备份均生成，并把副本保存到服务器之外
 - [ ] 记录当前线上镜像版本或当前交付包时间
 
 ## 数据库环境发布路径
@@ -77,7 +77,8 @@ bash install.sh
 
 ## 发版后检查
 
-- [ ] `docker compose ps` 正常
+- [ ] `docker compose ps` 显示 app 与 db 均为 healthy
+- [ ] `curl -fsS http://127.0.0.1:3000/api/health` 返回 `status=ok`
 - [ ] `docker compose logs --tail=100 blog` 无明显报错
 - [ ] 首页可访问
 - [ ] `/admin/login` 可访问
@@ -113,7 +114,8 @@ grep -E '^(BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|SITE_URL|ADMIN_SETUP_TOKE
 1. 先保留当前 `.env.release`
 2. 回退到上一版 `app-delivery-release.tar.gz`
 3. 重新解压并执行 `bash install.sh . --no-edit`
-4. 如无必要，不直接删数据库卷
+4. 如涉及数据回滚，使用已校验的备份目录执行 `CONFIRM_RESTORE=1 ./scripts/restore-docker.sh <backup-dir>`
+5. 如无必要，不直接删数据库卷
 
 ## 发版记录模板
 

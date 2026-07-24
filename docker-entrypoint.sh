@@ -2,6 +2,7 @@
 set -eu
 
 if [ "${1:-}" = "node" ] && [ "${2:-}" = "server.js" ]; then
+  node /usr/local/bin/validate-production-env.mjs
   /usr/local/bin/schema-sync.sh
 fi
 

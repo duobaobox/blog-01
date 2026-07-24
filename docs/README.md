@@ -12,6 +12,7 @@
 - [Docker 构建与发版指导](./docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./alicloud-docker-nginx-https-guide.md)
 - [发版与回滚 Checklist](./release-and-rollback-checklist.md)
+- [数据库与媒体备份恢复](./backup-and-restore.md)
 
 ## 性能与数据库
 

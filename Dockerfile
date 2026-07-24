@@ -62,10 +62,11 @@ COPY --chown=nextjs:nodejs docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --chown=nextjs:nodejs scripts/resolve-schema-sync-mode.mjs ./scripts/resolve-schema-sync-mode.mjs
 COPY --chown=nextjs:nodejs scripts/schema-sync.sh /usr/local/bin/schema-sync.sh
 COPY --chown=nextjs:nodejs scripts/resolve-schema-sync-mode.mjs /usr/local/bin/resolve-schema-sync-mode.mjs
+COPY --chown=nextjs:nodejs scripts/validate-production-env.mjs /usr/local/bin/validate-production-env.mjs
 
 RUN install -d -o nextjs -g nodejs -m 750 /app/public/media \
   && chmod -R 750 /app/public \
-  && chmod 755 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/schema-sync.sh /usr/local/bin/resolve-schema-sync-mode.mjs /app/scripts/resolve-schema-sync-mode.mjs
+  && chmod 755 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/schema-sync.sh /usr/local/bin/resolve-schema-sync-mode.mjs /usr/local/bin/validate-production-env.mjs /app/scripts/resolve-schema-sync-mode.mjs
 
 USER nextjs
 

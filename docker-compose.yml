@@ -6,12 +6,12 @@ x-app-environment: &app-environment
   PORT: 3000
   DB_SCHEMA_SYNC_MODE: ${DB_SCHEMA_SYNC_MODE:-auto}
   PRISMA_SCHEMA_PATH: /app/prisma/schema.prisma
-  DATABASE_URL: postgresql://${POSTGRES_USER:-blog}:${POSTGRES_PASSWORD:-blog}@db:5432/${POSTGRES_DB:-blog}?schema=public
+  DATABASE_URL: postgresql://${POSTGRES_USER:-blog}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/${POSTGRES_DB:-blog}?schema=public
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}
   BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-}
-  SITE_URL: ${SITE_URL:-}
-  ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:-}
+  SITE_URL: ${SITE_URL:?SITE_URL is required}
+  ADMIN_SETUP_TOKEN: ${ADMIN_SETUP_TOKEN:?ADMIN_SETUP_TOKEN is required}
   SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Admin}
   SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
   SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
@@ -34,6 +34,18 @@ services:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - ./media:/app/public/media
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   migrate:
     image: ${APP_IMAGE:-blog-01-app:latest}
@@ -80,10 +92,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-blog}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-blog}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

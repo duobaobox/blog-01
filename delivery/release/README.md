@@ -6,6 +6,8 @@
 - `docker-compose.release.yml`
 - `.env.release.example`
 - `install.sh`
+- `backup-docker.sh`
+- `restore-docker.sh`
 
 ## 2. 一键安装
 
@@ -101,3 +103,20 @@ npm run db:check:migration-coverage
 - 生产环境不会自动创建默认管理员账号
 
 登录时尽量始终使用同一个访问地址，比如全程都用 `http://47.100.193.93:3000`，不要先用 IP 再切 localhost 或域名，这样可以避免 `Invalid origin`。
+
+
+## 5. 备份与恢复
+
+每天备份数据库和媒体：
+
+```bash
+BACKUP_RETENTION_DAYS=14 ./backup-docker.sh
+```
+
+恢复会覆盖当前数据库和媒体，必须显式确认：
+
+```bash
+CONFIRM_RESTORE=1 ./restore-docker.sh ./backups/备份时间目录
+```
+
+恢复前先额外保留一份当前备份。详细说明见仓库文档 `docs/backup-and-restore.md`。

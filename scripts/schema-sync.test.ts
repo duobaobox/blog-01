@@ -73,6 +73,19 @@ test("schema-sync.sh auto mode resolves migrate for baseline-ready databases", a
   assert.match(output, /environment kind: baseline-ready/);
 });
 
+test("schema-sync.sh reports blocked migration state without falling back to push", async () => {
+  const output = await runSchemaSyncPrintMode({
+    hasMigrationsTable: true,
+    tableCount: 12,
+    appliedMigrationNames: [],
+    filesystemMigrationNames: ["20260615062322_baseline_init"],
+    unfinishedMigrationNames: ["20260615062322_baseline_init"],
+  });
+
+  assert.match(output, /Resolved DB schema sync mode: blocked/);
+  assert.match(output, /environment kind: migration-blocked/);
+});
+
 test("resolve-schema-sync-mode assertion passes when explicit mode matches recommendation", async () => {
   const result = await runResolveSchemaSyncMode(
     ["--details", "--assert-env-mode"],

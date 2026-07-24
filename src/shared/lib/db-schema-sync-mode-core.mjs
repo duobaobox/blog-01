@@ -2,9 +2,9 @@ export function deriveSchemaSyncRecommendationCore(input) {
   if (input.hasUnfinishedMigrations) {
     return {
       environmentKind: "migration-blocked",
-      recommendedMode: "push",
+      recommendedMode: "blocked",
       rationale:
-        "当前 migration 历史存在未完成状态，部署前不应假设可以安全执行 migrate deploy。",
+        "当前 migration 历史存在未完成状态，必须先修复或回滚异常 migration，禁止继续执行 db push 或 migrate deploy。",
     };
   }
 

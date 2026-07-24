@@ -42,7 +42,7 @@ flowchart LR
 
 部署配置层面，当前统一通过 `DB_SCHEMA_SYNC_MODE` 表达 schema 同步策略：
 
-- `auto`：默认，按数据库状态自动在 `migrate` 和 `push` 之间选择
+- `auto`：默认，正常数据库按状态在 `migrate` 和 `push` 之间选择；异常 migration 直接阻断
 - `push`：显式兼容现状
 - `migrate`：目标环境已 baseline 后使用
 - `skip`：完全交给外部流程
@@ -102,7 +102,7 @@ DB_SCHEMA_SYNC_MODE=migrate docker compose up -d app
 
 - 空库、baseline-ready 和 migration-ready 环境会自动执行 `migrate deploy`
 - 历史无迁移环境会自动保守回落到 `db push`
-- migration 状态异常时也会保守回落到 `push`，并在输出里给出环境类型与原因
+- migration 状态异常时会返回 `blocked` 并直接阻断启动，必须先修复 migration 状态
 
 如果本次版本包含 Prisma schema 变更，当前推荐先用本地或服务器环境变量预览差异：
 
@@ -238,3 +238,22 @@ bash install.sh . --no-edit
 - `scripts/release/start-offline-stack.sh`
 
 如果后续恢复离线交付，也应该基于当前 `app-delivery` 方案重新设计，而不是继续叠加旧脚本。
+
+
+## 四、健康检查与备份
+
+应用容器通过 `/api/health` 同时检查服务进程、数据库连接和核心 `post` 表。数据库容器继续使用 `pg_isready`。
+
+生产环境建议每天执行一次：
+
+```bash
+BACKUP_RETENTION_DAYS=14 ./scripts/backup-docker.sh
+```
+
+恢复前必须先做一份当前备份，再显式确认：
+
+```bash
+CONFIRM_RESTORE=1 ./scripts/restore-docker.sh ./backups/备份时间目录
+```
+
+完整流程见 [数据库与媒体备份恢复](./backup-and-restore.md)。

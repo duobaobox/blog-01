@@ -69,7 +69,7 @@ test("auto schema sync reports migration-ready when all filesystem migrations ar
   assert.equal(result.environmentKind, "migration-ready");
 });
 
-test("auto schema sync falls back to push when migration state is blocked", () => {
+test("auto schema sync fails closed when migration state is blocked", () => {
   const result = deriveAutoSchemaSyncDecision({
     hasMigrationsTable: true,
     tableCount: 12,
@@ -78,7 +78,7 @@ test("auto schema sync falls back to push when migration state is blocked", () =
     unfinishedMigrationNames: [PRISMA_BASELINE_MIGRATION],
   });
 
-  assert.equal(result.mode, "push");
+  assert.equal(result.mode, "blocked");
   assert.equal(result.environmentKind, "migration-blocked");
 });
 

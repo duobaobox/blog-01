@@ -81,6 +81,8 @@ Modes:
   push     Run prisma db push.
   migrate  Run prisma migrate deploy.
   skip     Skip schema sync completely.
+
+The internal blocked result is fail-closed and cannot be selected manually.
 EOF
 }
 
@@ -173,6 +175,10 @@ run_schema_sync() {
   prisma_bin="$(find_prisma_bin)"
 
   case "$mode" in
+    blocked)
+      echo "Database migration state is blocked; refusing to run db push or migrate deploy." >&2
+      exit 1
+      ;;
     push)
       echo "Running Prisma schema sync with db push..."
       "$prisma_bin" db push --schema "$SCHEMA_PATH"
