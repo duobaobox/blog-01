@@ -26,7 +26,6 @@ model user {
   sessions session[]
   accounts account[]
   posts    post[]
-  savedContentViews contentSpaceSavedView[]
   postOperationLogs postOperationLog[]
 }
 
@@ -220,21 +219,6 @@ model postMediaReference {
   @@id([postId, mediaId, usage])
   @@index([postId])
   @@index([mediaId, usage])
-}
-
-model contentSpaceSavedView {
-  id        String   @id @default(uuid())
-  name      String
-  nameKey   String
-  filters   Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  createdBy String
-  author    user @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-
-  @@unique([createdBy, nameKey])
-  @@index([createdBy, createdAt])
 }
 
 model postOperationLog {

@@ -19,6 +19,7 @@
     "db:check:site-settings": "tsx scripts/check-site-settings-singleton.ts",
     "db:preflight:release": "tsx scripts/preflight-release-db.ts",
     "db:backfill:post-media-references": "tsx scripts/backfill-post-media-references.ts",
+    "db:backfill:post-content": "tsx scripts/backfill-post-content.ts",
     "db:explain:posts": "tsx scripts/explain-post-queries.ts",
     "db:explain:posts:analyze": "tsx scripts/explain-post-queries.ts --analyze",
     "db:seed": "tsx prisma/seed.ts",

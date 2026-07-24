@@ -1,6 +1,4 @@
 export const PUBLIC_POSTS_PER_PAGE = 10;
-export const ADMIN_RECENT_POSTS_PER_PAGE = 20;
-export const ADMIN_RECENT_POSTS_WINDOW_DAYS = 30;
 
 export function parsePageParam(value: string | string[] | undefined) {
   const raw = Array.isArray(value) ? value[0] : value;

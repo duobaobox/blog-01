@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PostArticleView } from "@/components/blog/post-article-view";
-import { materializePostContent } from "@/features/editor/content-materializer";
+import { parseToc } from "@/features/editor/content-types";
 import {
   getPostDisplayDate,
   isPublishedPost,
@@ -61,7 +61,6 @@ export default async function PostPage({
 
   if (!post || !isPublishedPost(post)) notFound();
 
-  const content = await materializePostContent(post.contentJson);
   const displayDate = getPostDisplayDate(post);
   const coverImage = post.coverImage;
   const originalCoverImage = coverImage?.variants?.original ?? coverImage;
@@ -86,11 +85,11 @@ export default async function PostPage({
         category={post.category}
         authorName={post.author.name}
         displayDate={displayDate}
-        readingTimeMinutes={content.readingTimeMinutes}
-        wordCount={content.wordCount}
+        readingTimeMinutes={post.readingTimeMinutes}
+        wordCount={post.wordCount}
         tags={post.tags.map((item) => item.tag)}
-        contentHtml={content.contentHtml}
-        toc={content.contentToc}
+        contentHtml={post.contentHtml}
+        toc={parseToc(post.contentToc)}
       />
     </div>
   );

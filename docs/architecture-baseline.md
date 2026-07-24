@@ -135,8 +135,6 @@
 - protected admin layout 里的 banner / reminder 状态也应优先走单一 shell projection，例如 `admin shell status query`，避免 layout 直接读取 bootstrap helper 再和 settings 提醒做页面级拼装
 - settings/account 这类后台壳层页面也应优先使用 page-data query，把表单默认值、setup notice、安全提醒等展示态统一收回查询层，而不是在 page 内部维持零散 `Promise.all`
 - 如果后台 page data 仍依赖会话字段，优先复用独立的 `admin session identity query`，只暴露 `id / name / role` 这类最小身份片段；不要让页面或多个 query 各自直接持有完整 session 再继续拼展示态
-- `content-space` 的 quick entry counts 也应使用独立投影结果，只暴露 `library / recent / drafts / ready` 这类上下文真正需要的入口计数，而不是直接依赖 dashboard 或全量 counts 结构
-- `content-space` 页面装配还应显式区分“feed summaries”和“context summary”：前者描述 `library / recent` 这类分页 feed 的总量与页码，后者描述当前搜索/文件夹/快捷入口上下文的标签、提示和状态分布，不应再由页面层拼散字段推导
 - 公共博客列表、分类页、标签页这类同构分页页面，应优先复用同一套分页请求解析 helper，而不是各自重复处理 `page` 参数和越界逻辑
 - 公共列表卡片、首页精选/最新内容应优先使用面向前台展示的轻量投影查询，不要直接复用后台列表页的重 select
 - “按 slug 读取公开文章”和“写路径里检查 slug 是否已占用”必须是两条不同的 repository 语义：前者只看已发布内容，后者必须覆盖所有状态
@@ -151,26 +149,18 @@
 
 ### `content-space` 读模型边界
 
-`content-space` 现在有两个不同的顶层 feed，不应再混用：
-
-- `library`：完整内容库，面向“全部内容”的浏览、筛选、批量治理
-- `recent`：近期变动 feed，面向“最近更新”的快速处理
+后台文章管理已收敛为单一主流程：`文件夹 → 当前文件夹笔记列表 → 编辑器`。
 
 当前规则：
 
-- `library` 与 `recent` 必须使用独立查询语义
-- `recent` 不是 “all 的一个别名”，它是时间窗口内的运营视图
-- 旧的 `all` 兼容入口应落到 `library`
-- 后续批量操作、归档视图、复杂筛选优先扩展在 `library`
-- 文章删除在当前基线中应优先解释为“归档下线”，而不是物理删除
-- 默认管理读模型、文件夹树和运营计数应只覆盖活跃内容（`draft / review / published`）；归档内容只有在显式状态筛选时才进入上下文
-- 内容空间中的“快捷入口计数”与“当前 feed 总数”必须分开建模；前者用于全局导航，后者用于当前筛选/分页结果，不应混用
-- `content-space` 页面装配应先确定查询计划，再按上下文按需加载 `feed / searchResults / requestedPost / folderPosts`，不要无条件把所有上下文查询都打一遍
-- `content-space` 中的 `requestedPost` 仅用于状态恢复和上下文摘要，不应用作编辑器数据源；编辑器使用的 `selectedPost` 必须保持完整可编辑读模型，避免把“上下文摘要”和“编辑实体”混成同一个返回结构
-- `content-space` 这类重型后台工作台查询，除了纯函数投影测试外，也应尽量暴露可注入依赖的聚合 query factory，方便验证“何时加载 requestedPost / searchResults / folderPosts / selectedPost”这些查询计划分支
-- 内容治理债务（如 `无分类`、`无标签`、`未归档`、`缺摘要`、`缺 SEO 元数据`）应作为 `library` 的一等筛选语义建模，而不是散落在页面条件判断里
-- `library` 的保存视图/运营预设应复用同一套 `ContentLibraryFilters`，而不是引入第二套筛选模型
-- `library` 的保存视图现在应优先视为服务端持久化能力，按管理员账号隔离；`localStorage` 只作为迁移和兜底，不应再作为长期唯一数据源
+- 文件夹只负责组织私人笔记，是工作台的唯一主导航维度
+- `draft / review / published` 是笔记的生命周期；只有 `published` 对外成为 Blog
+- 分类、标签、摘要和 SEO 是可选发布元数据，不作为创建笔记的前置条件
+- 搜索和状态筛选只作用于当前文件夹，不再维护全局 `library / recent` feed
+- 后台概览保留发布、草稿、待发布、归档与治理统计，但卡片统一回到文章工作台，不承诺已删除的旧筛选入口
+- 已放弃的保存视图、快捷入口、工作台 session 恢复和旧查询计划不再继续扩展
+- 文章删除在当前基线中解释为归档下线，不是物理删除
+- 页面只消费 `getAdminPostsPageData()`，不在页面层拼装数据库读模型
 
 ### `lib`
 
@@ -242,7 +232,7 @@ feature 内的 `lib` 主要放该业务域内的轻量纯函数或输入解析�
 ## 4. 数据库变更基线
 
 当前仓库已经包含 Prisma baseline migration，并以 `DB_SCHEMA_SYNC_MODE=auto` 作为默认 schema 同步入口。
-空库、baseline-ready 和 migration-ready 环境会优先走 `migrate deploy`；历史无迁移记录的数据库会保守回落到 `db push`，直到完成 baseline resolve。
+空库、baseline-ready 和 migration-ready 环境会优先走 `migrate deploy`；历史无迁移记录的数据库会保守使用 `db push`，直到完成 baseline resolve；失败或未完成的 migration 会直接阻断启动。
 
 在这个前提下，当前基线要求是：
 

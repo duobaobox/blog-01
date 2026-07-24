@@ -1,7 +1,3 @@
-import {
-  toWorkspacePostSummary,
-  type AdminPostsPageQueryParams,
-} from "@/features/content-space/lib/content-space-page-data";
 import * as folderRepo from "@/features/content-space/repositories/folder.repository";
 import {
   getPostById,
@@ -19,6 +15,14 @@ import {
   type ContentTreeInput,
 } from "@/features/content-space/lib/content-space-tree";
 
+export type AdminPostsPageQueryParams = {
+  postId?: string | string[];
+  view?: string | string[];
+  folder?: string | string[];
+  status?: string | string[];
+  q?: string | string[];
+};
+
 export type FolderPostStatusFilter = "all" | "draft" | "review" | "published";
 
 export type FolderPostStatusCounts = {
@@ -27,6 +31,40 @@ export type FolderPostStatusCounts = {
   review: number;
   published: number;
 };
+
+function toContextPostSummary(post: {
+  id: string;
+  title: string;
+  status: string;
+  updatedAt: Date | string;
+  excerpt?: string | null;
+  coverImageUrl?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  folder: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+}) {
+  return {
+    id: post.id,
+    title: post.title,
+    status: post.status,
+    updatedAt: post.updatedAt,
+    excerpt: post.excerpt,
+    coverImageUrl: post.coverImageUrl,
+    seoTitle: post.seoTitle ?? null,
+    seoDescription: post.seoDescription ?? null,
+    folder: post.folder
+      ? {
+          id: post.folder.id,
+          name: post.folder.name,
+          slug: post.folder.slug,
+        }
+      : null,
+  };
+}
 
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -166,7 +204,7 @@ export function createAdminPostsPageDataQuery(
         statusFilter === "all" || post.status === statusFilter;
       return matchesStatus && matchesSearch(post, searchQuery);
     });
-    const contextPosts = visiblePosts.map(toWorkspacePostSummary);
+    const contextPosts = visiblePosts.map(toContextPostSummary);
     const selectedPostId =
       mode === "new"
         ? undefined

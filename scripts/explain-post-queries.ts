@@ -42,28 +42,8 @@ async function main() {
   const activeStatusesSql = Prisma.join(
     ACTIVE_POST_STATUSES.map((status) => Prisma.sql`${status}`),
   );
-  const recentWindowStart = new Date();
-  recentWindowStart.setDate(recentWindowStart.getDate() - 30);
-
   await printExplain(
-    "Admin library feed: published posts ordered for governance browsing",
-    Prisma.sql`
-      SELECT
-        p.id,
-        p.title,
-        p.slug,
-        p.status,
-        p."updatedAt",
-        p."publishedAt"
-      FROM "post" p
-      WHERE p.status = 'published'
-      ORDER BY p."updatedAt" DESC, p."createdAt" DESC
-      LIMIT 20
-    `,
-  );
-
-  await printExplain(
-    "Admin recent feed: active posts ordered by recent updates",
+    "Admin folder feed: active posts ordered for the current notebook",
     Prisma.sql`
       SELECT
         p.id,
@@ -73,11 +53,16 @@ async function main() {
         p."updatedAt"
       FROM "post" p
       WHERE p.status IN (${activeStatusesSql})
-      ORDER BY p."updatedAt" DESC, p."createdAt" DESC
+        AND p."folderId" = (
+          SELECT f.id
+          FROM "folder" f
+          ORDER BY f."sortOrder" ASC, f."createdAt" ASC
+          LIMIT 1
+        )
+      ORDER BY p."createdAt" DESC
       LIMIT 20
     `,
   );
-
   await printExplain(
     "Public blog feed: published posts ordered by feature and publish time",
     Prisma.sql`
@@ -105,13 +90,6 @@ async function main() {
         GROUP BY pt."postId"
       )
       SELECT
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-        ) AS "library",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND p."updatedAt" >= ${recentWindowStart}
-        ) AS "recent",
         COUNT(*) FILTER (WHERE p.status = 'draft') AS "drafts",
         COUNT(*) FILTER (WHERE p.status = 'review') AS "review",
         COUNT(*) FILTER (WHERE p.status = 'published') AS "published",
@@ -127,7 +105,19 @@ async function main() {
         COUNT(*) FILTER (
           WHERE p.status IN (${activeStatusesSql})
             AND p."folderId" IS NULL
-        ) AS "unfiled"
+        ) AS "unfiled",
+        COUNT(*) FILTER (
+          WHERE p.status IN (${activeStatusesSql})
+            AND COALESCE(p.excerpt, '') = ''
+        ) AS "missingExcerpt",
+        COUNT(*) FILTER (
+          WHERE p.status IN (${activeStatusesSql})
+            AND COALESCE(p."seoTitle", '') = ''
+        ) AS "missingSeoTitle",
+        COUNT(*) FILTER (
+          WHERE p.status IN (${activeStatusesSql})
+            AND COALESCE(p."seoDescription", '') = ''
+        ) AS "missingSeoDescription"
       FROM "post" p
       LEFT JOIN post_tag_counts ptc
         ON ptc."postId" = p.id

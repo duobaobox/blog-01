@@ -5,29 +5,17 @@ import {
   createAdminPostCountsQuery,
   createHomepageFeaturedOrLatestPostsQuery,
   createPublicPostsPageDataQuery,
-  getAdminRecentWindowStart,
   projectAdminDashboardGovernanceStats,
   projectAdminDashboardOverviewStats,
   projectAdminDashboardStatCards,
   projectAdminDashboardTaxonomyStats,
-  projectAdminQuickEntryCounts,
   createPublicPostQueries,
-  shouldUseAdminLibraryPostsPageCache,
-  shouldUseAdminRecentPostsPageCache,
 } from "./post.queries";
 
 test("getAdminPostCounts keeps snapshot metrics and derived ready count separate", async () => {
   const query = createAdminPostCountsQuery({
-    async getAdminPostMetricsSnapshot(recentWindowStart) {
-      assert.ok(recentWindowStart instanceof Date);
-      assert.equal(
-        recentWindowStart.toDateString(),
-        getAdminRecentWindowStart().toDateString(),
-      );
-
+    async getAdminPostMetricsSnapshot() {
       return {
-        library: 24,
-        recent: 10,
         drafts: 4,
         review: 2,
         published: 18,
@@ -51,8 +39,6 @@ test("getAdminPostCounts keeps snapshot metrics and derived ready count separate
   const result = await query();
 
   assert.deepEqual(result.snapshot, {
-    library: 24,
-    recent: 10,
     drafts: 4,
     review: 2,
     published: 18,
@@ -75,8 +61,6 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
   const query = createAdminPostCountsQuery({
     async getAdminPostMetricsSnapshot() {
       return {
-        library: 1,
-        recent: 1,
         drafts: 1,
         review: 0,
         published: 0,
@@ -97,8 +81,6 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
   assert.equal(typeof query, "function");
   assert.deepEqual(await query(), {
     snapshot: {
-      library: 1,
-      recent: 1,
       drafts: 1,
       review: 0,
       published: 0,
@@ -113,8 +95,6 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
     derived: {
       ready: 0,
     },
-    library: 1,
-    recent: 1,
     drafts: 1,
     review: 0,
     ready: 0,
@@ -129,37 +109,9 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
   });
 });
 
-test("admin posts feed cache predicates only cache stable first-page reads", () => {
-  assert.equal(shouldUseAdminRecentPostsPageCache({ page: 1 }), true);
-  assert.equal(shouldUseAdminRecentPostsPageCache({ page: 2 }), false);
-
-  assert.equal(shouldUseAdminLibraryPostsPageCache({ page: 1 }), true);
-  assert.equal(shouldUseAdminLibraryPostsPageCache({ page: 2 }), false);
-  assert.equal(
-    shouldUseAdminLibraryPostsPageCache({
-      page: 1,
-      filters: {
-        query: "launch",
-      },
-    }),
-    false,
-  );
-  assert.equal(
-    shouldUseAdminLibraryPostsPageCache({
-      page: 1,
-      filters: {
-        status: "draft",
-      },
-    }),
-    false,
-  );
-});
-
 test("admin dashboard stat queries project overview and governance slices", async () => {
   const counts = {
     snapshot: {
-      library: 24,
-      recent: 10,
       drafts: 4,
       review: 2,
       published: 18,
@@ -174,8 +126,6 @@ test("admin dashboard stat queries project overview and governance slices", asyn
     derived: {
       ready: 3,
     },
-    library: 24,
-    recent: 10,
     drafts: 4,
     review: 2,
     ready: 3,
@@ -206,12 +156,6 @@ test("admin dashboard stat queries project overview and governance slices", asyn
     missingExcerpt: 7,
     missingSeoTitle: 8,
     missingSeoDescription: 9,
-  });
-  assert.deepEqual(projectAdminQuickEntryCounts(counts), {
-    library: 24,
-    recent: 10,
-    drafts: 4,
-    ready: 3,
   });
   assert.deepEqual(
     projectAdminDashboardTaxonomyStats({
@@ -254,7 +198,7 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     value: 18,
     description: "公开可见的文章",
     iconKey: "post",
-    href: "/admin/posts?entry=library&status=published",
+    href: "/admin/posts",
   });
   assert.deepEqual(stats[4], {
     label: "分类",
@@ -268,21 +212,21 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     value: 3,
     description: "还没有归类的文章",
     iconKey: "folder",
-    href: "/admin/posts?entry=library&debt=uncategorized",
+    href: "/admin/posts",
   });
   assert.deepEqual(stats[7], {
     label: "无标签",
     value: 5,
     description: "还没有添加标签的文章",
     iconKey: "tag",
-    href: "/admin/posts?entry=library&debt=untagged",
+    href: "/admin/posts",
   });
   assert.deepEqual(stats.at(-1), {
     label: "缺 SEO 描述",
     value: 9,
     description: "还没有 SEO 描述的文章",
     iconKey: "post",
-    href: "/admin/posts?entry=library&debt=missingSeoDescription",
+    href: "/admin/posts",
   });
 });
 

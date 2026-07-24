@@ -17,10 +17,6 @@ const DASHBOARD_STAT_ICONS = {
   trend: TrendingUp,
 } as const;
 
-function resolveStatHref(href: string) {
-  return href.startsWith("/admin/posts") ? "/admin/posts" : href;
-}
-
 export default async function AdminDashboard() {
   const dashboard = await getAdminDashboardPageData(8);
 
@@ -47,7 +43,7 @@ export default async function AdminDashboard() {
             return (
               <Link
                 key={stat.label}
-                href={resolveStatHref(stat.href)}
+                href={stat.href}
                 className="group"
               >
                 <Card className="transition-all hover:shadow-md group-hover:border-primary/50">

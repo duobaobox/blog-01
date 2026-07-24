@@ -41,8 +41,6 @@ export type FindPostsOptions = {
 };
 
 export type AdminPostMetricsSnapshot = {
-  library: number;
-  recent: number;
   drafts: number;
   review: number;
   published: number;
@@ -215,8 +213,6 @@ export function mapAdminPostMetricsSnapshotRow(
   row: AdminPostMetricsSnapshotRow,
 ): AdminPostMetricsSnapshot {
   return {
-    library: toCountNumber(row.library),
-    recent: toCountNumber(row.recent),
     drafts: toCountNumber(row.drafts),
     review: toCountNumber(row.review),
     published: toCountNumber(row.published),
@@ -406,9 +402,7 @@ export async function countPosts(filters?: string | PostFilters) {
   });
 }
 
-export async function getAdminPostMetricsSnapshot(
-  recentWindowStart: Date,
-): Promise<AdminPostMetricsSnapshot> {
+export async function getAdminPostMetricsSnapshot(): Promise<AdminPostMetricsSnapshot> {
   const activeStatusesSql = Prisma.join(
     ACTIVE_POST_STATUSES.map((status) => Prisma.sql`${status}`),
   );
@@ -422,13 +416,6 @@ export async function getAdminPostMetricsSnapshot(
       GROUP BY pt."postId"
     )
     SELECT
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-      ) AS "library",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND p."updatedAt" >= ${recentWindowStart}
-      ) AS "recent",
       COUNT(*) FILTER (WHERE p.status = 'draft') AS "drafts",
       COUNT(*) FILTER (WHERE p.status = 'review') AS "review",
       COUNT(*) FILTER (WHERE p.status = 'published') AS "published",

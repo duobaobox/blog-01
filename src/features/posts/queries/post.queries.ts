@@ -17,8 +17,6 @@ import * as postRepo from "@/features/posts/repositories/post.repository";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
 import {
-  ADMIN_RECENT_POSTS_PER_PAGE,
-  ADMIN_RECENT_POSTS_WINDOW_DAYS,
   getTotalPages,
   PUBLIC_POSTS_PER_PAGE,
 } from "@/features/posts/lib/pagination";
@@ -46,13 +44,6 @@ export interface PublicPostsPageData {
   totalPages: number;
 }
 
-export interface AdminPostsFeedPageData {
-  posts: Awaited<ReturnType<typeof postRepo.findRecentlyUpdatedPosts>>;
-  currentPage: number;
-  totalPosts: number;
-  totalPages: number;
-}
-
 export interface AdminDashboardPageData {
   statCards: AdminDashboardStatCard[];
   recentActivity: Awaited<ReturnType<typeof getRecentPostOperationLogs>>;
@@ -63,8 +54,6 @@ export type AdminPostCounts = {
   derived: {
     ready: number;
   };
-  library: number;
-  recent: number;
   drafts: number;
   review: number;
   ready: number;
@@ -108,11 +97,6 @@ export type AdminDashboardGovernanceStats = Pick<
   | "missingExcerpt"
   | "missingSeoTitle"
   | "missingSeoDescription"
->;
-
-export type AdminQuickEntryCounts = Pick<
-  AdminPostCounts,
-  "library" | "recent" | "drafts" | "ready"
 >;
 
 function buildCoverImagePresentation(
@@ -170,20 +154,8 @@ async function attachCoverImageToPublishedPost(
   return attachCoverImageToPost(post, mediaByUrl) as PublicPublishedPost;
 }
 
-export function getAdminRecentWindowStart(now = new Date()) {
-  const windowStart = new Date(now);
-  windowStart.setDate(windowStart.getDate() - ADMIN_RECENT_POSTS_WINDOW_DAYS);
-  return windowStart;
-}
-
 export async function getPosts(options?: postRepo.FindPostsOptions) {
   return postRepo.findPosts(options);
-}
-
-export async function getPostsByFolder(folderId: string) {
-  return postRepo.findPostsByFolder(folderId, {
-    order: "updated",
-  });
 }
 
 type PublicPostRepository = Pick<
@@ -287,43 +259,6 @@ export function createHomepageFeaturedOrLatestPostsQuery(
 export const getHomepageFeaturedOrLatestPosts =
   createHomepageFeaturedOrLatestPostsQuery();
 
-export async function getReadyToPublishPosts(take = 20) {
-  if (take === 20) {
-    return getAdminReadyToPublishPostsCached();
-  }
-
-  return getReadyToPublishPostsUncached(take);
-}
-
-async function getReadyToPublishPostsUncached(take = 20) {
-  const normalizedTake = Math.min(Math.max(take, 1), 200);
-  const legacyDraftTake = Math.min(Math.max(normalizedTake * 5, normalizedTake), 200);
-  const [reviewPosts, draftCandidates] = await Promise.all([
-    postRepo.findReviewPosts(normalizedTake),
-    postRepo.findDraftPosts(legacyDraftTake),
-  ]);
-  const seen = new Set(reviewPosts.map((post) => post.id));
-  const legacyReadyDrafts = draftCandidates.filter((post) => {
-    if (seen.has(post.id) || !isReadyToPublishPost(post)) {
-      return false;
-    }
-
-    seen.add(post.id);
-    return true;
-  });
-
-  return [...reviewPosts, ...legacyReadyDrafts].slice(0, normalizedTake);
-}
-
-const getAdminReadyToPublishPostsCached = unstable_cache(
-  () => getReadyToPublishPostsUncached(20),
-  ["admin-ready-to-publish-posts"],
-  {
-    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
-    tags: [ADMIN_CACHE_TAGS.posts],
-  },
-);
-
 type AdminPostCountsRepository = Pick<
   typeof postRepo,
   "getAdminPostMetricsSnapshot" | "findDraftPublishabilityCandidates"
@@ -333,9 +268,8 @@ export function createAdminPostCountsQuery(
   repo: AdminPostCountsRepository = postRepo,
 ) {
   return async function getAdminPostCounts(): Promise<AdminPostCounts> {
-    const recentWindowStart = getAdminRecentWindowStart();
     const [metrics, draftCandidates] = await Promise.all([
-      repo.getAdminPostMetricsSnapshot(recentWindowStart),
+      repo.getAdminPostMetricsSnapshot(),
       repo.findDraftPublishabilityCandidates(),
     ]);
     const ready = metrics.review + countReadyToPublishPosts(draftCandidates);
@@ -389,17 +323,6 @@ export function projectAdminDashboardGovernanceStats(
   };
 }
 
-export function projectAdminQuickEntryCounts(
-  counts: AdminPostCounts,
-): AdminQuickEntryCounts {
-  return {
-    library: counts.library,
-    recent: counts.recent,
-    drafts: counts.drafts,
-    ready: counts.ready,
-  };
-}
-
 export async function getAdminDashboardOverviewStats(): Promise<AdminDashboardOverviewStats> {
   return projectAdminDashboardOverviewStats(await getAdminPostCounts());
 }
@@ -439,28 +362,28 @@ export function projectAdminDashboardStatCards(input: {
       value: input.overview.published,
       description: "公开可见的文章",
       iconKey: "post",
-      href: "/admin/posts?entry=library&status=published",
+      href: "/admin/posts",
     },
     {
       label: "草稿",
       value: input.overview.drafts,
       description: "仍在编辑中的内容",
       iconKey: "trend",
-      href: "/admin/posts?entry=drafts",
+      href: "/admin/posts",
     },
     {
       label: "待发布",
       value: input.overview.ready,
       description: "进入最终检查的文章",
       iconKey: "trend",
-      href: "/admin/posts?entry=ready",
+      href: "/admin/posts",
     },
     {
       label: "已归档",
       value: input.overview.archived,
       description: "已下线但可恢复的文章",
       iconKey: "post",
-      href: "/admin/posts?entry=library&status=archived",
+      href: "/admin/posts",
     },
     {
       label: "分类",
@@ -481,7 +404,7 @@ export function projectAdminDashboardStatCards(input: {
       value: input.governance[definition.key],
       description: definition.description,
       iconKey: getAdminDashboardGovernanceIconKey(definition.key),
-      href: `/admin/posts?entry=library&debt=${definition.key}`,
+      href: "/admin/posts",
     })),
   ];
 }
@@ -566,98 +489,6 @@ export async function getAdminDashboardPageData(
 export async function getAdminDashboardGovernanceStats(): Promise<AdminDashboardGovernanceStats> {
   return projectAdminDashboardGovernanceStats(await getAdminPostCounts());
 }
-
-export async function getAdminQuickEntryCounts(): Promise<AdminQuickEntryCounts> {
-  return projectAdminQuickEntryCounts(await getAdminPostCounts());
-}
-
-async function getAdminPostsFeedPageData(input: {
-  page: number;
-  filters?: postRepo.PostFilters;
-}): Promise<AdminPostsFeedPageData> {
-  const totalPosts = await getPostCount(input.filters);
-  const totalPages = getTotalPages(totalPosts, ADMIN_RECENT_POSTS_PER_PAGE);
-  const currentPage = Math.min(Math.max(input.page, 1), totalPages);
-
-  const posts = await getPosts({
-    ...input.filters,
-    order: "updated",
-    take: ADMIN_RECENT_POSTS_PER_PAGE,
-    skip: (currentPage - 1) * ADMIN_RECENT_POSTS_PER_PAGE,
-  });
-
-  return {
-    posts,
-    currentPage,
-    totalPosts,
-    totalPages,
-  };
-}
-
-export function shouldUseAdminRecentPostsPageCache(input: { page: number }) {
-  return input.page === 1;
-}
-
-export async function getAdminRecentPostsPageData(input: {
-  page: number;
-}): Promise<AdminPostsFeedPageData> {
-  if (shouldUseAdminRecentPostsPageCache(input)) {
-    return getAdminRecentPostsPageDataCached();
-  }
-
-  return getAdminPostsFeedPageData({
-    page: input.page,
-    filters: {
-      updatedAfter: getAdminRecentWindowStart(),
-    },
-  });
-}
-
-const getAdminRecentPostsPageDataCached = unstable_cache(
-  () => getAdminPostsFeedPageData({
-    page: 1,
-    filters: {
-      updatedAfter: getAdminRecentWindowStart(),
-    },
-  }),
-  ["admin-recent-posts-page-1"],
-  {
-    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
-    tags: [ADMIN_CACHE_TAGS.posts],
-  },
-);
-
-export function shouldUseAdminLibraryPostsPageCache(input: {
-  page: number;
-  filters?: postRepo.PostFilters;
-}) {
-  return input.page === 1 && !input.filters;
-}
-
-export async function getAdminLibraryPostsPageData(input: {
-  page: number;
-  filters?: postRepo.PostFilters;
-}): Promise<AdminPostsFeedPageData> {
-  if (shouldUseAdminLibraryPostsPageCache(input)) {
-    return getAdminLibraryPostsPageDataCached();
-  }
-
-  return getAdminPostsFeedPageData({
-    page: input.page,
-    filters: input.filters,
-  });
-}
-
-const getAdminLibraryPostsPageDataCached = unstable_cache(
-  () => getAdminPostsFeedPageData({
-    page: 1,
-  }),
-  ["admin-library-posts-page-1"],
-  {
-    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
-    tags: [ADMIN_CACHE_TAGS.posts],
-  },
-);
 
 type PublicPostsPageDataDependencies = {
   getPostCount: typeof getPostCount;

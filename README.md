@@ -10,7 +10,8 @@
 
 - 管理员初始化、登录和账户设置
 - 文章新建、编辑、自动保存、手动保存、发布和归档
-- 文件夹、分类、标签、筛选、搜索和批量治理
+- 文件夹组织私人笔记，发布状态决定是否成为公开 Blog
+- 分类、标签和 SEO 按需补充，不作为写作前置条件
 - 媒体上传、替换、引用追踪和文章封面
 - 前台文章列表、详情、分类、标签、RSS 和 sitemap
 - Docker standalone 构建、数据库同步和发布包交付
@@ -31,7 +32,7 @@
 - 文章列表按创建时间稳定排序，保存和发布不会改变位置
 - 概览仅记录用户主动的新建、保存、发布、归档和批量操作
 - 前台博客列表、分类页、标签页和文章详情页
-- 后台内容工作台、文件夹、保存视图、筛选和分页
+- 后台三栏工作台：文件夹 → 笔记列表 → 编辑器
 - 媒体上传、媒体库、替换、引用关系和基础元数据
 - 分类、标签、站点设置和管理员账户设置
 - RSS、robots.txt、sitemap、深色 / 浅色主题
@@ -169,6 +170,7 @@ npm test
 npm run db:generate
 npm run db:sync
 npm run db:push
+npm run db:backfill:post-content
 npm run db:preflight:release
 npm run db:seed
 npm run db:seed:demo-posts
@@ -193,7 +195,7 @@ media/              本地媒体挂载目录
 
 ## 核心约定
 
-- 正文唯一事实源是 Tiptap JSON，HTML、Text 和 TOC 是服务端物化结果
+- 正文唯一事实源是 Tiptap JSON；HTML、Text、TOC、字数和阅读时长在保存时统一物化，公开页面直接读取物化结果
 - 后台页面只消费 page-data query，不直接组装数据库读模型
 - 写路径遵循 parser → action → service → repository → cache invalidation
 - 自动保存和切换文章保存属于后台持久化，不进入最近操作历史
