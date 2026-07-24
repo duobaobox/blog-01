@@ -19,6 +19,7 @@ export type PostFilters = {
   missingSeoDescription?: boolean;
   updatedAfter?: Date;
   query?: string;
+  includeArchived?: boolean;
 };
 
 export type FindPostsOptions = {
@@ -38,6 +39,7 @@ export type FindPostsOptions = {
   updatedAfter?: Date;
   query?: string;
   order?: "created" | "updated" | "published";
+  includeArchived?: boolean;
 };
 
 export type AdminPostMetricsSnapshot = {
@@ -235,7 +237,9 @@ function getDefaultActiveStatusWhere(): Prisma.postWhereInput {
 }
 
 function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
-  const where: Prisma.postWhereInput = getDefaultActiveStatusWhere();
+  const where: Prisma.postWhereInput = filters?.includeArchived
+    ? {}
+    : getDefaultActiveStatusWhere();
   const andConditions: Prisma.postWhereInput[] = [];
 
   if (filters?.status) {

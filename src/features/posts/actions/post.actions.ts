@@ -21,6 +21,10 @@ export function deletePost(id: string) {
   return serverActions.deletePost(id);
 }
 
+export function restorePost(id: string) {
+  return serverActions.restorePost(id);
+}
+
 export function applyBulkPostAction(formData: FormData) {
   return serverActions.applyBulkPostAction(formData);
 }

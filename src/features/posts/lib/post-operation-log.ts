@@ -6,6 +6,7 @@ export const POST_OPERATION_TYPES = [
   "publish",
   "update",
   "archive",
+  "restore",
   "bulkStatus",
   "bulkCategory",
   "bulkFolder",
@@ -77,7 +78,7 @@ export function getPostBulkOperationType(
 
 export function buildPostOperationSummary(input:
   | {
-      type: "create" | "save" | "publish" | "update" | "archive";
+      type: "create" | "save" | "publish" | "update" | "archive" | "restore";
       title: string;
     }
   | {
@@ -95,6 +96,8 @@ export function buildPostOperationSummary(input:
       return `更新文章《${input.title}》`;
     case "archive":
       return `归档文章《${input.title}》`;
+    case "restore":
+      return `恢复文章《${input.title}》`;
     case "bulkStatus":
       return `批量修改 ${input.count} 篇文章状态`;
     case "bulkCategory":

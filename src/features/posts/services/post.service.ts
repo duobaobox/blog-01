@@ -31,7 +31,7 @@ import * as postOperationLogRepo from "@/features/posts/repositories/post-operat
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
 import * as tagRepo from "@/features/taxonomy/repositories/tag.repository";
-import { NotFoundError } from "@/shared/lib/app-error";
+import { NotFoundError, ValidationError } from "@/shared/lib/app-error";
 import { generateSemanticSlug } from "@/shared/lib/slug";
 
 async function resolveSlug(userSlug?: string, title?: string) {
@@ -263,6 +263,42 @@ export async function updatePost(
     previousPost: existingPost,
     post,
   };
+}
+
+export async function restorePost(input: {
+  id: string;
+  restoredBy: string;
+}) {
+  const existingPost = await postRepo.findPostById(input.id);
+  if (!existingPost) {
+    throw new NotFoundError("文章不存在");
+  }
+
+  if (!isArchivedPost(existingPost)) {
+    throw new ValidationError("只有已归档文章可以恢复");
+  }
+
+  const post = await postRepo.updatePostArchiveStatus(input.id, false);
+
+  await postOperationLogRepo.createPostOperationLog({
+    operation: "restore",
+    summary: buildPostOperationSummary({
+      type: "restore",
+      title: existingPost.title,
+    }),
+    detail: {
+      postIds: [input.id],
+      count: 1,
+      status: "draft",
+      categoryId: existingPost.categoryId,
+      folderId: existingPost.folder?.id ?? null,
+      tagIds: existingPost.tags.map((item) => item.tag.id),
+    },
+    createdBy: input.restoredBy,
+    postId: input.id,
+  });
+
+  return post;
 }
 
 export async function deletePost(input: {

@@ -25,7 +25,7 @@ function createTree() {
 function createPost(
   id: string,
   title: string,
-  status: "draft" | "review" | "published",
+  status: "draft" | "review" | "published" | "archived",
   folder = FOLDER_ONE,
 ) {
   return {
@@ -61,6 +61,7 @@ function createDependencies(options?: {
     createPost("draft-1", "产品草稿", "draft"),
     createPost("review-1", "发布检查", "review"),
     createPost("published-1", "产品公告", "published"),
+    createPost("archived-1", "历史笔记", "archived"),
   ];
 
   return {
@@ -85,7 +86,7 @@ function createDependencies(options?: {
         ) as never;
       },
       async getPosts(filters?: FindPostsOptions) {
-        calls.push(`folder:${filters?.folderId}:${filters?.order}`);
+        calls.push(`folder:${filters?.folderId}:${filters?.order}:${filters?.includeArchived}`);
         return posts.filter((post) => post.folder.id === filters?.folderId) as never;
       },
     },
@@ -104,12 +105,13 @@ test("文章工作台默认进入第一个文件夹并统计当前文件夹状�
     draft: 1,
     review: 1,
     published: 1,
+    archived: 1,
   });
   assert.deepEqual(
     result.contextPosts.map((post) => post.id),
     ["draft-1", "review-1", "published-1"],
   );
-  assert.ok(calls.includes("folder:folder-1:created"));
+  assert.ok(calls.includes("folder:folder-1:created:true"));
   assert.equal(calls.some((call) => call.includes("folder-2")), false);
 });
 
@@ -126,7 +128,7 @@ test("状态和搜索只筛选当前文件夹文章", async () => {
   assert.equal(result.statusFilter, "review");
   assert.deepEqual(result.contextPosts.map((post) => post.id), ["review-1"]);
   assert.equal(result.selectedPostId, "review-1");
-  assert.ok(calls.includes("folder:folder-1:created"));
+  assert.ok(calls.includes("folder:folder-1:created:true"));
 });
 
 test("通过文章链接进入时恢复文章所属文件夹而不是全局列表", async () => {
@@ -147,5 +149,19 @@ test("通过文章链接进入时恢复文章所属文件夹而不是全局列�
   assert.equal(result.activeFolder?.id, FOLDER_TWO.id);
   assert.equal(result.selectedPostId, requestedPost.id);
   assert.equal(result.selectedPost?.id, requestedPost.id);
-  assert.ok(calls.includes("folder:folder-2:created"));
+  assert.ok(calls.includes("folder:folder-2:created:true"));
+});
+
+test("已归档标签页只显示当前文件夹的归档笔记", async () => {
+  const { dependencies } = createDependencies();
+  const query = createAdminPostsPageDataQuery(dependencies);
+
+  const result = await query({
+    folder: FOLDER_ONE.id,
+    status: "archived",
+  });
+
+  assert.deepEqual(result.contextPosts.map((post) => post.id), ["archived-1"]);
+  assert.equal(result.selectedPostId, "archived-1");
+  assert.equal(result.folderStatusCounts.archived, 1);
 });

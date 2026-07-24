@@ -56,6 +56,13 @@ test("buildPostOperationSummary formats single-post and bulk operation copy", ()
   );
   assert.equal(
     buildPostOperationSummary({
+      type: "restore",
+      title: "旧版本首页复盘",
+    }),
+    "恢复文章《旧版本首页复盘》",
+  );
+  assert.equal(
+    buildPostOperationSummary({
       type: "bulkFolder",
       count: 3,
     }),
