@@ -78,7 +78,7 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
   });
 });
 
-test("createAdminDashboardPageDataQuery aggregates stat cards and recent activity into one dashboard read model", async () => {
+test("createAdminDashboardPageDataQuery aggregates cards and writing summaries into one read model", async () => {
   const calls: Array<string> = [];
   const query = createAdminDashboardPageDataQuery({
     async getOverviewStats() {
@@ -96,31 +96,41 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
       calls.push("tags");
       return [{ id: "tag-1" }, { id: "tag-2" }, { id: "tag-3" }] as never;
     },
-    async getRecentActivity(take) {
-      calls.push(`recent:${take}`);
+    async getContinueWriting() {
+      calls.push("continue");
+      return {
+        id: "post-internal",
+        title: "继续完成这篇笔记",
+        updatedAt: new Date("2026-07-24T08:00:00.000Z"),
+        wordCount: 1280,
+        folder: {
+          id: "folder-1",
+          name: "随笔",
+        },
+      };
+    },
+    async getRecentPublished(take) {
+      calls.push(`published:${take}`);
       return [
         {
-          id: "log-1",
-          operation: "create",
-          summary: "创建文章",
-          createdAt: "2026-06-15T00:00:00.000Z",
-          post: null,
-          author: null,
-          detail: {
-            postIds: [],
-            count: 1,
+          id: "post-published",
+          title: "已经发布的文章",
+          publishedAt: new Date("2026-07-23T08:00:00.000Z"),
+          folder: {
+            id: "folder-1",
           },
         },
       ];
     },
   });
 
-  const result = await query(5);
+  const result = await query(3);
 
   assert.deepEqual(calls.sort(), [
     "categories",
+    "continue",
     "overview",
-    "recent:5",
+    "published:3",
     "tags",
   ]);
   assert.equal(result.statCards.length, 4);
@@ -138,19 +148,10 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
     iconKey: "tag",
     href: "/admin/tags",
   });
-  assert.deepEqual(result.recentActivity, [
-    {
-      id: "log-1",
-      operation: "create",
-      summary: "创建文章",
-      createdAt: "2026-06-15T00:00:00.000Z",
-      post: null,
-      author: null,
-      detail: {
-        postIds: [],
-        count: 1,
-      },
-    },
+  assert.equal(result.continueWriting?.id, "post-internal");
+  assert.equal(result.continueWriting?.wordCount, 1280);
+  assert.deepEqual(result.recentPublished.map((post) => post.id), [
+    "post-published",
   ]);
 });
 
@@ -176,8 +177,12 @@ test("createAdminDashboardPageDataQuery short-circuits during production build",
       calls.push("tags");
       return [] as never;
     },
-    async getRecentActivity() {
-      calls.push("recent");
+    async getContinueWriting() {
+      calls.push("continue");
+      return null;
+    },
+    async getRecentPublished() {
+      calls.push("published");
       return [];
     },
   });
@@ -187,7 +192,8 @@ test("createAdminDashboardPageDataQuery short-circuits during production build",
   assert.deepEqual(calls, ["phase"]);
   assert.deepEqual(result, {
     statCards: [],
-    recentActivity: [],
+    continueWriting: null,
+    recentPublished: [],
   });
 });
 

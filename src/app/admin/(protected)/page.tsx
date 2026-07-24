@@ -17,10 +17,22 @@ const DASHBOARD_STAT_ICONS = {
   trend: TrendingUp,
 } as const;
 
-export default async function AdminDashboard() {
-  const dashboard = await getAdminDashboardPageData(8);
+function getAdminPostHref(post: {
+  id: string;
+  folder?: { id: string } | null;
+}) {
+  const folderQuery = post.folder?.id ? `folder=${post.folder.id}&` : "";
+  return `/admin/posts?${folderQuery}postId=${post.id}`;
+}
 
-  const activityTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+function getPostDisplayTitle(title: string) {
+  return title.trim() || "未命名文章";
+}
+
+export default async function AdminDashboard() {
+  const dashboard = await getAdminDashboardPageData();
+
+  const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -37,16 +49,16 @@ export default async function AdminDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {dashboard.statCards.map((stat) => {
             const Icon = DASHBOARD_STAT_ICONS[stat.iconKey];
             return (
               <Link
                 key={stat.label}
                 href={stat.href}
-                className="group"
+                className="group h-full"
               >
-                <Card className="transition-all hover:shadow-md group-hover:border-primary/50">
+                <Card className="h-full transition-all hover:shadow-md group-hover:border-primary/50">
                   <CardHeader className="pb-2">
                     <CardDescription className="text-sm font-medium">
                       {stat.label}
@@ -71,52 +83,74 @@ export default async function AdminDashboard() {
           })}
         </div>
 
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>最近操作</CardTitle>
-              <CardDescription>
-                仅记录手动保存、发布等主动操作。
-              </CardDescription>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <Card className="h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">继续写作</CardTitle>
+              <CardDescription>最近更新的一篇内部文章</CardDescription>
             </CardHeader>
             <CardContent>
-              {dashboard.recentActivity.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  还没有内容操作记录。
-                </p>
+              {dashboard.continueWriting ? (
+                <Link
+                  href={getAdminPostHref(dashboard.continueWriting)}
+                  className="block rounded-lg border bg-muted/20 px-4 py-3 transition-colors hover:border-primary/40 hover:bg-muted/50"
+                >
+                  <p className="truncate text-sm font-medium">
+                    {getPostDisplayTitle(dashboard.continueWriting.title)}
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {dashboard.continueWriting.folder?.name ?? "未归属文件夹"}
+                    {" · "}
+                    {dashboard.continueWriting.wordCount ?? 0} 字
+                    {" · "}
+                    {dateTimeFormatter.format(
+                      new Date(dashboard.continueWriting.updatedAt),
+                    )}
+                  </p>
+                </Link>
               ) : (
-                <div className="space-y-3">
-                  {dashboard.recentActivity.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"
+                <div className="rounded-lg border border-dashed px-4 py-5 text-sm text-muted-foreground">
+                  暂无内部文章。
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">最近发布</CardTitle>
+              <CardDescription>最近发布的 3 篇文章</CardDescription>
+              <CardAction>
+                <Link
+                  href="/admin/posts?status=published"
+                  className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  查看全部
+                </Link>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              {dashboard.recentPublished.length === 0 ? (
+                <div className="rounded-lg border border-dashed px-4 py-5 text-sm text-muted-foreground">
+                  还没有已发布文章。
+                </div>
+              ) : (
+                <div>
+                  {dashboard.recentPublished.map((post) => (
+                    <Link
+                      key={post.id}
+                      href={getAdminPostHref(post)}
+                      className="group flex items-center justify-between gap-4 border-b py-2.5 first:pt-0 last:border-b-0 last:pb-0"
                     >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{item.summary}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {item.author?.name ||
-                            item.author?.username ||
-                            item.author?.email ||
-                            "管理员"}{" "}
-                          · {activityTimeFormatter.format(new Date(item.createdAt))}
-                        </p>
-                      </div>
-                      {item.post ? (
-                        <Link
-                          href={`/admin/posts?postId=${item.post.id}`}
-                          className="shrink-0 text-xs text-primary hover:underline"
-                        >
-                          查看文章
-                        </Link>
-                      ) : (
-                        <Link
-                          href="/admin/posts"
-                          className="shrink-0 text-xs text-primary hover:underline"
-                        >
-                          查看文章管理
-                        </Link>
-                      )}
-                    </div>
+                      <span className="min-w-0 truncate text-sm font-medium group-hover:underline">
+                        {getPostDisplayTitle(post.title)}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {post.publishedAt
+                          ? dateTimeFormatter.format(new Date(post.publishedAt))
+                          : "未记录时间"}
+                      </span>
+                    </Link>
                   ))}
                 </div>
               )}

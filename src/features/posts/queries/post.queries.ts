@@ -7,7 +7,6 @@ import {
   resolveMediaPresentationMap,
   type MediaPresentation,
 } from "@/features/media/queries/media.queries";
-import { getRecentPostOperationLogs } from "@/features/posts/queries/post-operation-log.query";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
@@ -23,6 +22,12 @@ type PublicPostCardRecord = Awaited<ReturnType<typeof postRepo.findPublicPostCar
 type PublishedPostRecord = NonNullable<
   Awaited<ReturnType<typeof postRepo.findPublishedPostBySlug>>
 >;
+type AdminDashboardContinueWritingPost = Awaited<
+  ReturnType<typeof postRepo.findLatestInternalPostForDashboard>
+>;
+type AdminDashboardRecentPublishedPost = Awaited<
+  ReturnType<typeof postRepo.findRecentPublishedPostsForDashboard>
+>[number];
 type ResolveMediaPresentationMap = typeof resolveMediaPresentationMap;
 
 export type PublicPostCard = PublicPostCardRecord & {
@@ -41,7 +46,8 @@ export interface PublicPostsPageData {
 
 export interface AdminDashboardPageData {
   statCards: AdminDashboardStatCard[];
-  recentActivity: Awaited<ReturnType<typeof getRecentPostOperationLogs>>;
+  continueWriting: AdminDashboardContinueWritingPost;
+  recentPublished: AdminDashboardRecentPublishedPost[];
 }
 
 export type AdminPostCounts = AdminPostMetricsSnapshot;
@@ -313,39 +319,47 @@ export function projectAdminDashboardStatCards(input: {
   ];
 }
 
+const getAdminDashboardRecentPublishedCached = unstable_cache(
+  (take: number) => postRepo.findRecentPublishedPostsForDashboard(take),
+  ["admin-dashboard-recent-published"],
+  {
+    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
+    tags: [ADMIN_CACHE_TAGS.dashboard],
+  },
+);
+
 type AdminDashboardPageDataDependencies = {
   isProductionBuildPhase: () => boolean;
   getOverviewStats: () => Promise<AdminDashboardOverviewStats>;
   getCategories: () => Promise<Array<{ id: string }>>;
   getTags: () => Promise<Array<{ id: string }>>;
-  getRecentActivity: (take: number) => Promise<AdminDashboardPageData["recentActivity"]>;
+  getContinueWriting: () => Promise<AdminDashboardPageData["continueWriting"]>;
+  getRecentPublished: (
+    take: number,
+  ) => Promise<AdminDashboardPageData["recentPublished"]>;
 };
 
 export function createAdminDashboardPageDataQuery(
-  dependencies: Partial<AdminDashboardPageDataDependencies> = {
-    isProductionBuildPhase,
-    getOverviewStats: getAdminDashboardOverviewStats,
-    getCategories: () => getCategories("admin"),
-    getTags: () => getTags("admin"),
-    getRecentActivity: getRecentPostOperationLogs,
-  },
+  dependencies: Partial<AdminDashboardPageDataDependencies> = {},
 ) {
   const resolvedDependencies: AdminDashboardPageDataDependencies = {
     isProductionBuildPhase,
     getOverviewStats: getAdminDashboardOverviewStats,
     getCategories: () => getCategories("admin"),
     getTags: () => getTags("admin"),
-    getRecentActivity: getRecentPostOperationLogs,
+    getContinueWriting: postRepo.findLatestInternalPostForDashboard,
+    getRecentPublished: getAdminDashboardRecentPublishedCached,
     ...dependencies,
   };
 
   return async function getAdminDashboardPageData(
-    recentActivityTake = 8,
+    recentPublishedTake = 3,
   ): Promise<AdminDashboardPageData> {
     if (resolvedDependencies.isProductionBuildPhase()) {
       return {
         statCards: [],
-        recentActivity: [],
+        continueWriting: null,
+        recentPublished: [],
       };
     }
 
@@ -353,12 +367,14 @@ export function createAdminDashboardPageDataQuery(
       overview,
       categories,
       tags,
-      recentActivity,
+      continueWriting,
+      recentPublished,
     ] = await Promise.all([
       resolvedDependencies.getOverviewStats(),
       resolvedDependencies.getCategories(),
       resolvedDependencies.getTags(),
-      resolvedDependencies.getRecentActivity(recentActivityTake),
+      resolvedDependencies.getContinueWriting(),
+      resolvedDependencies.getRecentPublished(recentPublishedTake),
     ]);
 
     const taxonomy = projectAdminDashboardTaxonomyStats({
@@ -371,7 +387,8 @@ export function createAdminDashboardPageDataQuery(
         overview,
         taxonomy,
       }),
-      recentActivity,
+      continueWriting,
+      recentPublished,
     };
   };
 }
@@ -379,9 +396,9 @@ export function createAdminDashboardPageDataQuery(
 const getAdminDashboardPageDataQuery = createAdminDashboardPageDataQuery();
 
 export async function getAdminDashboardPageData(
-  recentActivityTake = 8,
+  recentPublishedTake = 3,
 ): Promise<AdminDashboardPageData> {
-  return getAdminDashboardPageDataQuery(recentActivityTake);
+  return getAdminDashboardPageDataQuery(recentPublishedTake);
 }
 
 type PublicPostsPageDataDependencies = {

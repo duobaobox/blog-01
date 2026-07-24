@@ -322,6 +322,47 @@ export async function getAdminPostMetricsSnapshot(): Promise<AdminPostMetricsSna
   return mapAdminPostMetricsSnapshotRow(row);
 }
 
+export async function findLatestInternalPostForDashboard() {
+  return db.post.findFirst({
+    where: {
+      status: {
+        not: "published",
+      },
+    },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      title: true,
+      updatedAt: true,
+      wordCount: true,
+      folder: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
+export async function findRecentPublishedPostsForDashboard(take = 3) {
+  return db.post.findMany({
+    where: { status: "published" },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take,
+    select: {
+      id: true,
+      title: true,
+      publishedAt: true,
+      folder: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+}
+
 export async function createPost(data: {
   title: string;
   slug: string;

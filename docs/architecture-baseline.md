@@ -128,7 +128,7 @@
 - 分类、标签、摘要和 SEO 都是可选元数据；后台不得把缺少这些字段展示为治理欠债
 - 后台首页统计卡片的最终展示模型，也应由 query projection 统一产出；页面只负责把 `iconKey / href / label / value` 渲染出来，不再自己拼卡片数组
 - 后台首页里的 taxonomy 概览（如分类数、标签数）也应通过独立投影 helper 进入 dashboard，而不是长期由页面自行拿列表后再数长度
-- 后台首页 page 应优先只依赖单一聚合读模型入口，例如 `dashboard page data query`；不要在 page 里持续扩展 `Promise.all(...)` 直接拼 overview / taxonomy / recent activity
+- 后台首页 page 应优先只依赖单一聚合读模型入口，例如 `dashboard page data query`；不要在 page 里直接拼 overview / taxonomy / continue writing / recent published
 - 后台 onboarding / setup reminder 也应视为读模型投影，由 query 层统一组合；layout 或 page 不应继续直接拼接 settings service / bootstrap 读取
 - 后台账户安全提醒（如默认密码仍在使用）也应视为读模型投影；账户页不应继续直接依赖 bootstrap helper 获取展示状态
 - protected admin layout 里的 banner / reminder 状态也应优先走单一 shell projection，例如 `admin shell status query`，避免 layout 直接读取 bootstrap helper 再和 settings 提醒做页面级拼装
@@ -156,7 +156,7 @@
 - 产品层只暴露“内部 / 已发布”两种状态；数据库技术值沿用 `draft / published`，只有 `published` 对外成为 Blog
 - 分类、标签、摘要和 SEO 是可选发布元数据，不作为创建笔记的前置条件
 - 搜索和状态筛选只作用于当前文件夹，不再维护全局 `library / recent` feed
-- 后台概览只保留内部、已发布及 taxonomy 数量
+- 后台概览保留内部、已发布及 taxonomy 数量，下方只展示最近更新的一篇内部文章和最近发布的三篇文章
 - 已放弃的保存视图、快捷入口、工作台 session 恢复和旧查询计划不再继续扩展
 - 取消发布会把文章切回内部；删除是经过输入确认的永久删除，不提供归档和恢复
 - 删除文件夹会在同一事务中永久删除其中全部文章，并对受影响的已发布文章执行公开内容缓存失效
