@@ -31,7 +31,6 @@ type ContentEditorShellProps = {
   }>;
   onDirtyChange: (dirty: boolean) => void;
   registerBeforeLeave: (handler: BeforeLeaveHandler) => void;
-  onDeletePost: (postId: string) => void | Promise<void>;
   onCreateNew: () => void | Promise<void>;
 };
 
@@ -45,7 +44,6 @@ export function ContentEditorShell({
   folderOptions,
   onDirtyChange,
   registerBeforeLeave,
-  onDeletePost,
   onCreateNew,
 }: ContentEditorShellProps) {
   const beforeLeaveRef = useRef<BeforeLeaveHandler>(null);
@@ -132,7 +130,6 @@ export function ContentEditorShell({
         defaultFolderId={selectedPost?.folder?.id ?? activeFolderId}
         onDirtyChange={onDirtyChange}
         registerBeforeLeave={handleRegisterBeforeLeave}
-        onDeletePost={onDeletePost}
       />
 
       <Button

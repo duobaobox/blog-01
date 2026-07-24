@@ -340,7 +340,6 @@ export function ContentSpaceShell({
               registerBeforeLeave={(handler) => {
                 beforeLeaveHandlerRef.current = handler;
               }}
-              onDeletePost={handleDeletePost}
               onCreateNew={handleCreateNew}
             />
           </div>

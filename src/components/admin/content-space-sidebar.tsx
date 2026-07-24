@@ -46,16 +46,31 @@ export function ContentSpaceSidebar({
     id: string;
     name: string;
   } | null>(null);
+  const [deletingFolder, setDeletingFolder] = useState<{
+    id: string;
+    name: string;
+    postCount: number;
+  } | null>(null);
   const deleteConfirm = useConfirm();
   const folderView = useMemo(() => buildContentSpaceFolderView(tree), [tree]);
 
-  async function handleDeleteFolder(folderId: string) {
-    if (!(await deleteConfirm.confirm())) return;
+  async function handleDeleteFolder(folder: {
+    id: string;
+    name: string;
+    postCount: number;
+  }) {
+    setDeletingFolder(folder);
+    if (!(await deleteConfirm.confirm())) {
+      setDeletingFolder(null);
+      return;
+    }
 
     try {
-      await onDeleteFolder?.(folderId);
+      await onDeleteFolder?.(folder.id);
     } catch (error) {
       window.alert(error instanceof Error ? error.message : "删除文件夹失败");
+    } finally {
+      setDeletingFolder(null);
     }
   }
 
@@ -154,7 +169,7 @@ export function ContentSpaceSidebar({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           variant="destructive"
-                          onClick={() => void handleDeleteFolder(folder.id)}
+                          onClick={() => void handleDeleteFolder(folder)}
                         >
                           删除
                         </DropdownMenuItem>
@@ -170,10 +185,20 @@ export function ContentSpaceSidebar({
 
       <ConfirmDialog
         open={deleteConfirm.open}
-        onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
-        title="删除空文件夹"
-        description="只能删除不包含任何笔记的空文件夹，删除后无法恢复。"
-        confirmText="删除"
+        onOpenChange={(open) => {
+          if (!open) {
+            deleteConfirm.handleCancel();
+            setDeletingFolder(null);
+          }
+        }}
+        title="永久删除文件夹"
+        description={
+          deletingFolder && deletingFolder.postCount > 0
+            ? `文件夹“${deletingFolder.name}”及其中 ${deletingFolder.postCount} 篇文章将被永久删除，已发布文章也会从 Blog 下线。此操作无法恢复。请输入“删除”完成二次确认。`
+            : `文件夹“${deletingFolder?.name ?? ""}”将被永久删除。此操作无法恢复。请输入“删除”完成二次确认。`
+        }
+        confirmText="永久删除"
+        confirmationText="删除"
         variant="destructive"
         onConfirm={deleteConfirm.handleConfirm}
       />

@@ -1,5 +1,6 @@
-import type * as folderServiceModule from "@/features/content-space/services/folder.service";
+import { getFolderDeletionPublicPosts } from "@/features/content-space/lib/folder-deletion";
 import type { FolderWriteInput } from "@/features/content-space/lib/folder-write";
+import type * as folderServiceModule from "@/features/content-space/services/folder.service";
 
 type FolderService = Pick<
   typeof folderServiceModule,
@@ -9,6 +10,13 @@ type FolderService = Pick<
 type FolderActionRunnerDeps = {
   folderService: FolderService;
   revalidateAdminPosts(): void;
+  revalidatePostsContent(
+    posts: Array<{
+      slug?: string | null;
+      category?: { slug?: string | null } | null;
+      tags?: Array<{ tag?: { slug?: string | null } | null }> | null;
+    }>,
+  ): void;
 };
 
 export function createFolderActionRunner(deps: FolderActionRunnerDeps) {
@@ -26,8 +34,15 @@ export function createFolderActionRunner(deps: FolderActionRunnerDeps) {
     },
 
     async deleteFolder(id: string) {
-      await deps.folderService.deleteFolder(id);
+      const result = await deps.folderService.deleteFolder(id);
+      const publicPosts = getFolderDeletionPublicPosts(result.deletedPosts);
+
       deps.revalidateAdminPosts();
+      if (publicPosts.length > 0) {
+        deps.revalidatePostsContent(publicPosts);
+      }
+
+      return result;
     },
   };
 }

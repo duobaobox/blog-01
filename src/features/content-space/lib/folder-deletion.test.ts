@@ -1,17 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ValidationError } from "@/shared/lib/app-error";
-import { assertFolderCanBeDeleted } from "./folder-deletion";
+import { getFolderDeletionPublicPosts } from "./folder-deletion";
 
-test("空文件夹可以删除", () => {
-  assert.doesNotThrow(() => assertFolderCanBeDeleted(0));
+test("文件夹删除只刷新其中已发布文章的公开页面", () => {
+  const posts = [
+    { status: "draft", slug: "private-note" },
+    { status: "published", slug: "public-post" },
+  ];
+
+  assert.deepEqual(getFolderDeletionPublicPosts(posts), [
+    { status: "published", slug: "public-post" },
+  ]);
 });
 
-test("包含草稿、已发布或已归档笔记的文件夹都不能删除", () => {
-  assert.throws(
-    () => assertFolderCanBeDeleted(1),
-    (error) =>
-      error instanceof ValidationError &&
-      error.message.includes("请先移动这些笔记"),
-  );
+test("删除空文件夹不需要刷新公开页面", () => {
+  assert.deepEqual(getFolderDeletionPublicPosts([]), []);
 });

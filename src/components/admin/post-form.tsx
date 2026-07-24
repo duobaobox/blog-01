@@ -10,7 +10,7 @@ import {
 } from "react";
 import Image from "next/image";
 import readingTime from "reading-time";
-import { HelpCircle, SlidersHorizontal, Trash2 } from "lucide-react";
+import { HelpCircle, SlidersHorizontal } from "lucide-react";
 import {
   hasMeaningfulContent,
   parseStoredContentJson,
@@ -115,7 +115,6 @@ interface PostFormProps {
   defaultFolderId?: string;
   onDirtyChange?: (dirty: boolean) => void;
   registerBeforeLeave?: (handler: (() => Promise<boolean>) | null) => void;
-  onDeletePost?: (postId: string) => void | Promise<void>;
 }
 
 type FormState = {
@@ -257,7 +256,6 @@ export function PostForm({
   defaultFolderId,
   onDirtyChange,
   registerBeforeLeave,
-  onDeletePost,
 }: PostFormProps) {
   const [form, setForm] = useState<FormState>(() =>
     createFormState(post, { defaultFolderId }),
@@ -267,10 +265,6 @@ export function PostForm({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const [titleEditing, setTitleEditing] = useState(false);
-  const [activePostId, setActivePostId] = useState<string | null>(
-    post?.id ?? null,
-  );
-  const deleteConfirm = useConfirm();
   const {
     open: leaveConfirmOpen,
     confirm: confirmLeave,
@@ -417,7 +411,6 @@ export function PostForm({
           postIdRef.current = savedPost.id;
           postSlugRef.current = savedPost.slug;
           persistedStatusRef.current = savedPost.status;
-          setActivePostId(savedPost.id);
 
           const acknowledgedForm = {
             ...persistedForm,
@@ -566,17 +559,6 @@ export function PostForm({
     });
   }
 
-  async function handleDelete() {
-    const currentPostId = postIdRef.current;
-    if (!currentPostId || !(await deleteConfirm.confirm())) return;
-
-    try {
-      await onDeletePost?.(currentPostId);
-    } catch {
-      window.alert("删除失败，请稍后重试。");
-    }
-  }
-
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-6 py-2.5">
@@ -647,18 +629,6 @@ export function PostForm({
                   ? "等待自动保存"
                   : "已保存"}
           </span>
-
-          {activePostId ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              disabled={saving}
-              onClick={handleDelete}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          ) : null}
 
           <Button
             variant="ghost"
@@ -1022,17 +992,6 @@ export function PostForm({
         onOpenChange={setCoverPickerOpen}
         onSelect={(media) => patchForm({ coverImageUrl: media.url })}
         mimeTypePrefix="image"
-      />
-
-      <ConfirmDialog
-        open={deleteConfirm.open}
-        onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
-        title="永久删除文章"
-        description="文章删除后无法恢复。请输入“删除”完成二次确认。"
-        confirmText="永久删除"
-        confirmationText="删除"
-        variant="destructive"
-        onConfirm={deleteConfirm.handleConfirm}
       />
 
       <ConfirmDialog

@@ -1,5 +1,4 @@
 import * as folderRepo from "@/features/content-space/repositories/folder.repository";
-import { assertFolderCanBeDeleted } from "@/features/content-space/lib/folder-deletion";
 import type { FolderWriteInput } from "@/features/content-space/lib/folder-write";
 import { requireEntity } from "@/shared/lib/validation";
 import { generateSemanticSlug } from "@/shared/lib/slug";
@@ -32,11 +31,6 @@ export async function renameFolder(id: string, input: FolderWriteInput) {
 }
 
 export async function deleteFolder(id: string) {
-  const folder = requireEntity(
-    await folderRepo.findFolderByIdWithPostCount(id),
-    "文件夹不存在",
-  );
-
-  assertFolderCanBeDeleted(folder._count.posts);
-  await folderRepo.deleteFolder(id);
+  requireEntity(await folderRepo.findFolderById(id), "文件夹不存在");
+  return folderRepo.deleteFolder(id);
 }

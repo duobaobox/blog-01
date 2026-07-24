@@ -47,19 +47,6 @@ export async function findFolderById(id: string) {
   return db.folder.findUnique({ where: { id } });
 }
 
-export async function findFolderByIdWithPostCount(id: string) {
-  return db.folder.findUnique({
-    where: { id },
-    include: {
-      _count: {
-        select: {
-          posts: true,
-        },
-      },
-    },
-  });
-}
-
 export async function createFolder(data: {
   name: string;
   slug: string;
@@ -80,5 +67,32 @@ export async function updateFolder(
 }
 
 export async function deleteFolder(id: string) {
-  return db.folder.delete({ where: { id } });
+  return db.$transaction(async (tx) => {
+    const deletedPosts = await tx.post.findMany({
+      where: { folderId: id },
+      select: {
+        status: true,
+        slug: true,
+        category: {
+          select: {
+            slug: true,
+          },
+        },
+        tags: {
+          select: {
+            tag: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await tx.post.deleteMany({ where: { folderId: id } });
+    await tx.folder.delete({ where: { id } });
+
+    return { deletedPosts };
+  });
 }
