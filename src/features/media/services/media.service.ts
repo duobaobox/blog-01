@@ -3,6 +3,7 @@ import { LocalStorageProvider } from "@/features/media/providers/local-storage.p
 import { VercelBlobStorageProvider } from "@/features/media/providers/vercel-blob.provider";
 import { extractMediaDimensions } from "@/features/media/lib/media-metadata";
 import { resolveMediaStorageRecord } from "@/features/media/lib/media-storage";
+import { assertCompatibleMediaReplacement } from "@/features/media/lib/media-replacement";
 import * as mediaRepo from "@/features/media/repositories/media.repository";
 import {
   AppError,
@@ -87,6 +88,8 @@ export async function deleteFile(id: string) {
 export async function replaceFile(id: string, file: File) {
   const media = await mediaRepo.findMediaById(id);
   if (!media) throw new NotFoundError("Media not found");
+
+  assertCompatibleMediaReplacement(media.mimeType, file.type);
 
   const storage = resolveMediaStorageRecord(media);
   const provider = getStorageProvider(storage.provider);

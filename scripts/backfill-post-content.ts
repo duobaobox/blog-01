@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Prisma } from "../src/generated/prisma/client.js";
-import { materializePostContent } from "../src/features/editor/content-materializer.js";
+import { materializePostContent } from "../src/features/editor/content-materializer-core.js";
 import { db } from "../src/infrastructure/db/index.js";
 
 const PAGE_SIZE = 100;

@@ -108,6 +108,8 @@ npm test
 npm run build
 ```
 
+GitHub Actions 会在 `main` 推送和 Pull Request 上执行数据库 migration、lint、测试与构建。
+
 涉及 Prisma schema、数据库发布或部署时，再执行：
 
 ```bash
