@@ -5,9 +5,7 @@ import {
   createAdminPostCountsQuery,
   createHomepageFeaturedOrLatestPostsQuery,
   createPublicPostsPageDataQuery,
-  projectAdminDashboardOverviewStats,
   projectAdminDashboardStatCards,
-  projectAdminDashboardTaxonomyStats,
   createPublicPostQueries,
 } from "./post.queries";
 

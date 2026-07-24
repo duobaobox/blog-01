@@ -8,10 +8,7 @@ import {
   type MediaPresentation,
 } from "@/features/media/queries/media.queries";
 import { getRecentPostOperationLogs } from "@/features/posts/queries/post-operation-log.query";
-import {
-  countReadyToPublishPosts,
-  isReadyToPublishPost,
-} from "@/features/posts/lib/post-publishability";
+import { countReadyToPublishPosts } from "@/features/posts/lib/post-publishability";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
