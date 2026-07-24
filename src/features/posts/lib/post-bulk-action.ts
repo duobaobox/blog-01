@@ -26,7 +26,7 @@ export type PostBulkActionInput =
   | {
       type: "setFolder";
       postIds: string[];
-      folderId: string | null;
+      folderId: string;
     }
   | {
       type: "replaceTags";
@@ -107,10 +107,15 @@ export function parsePostBulkActionFormData(formData: FormData): PostBulkActionI
   }
 
   if (type === "setFolder") {
+    const folderId = normalizeOptionalEntityId(formData.get("folderId"));
+    if (!folderId) {
+      throw new ValidationError("批量移动必须选择目标文件夹");
+    }
+
     return {
       type,
       postIds,
-      folderId: normalizeOptionalEntityId(formData.get("folderId")),
+      folderId,
     };
   }
 

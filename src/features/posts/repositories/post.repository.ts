@@ -611,7 +611,7 @@ export async function updatePostsCategory(ids: string[], categoryId: string | nu
   return findPostsByIds(ids);
 }
 
-export async function updatePostsFolder(ids: string[], folderId: string | null) {
+export async function updatePostsFolder(ids: string[], folderId: string) {
   if (ids.length === 0) {
     return [];
   }

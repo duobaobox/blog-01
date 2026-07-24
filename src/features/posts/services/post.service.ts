@@ -489,16 +489,15 @@ export async function applyBulkAction(input: PostBulkActionInput & {
     };
   }
 
-  if (input.folderId) {
-    const folder = await folderRepo.findFolderById(input.folderId);
-    if (!folder) {
-      throw new NotFoundError("文件夹不存在");
-    }
+  const folderId = requirePostFolderId(input.folderId);
+  const folder = await folderRepo.findFolderById(folderId);
+  if (!folder) {
+    throw new NotFoundError("文件夹不存在");
   }
 
   const updatedPosts = await postRepo.updatePostsFolder(
     input.postIds,
-    input.folderId,
+    folderId,
   );
 
   await postOperationLogRepo.createPostOperationLog({
@@ -510,7 +509,7 @@ export async function applyBulkAction(input: PostBulkActionInput & {
     detail: {
       postIds: updatedPosts.map((post) => post.id),
       count: updatedPosts.length,
-      folderId: input.folderId,
+      folderId,
     },
     createdBy: input.updatedBy,
   });
