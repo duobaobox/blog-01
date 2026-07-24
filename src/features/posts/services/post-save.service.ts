@@ -13,7 +13,11 @@ import {
   shouldLogPostUpdate,
 } from "@/features/posts/lib/post-save-plan";
 import { isPublishedPost, isReviewPost } from "@/features/posts/lib/post-status";
-import type { PostStatus, PostWriteInput } from "@/features/posts/lib/post-write";
+import {
+  requirePostFolderId,
+  type PostStatus,
+  type PostWriteInput,
+} from "@/features/posts/lib/post-write";
 import * as postOperationLogRepo from "@/features/posts/repositories/post-operation-log.repository";
 import * as postSaveRepo from "@/features/posts/repositories/post-save.repository";
 import { NotFoundError } from "@/shared/lib/app-error";
@@ -81,6 +85,7 @@ export async function updatePostIncrementally(
         })
       : currentMediaReferences;
 
+  const folderId = requirePostFolderId(input.folderId);
   const existingTagIds = existingPost.tags.map((item) => item.tag.id);
   const tagsChanged = !areStringSetsEqual(existingTagIds, input.tagIds);
   const mediaReferencesChanged = !areMediaReferenceSetsEqual(
@@ -102,7 +107,7 @@ export async function updatePostIncrementally(
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
     categoryId: input.categoryId || null,
-    folderId: input.folderId || null,
+    folderId,
     status: input.status,
     publishedAt,
     seoTitle: input.seoTitle,

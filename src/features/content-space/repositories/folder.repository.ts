@@ -71,13 +71,7 @@ export async function findFolderByIdWithPostCount(id: string) {
     include: {
       _count: {
         select: {
-          posts: {
-            where: {
-              status: {
-                in: [...ACTIVE_POST_STATUSES],
-              },
-            },
-          },
+          posts: true,
         },
       },
     },
@@ -104,8 +98,5 @@ export async function updateFolder(
 }
 
 export async function deleteFolder(id: string) {
-  return db.$transaction(async (tx) => {
-    await tx.post.deleteMany({ where: { folderId: id } });
-    return tx.folder.delete({ where: { id } });
-  });
+  return db.folder.delete({ where: { id } });
 }

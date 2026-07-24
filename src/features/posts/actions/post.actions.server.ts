@@ -10,6 +10,7 @@ import { createPostActionRunner } from "@/features/posts/actions/post-action-run
 import { parsePostBulkActionFormData } from "@/features/posts/lib/post-bulk-action";
 import {
   parsePostWriteFormData,
+  requirePostFolderId,
   type PostStatus,
 } from "@/features/posts/lib/post-write";
 import { updatePostIncrementally } from "@/features/posts/services/post-save.service";
@@ -47,7 +48,7 @@ export async function createEmptyPost(input: {
 
   return postActionRunner.createEmptyPost({
     createdBy: session.user.id,
-    folderId: normalizeOptionalString(input.folderId),
+    folderId: requirePostFolderId(normalizeOptionalString(input.folderId)),
     status: input.status ?? "draft",
   });
 }

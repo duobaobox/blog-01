@@ -873,12 +873,8 @@ export function PostForm({
               <div className="flex flex-col gap-2">
                 <Label htmlFor="folder">归属文件夹</Label>
                 <Select
-                  value={form.folderId || "__none__"}
-                  onValueChange={(value) =>
-                    patchForm({
-                      folderId: !value || value === "__none__" ? "" : value,
-                    })
-                  }
+                  value={form.folderId}
+                  onValueChange={(value) => patchForm({ folderId: value })}
                 >
                   <SelectTrigger
                     id="folder"
@@ -886,21 +882,14 @@ export function PostForm({
                     suppressHydrationWarning
                   >
                     <SelectValue placeholder="选择文件夹">
-                      {(value) => {
-                        if (!value || value === "__none__") {
-                          return "未归属";
-                        }
-
-                        return (
-                          folderOptions.find((folder) => folder.id === value)
-                            ?.name ?? "选择文件夹"
-                        );
-                      }}
+                      {(value) =>
+                        folderOptions.find((folder) => folder.id === value)
+                          ?.name ?? "选择文件夹"
+                      }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent align="start">
                     <SelectGroup>
-                      <SelectItem value="__none__">未归属</SelectItem>
                       {folderOptions.map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           {folder.name}

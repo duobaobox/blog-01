@@ -44,18 +44,18 @@ test("parsePostWriteFormData normalizes optional fields", () => {
   });
 });
 
-test("parsePostWriteFormData accepts posts without a folder", () => {
+test("parsePostWriteFormData rejects posts without a folder", () => {
   const formData = new FormData();
   formData.set("status", "draft");
 
-  assert.equal(parsePostWriteFormData(formData).folderId, null);
+  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
 });
 
-test("parsePostWriteFormData normalizes a blank folder to null", () => {
+test("parsePostWriteFormData rejects a blank folder", () => {
   const formData = createBaseFormData();
   formData.set("folderId", "   ");
 
-  assert.equal(parsePostWriteFormData(formData).folderId, null);
+  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
 });
 
 test("parsePostWriteFormData accepts a supported save intent", () => {

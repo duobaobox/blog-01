@@ -3,6 +3,7 @@ import type { PostSaveIntent } from "@/features/posts/lib/post-save-plan";
 import {
   normalizeOptionalString,
   requireOneOf,
+  requireTrimmedString,
   validateOptionalHttpUrl,
 } from "@/shared/lib/validation";
 
@@ -18,6 +19,10 @@ export type PostStatus = (typeof POST_STATUSES)[number];
 
 export function isPostStatus(value: string | undefined): value is PostStatus {
   return Boolean(value) && POST_STATUSES.includes(value as PostStatus);
+}
+
+export function requirePostFolderId(value: unknown) {
+  return requireTrimmedString(value, "文章必须归属到文件夹");
 }
 
 export type PostWriteInput = {
@@ -82,7 +87,7 @@ export function parsePostWriteFormData(formData: FormData): PostWriteInput {
     excerpt: normalizeOptionalString(formData.get("excerpt")),
     coverImageUrl: normalizeOptionalString(formData.get("coverImageUrl")),
     categoryId: normalizeOptionalString(formData.get("categoryId")),
-    folderId: normalizeOptionalString(formData.get("folderId")),
+    folderId: requirePostFolderId(formData.get("folderId")),
     status: requireOneOf(
       formData.get("status"),
       POST_STATUSES,

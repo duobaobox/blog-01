@@ -22,7 +22,11 @@ import {
   isReviewPost,
 } from "@/features/posts/lib/post-status";
 import type { PostBulkActionInput } from "@/features/posts/lib/post-bulk-action";
-import type { PostStatus, PostWriteInput } from "@/features/posts/lib/post-write";
+import {
+  requirePostFolderId,
+  type PostStatus,
+  type PostWriteInput,
+} from "@/features/posts/lib/post-write";
 import * as postOperationLogRepo from "@/features/posts/repositories/post-operation-log.repository";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
@@ -96,6 +100,7 @@ export async function createPost(
     });
   }
   const slug = await resolveSlug(input.slug, normalizedTitle);
+  const folderId = requirePostFolderId(input.folderId);
   const materialized = await materializePostContent(input.contentJson);
   const mediaReferences = await resolvePostMediaReferences({
     coverImageUrl: input.coverImageUrl,
@@ -113,7 +118,7 @@ export async function createPost(
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
     categoryId: input.categoryId || null,
-    folderId: input.folderId || null,
+    folderId,
     status: input.status,
     publishedAt,
     readingTimeMinutes: materialized.readingTimeMinutes,
@@ -194,6 +199,7 @@ export async function updatePost(
       contentJson: input.contentJson,
     });
   }
+  const folderId = requirePostFolderId(input.folderId);
   const materialized = await materializePostContent(input.contentJson);
   const mediaReferences = await resolvePostMediaReferences({
     coverImageUrl: input.coverImageUrl,
@@ -218,7 +224,7 @@ export async function updatePost(
     excerpt: input.excerpt,
     coverImageUrl: input.coverImageUrl,
     categoryId: input.categoryId || null,
-    folderId: input.folderId || null,
+    folderId,
     status: input.status,
     publishedAt,
     readingTimeMinutes: materialized.readingTimeMinutes,

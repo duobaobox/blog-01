@@ -10,6 +10,8 @@ import type { ContentTreeFolder } from "@/features/content-space/lib/content-spa
 import { buildContentSpaceFolderView } from "@/features/content-space/lib/content-space-folder-view";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { useConfirm } from "@/shared/lib/use-confirm";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { FolderCreateDialog } from "./folder-create-dialog";
 import { OverflowTooltipLabel } from "./overflow-tooltip-label";
@@ -44,10 +46,17 @@ export function ContentSpaceSidebar({
     id: string;
     name: string;
   } | null>(null);
+  const deleteConfirm = useConfirm();
   const folderView = useMemo(() => buildContentSpaceFolderView(tree), [tree]);
 
   async function handleDeleteFolder(folderId: string) {
-    await onDeleteFolder?.(folderId);
+    if (!(await deleteConfirm.confirm())) return;
+
+    try {
+      await onDeleteFolder?.(folderId);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "删除文件夹失败");
+    }
   }
 
   return (
@@ -158,6 +167,16 @@ export function ContentSpaceSidebar({
           </div>
         </div>
       </TooltipProvider>
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
+        title="删除空文件夹"
+        description="只能删除不包含任何笔记的空文件夹，删除后无法恢复。"
+        confirmText="删除"
+        variant="destructive"
+        onConfirm={deleteConfirm.handleConfirm}
+      />
 
       <FolderCreateDialog
         key={editingFolder?.id ?? (folderDialogOpen ? "new-open" : "new-closed")}
