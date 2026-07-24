@@ -250,6 +250,8 @@ bash install.sh . --no-edit
 BACKUP_RETENTION_DAYS=14 ./scripts/backup-docker.sh
 ```
 
+保留期清理只处理脚本成功生成、带 `.blog-01-backup` 标记的时间戳目录，不会删除备份根目录下的普通文件夹。
+
 恢复前必须先做一份当前备份，再显式确认：
 
 ```bash
