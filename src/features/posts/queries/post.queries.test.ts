@@ -106,7 +106,7 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     iconKey: "post",
     href: "/admin/posts?status=archived",
   });
-  assert.deepEqual(stats[4],
+  assert.deepEqual(stats[4], {
     label: "分类",
     value: 6,
     description: "内容分类数量",
