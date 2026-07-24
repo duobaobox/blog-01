@@ -8,16 +8,12 @@ import {
 test("mapAdminPostMetricsSnapshotRow normalizes status counts", () => {
   assert.deepEqual(
     mapAdminPostMetricsSnapshotRow({
-      drafts: 7,
-      review: 3n,
+      internal: 7n,
       published: 8n,
-      archived: 2,
     }),
     {
-      drafts: 7,
-      review: 3,
+      internal: 7,
       published: 8,
-      archived: 2,
     },
   );
 });

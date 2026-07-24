@@ -137,7 +137,7 @@ test("getPostBulkUpdatePublicRevalidationPosts refreshes published posts from bo
         { status: "published", slug: "published-before" },
       ],
       nextPosts: [
-        { status: "review", slug: "review-a" },
+        { status: "draft", slug: "internal-a" },
         { status: "published", slug: "published-after" },
       ],
     }),

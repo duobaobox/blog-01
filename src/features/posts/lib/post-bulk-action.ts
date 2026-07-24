@@ -16,7 +16,7 @@ export type PostBulkActionInput =
   | {
       type: "setStatus";
       postIds: string[];
-      status: "draft" | "review" | "published" | "archived";
+      status: "draft" | "published";
     }
   | {
       type: "setCategory";
@@ -92,7 +92,7 @@ export function parsePostBulkActionFormData(formData: FormData): PostBulkActionI
       postIds,
       status: requireOneOf(
         formData.get("status"),
-        ["draft", "review", "published", "archived"] as const,
+        ["draft", "published"] as const,
         "批量状态无效",
       ),
     };

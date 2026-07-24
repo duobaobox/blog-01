@@ -34,3 +34,38 @@ test("批量移动保留明确的目标文件夹", () => {
     },
   );
 });
+
+test("批量状态只接受内部和已发布", () => {
+  const createStatusAction = (status: string) => {
+    const formData = new FormData();
+    formData.set("type", "setStatus");
+    formData.append("postIds", "post-1");
+    formData.set("status", status);
+    return formData;
+  };
+
+  assert.deepEqual(
+    parsePostBulkActionFormData(createStatusAction("draft")),
+    {
+      type: "setStatus",
+      postIds: ["post-1"],
+      status: "draft",
+    },
+  );
+  assert.deepEqual(
+    parsePostBulkActionFormData(createStatusAction("published")),
+    {
+      type: "setStatus",
+      postIds: ["post-1"],
+      status: "published",
+    },
+  );
+  assert.throws(
+    () => parsePostBulkActionFormData(createStatusAction("review")),
+    ValidationError,
+  );
+  assert.throws(
+    () => parsePostBulkActionFormData(createStatusAction("archived")),
+    ValidationError,
+  );
+});

@@ -89,6 +89,7 @@ model post {
   contentHtml         String    @db.Text
   contentText         String    @db.Text
   contentToc          Json
+  /// 技术值仅使用 draft（内部）和 published（已发布）
   status              String    @default("draft")
   publishedAt         DateTime?
   readingTimeMinutes  Int?

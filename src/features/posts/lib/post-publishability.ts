@@ -1,10 +1,5 @@
 import { hasMeaningfulContent, normalizeContentJson } from "@/features/editor/content-types";
 import { UNTITLED_POST_TITLE } from "@/features/posts/lib/post-title";
-import {
-  isDraftPost,
-  isPublishedPost,
-  isReviewPost,
-} from "@/features/posts/lib/post-status";
 import { ValidationError } from "@/shared/lib/app-error";
 
 export type PostPublishabilityInput = {
@@ -62,28 +57,3 @@ export function requirePublishablePost(input: PostPublishabilityInput) {
   }
 }
 
-export function isReadyToPublishPost(
-  input: PostPublishabilityInput & { status?: string | null },
-) {
-  if (isPublishedPost(input)) {
-    return false;
-  }
-
-  if (isReviewPost(input)) {
-    return true;
-  }
-
-  return (
-    (isDraftPost(input) || !input.status) &&
-    getPostPublishability(input).canPublish
-  );
-}
-
-export function countReadyToPublishPosts(
-  posts: Array<PostPublishabilityInput & { status?: string | null }>,
-) {
-  return posts.reduce(
-    (count, post) => count + (isReadyToPublishPost(post) ? 1 : 0),
-    0,
-  );
-}

@@ -11,15 +11,15 @@ npm run db:explain:posts:analyze
 
 当前脚本覆盖：
 
-- 后台当前文件夹笔记列表：按 `folderId + status + createdAt` 读取
+- 后台当前文件夹笔记列表：按 `folderId + createdAt` 读取
 - 前台 Blog 列表：按发布状态、精选和发布时间读取
-- 后台概览统计：草稿、待发布、已发布和已归档数量
+- 后台概览统计：内部和已发布数量
 
 ## 判断原则
 
 个人博客的数据规模通常很小，顺序扫描本身不等于问题。检查时优先关注：
 
-1. 数据量增长后，文件夹列表是否稳定命中 `status + folderId` 相关索引。
+1. 数据量增长后，文件夹列表是否稳定命中 `folderId` 相关索引。
 2. 前台列表的 `isFeatured + publishedAt + createdAt` 排序是否出现明显成本。
 3. 概览状态统计是否保持单次轻量聚合。
 

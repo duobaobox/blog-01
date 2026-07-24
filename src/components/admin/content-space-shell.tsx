@@ -14,7 +14,6 @@ import { deleteFolder } from "@/features/content-space/actions/folder.actions";
 import {
   createEmptyPost,
   deletePost,
-  restorePost,
 } from "@/features/posts/actions/post.actions";
 import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
 import type {
@@ -228,26 +227,6 @@ export function ContentSpaceShell({
     });
   }
 
-  async function handleRestorePost(postId: string) {
-    if (!activeFolder) return;
-    if (postId === selectedPostId && !(await confirmNavigation())) return;
-
-    await restorePost(postId);
-
-    if (postId !== selectedPostId) {
-      startTransition(() => router.refresh());
-      return;
-    }
-
-    const fallbackPost = contextPosts.find((post) => post.id !== postId);
-    navigate({
-      folderId: activeFolder.id,
-      status: "archived",
-      q: searchQuery,
-      postId: fallbackPost?.id,
-    });
-  }
-
   async function handleDeleteFolder(folderId: string) {
     try {
       await deleteFolder(folderId);
@@ -345,7 +324,6 @@ export function ContentSpaceShell({
               onCreateNew={handleCreateNew}
               onSearch={handleSearch}
               onDeletePost={handleDeletePost}
-              onRestorePost={handleRestorePost}
             />
           </div>
 

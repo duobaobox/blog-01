@@ -5,26 +5,16 @@ export type PostStatusLike = {
 };
 
 export type PostStatusSummary = {
-  draftCount: number;
-  reviewCount: number;
+  internalCount: number;
   publishedCount: number;
-  archivedCount: number;
 };
 
-export function isDraftPost(post: Pick<PostStatusLike, "status">) {
-  return post.status === "draft";
-}
-
-export function isReviewPost(post: Pick<PostStatusLike, "status">) {
-  return post.status === "review";
+export function isInternalPost(post: Pick<PostStatusLike, "status">) {
+  return post.status !== "published";
 }
 
 export function isPublishedPost(post: Pick<PostStatusLike, "status">) {
   return post.status === "published";
-}
-
-export function isArchivedPost(post: Pick<PostStatusLike, "status">) {
-  return post.status === "archived";
 }
 
 export function getPostStatusLabel(post: Pick<PostStatusLike, "status">) {
@@ -32,15 +22,7 @@ export function getPostStatusLabel(post: Pick<PostStatusLike, "status">) {
     return "已发布";
   }
 
-  if (isArchivedPost(post)) {
-    return "已归档";
-  }
-
-  if (isReviewPost(post)) {
-    return "待发布";
-  }
-
-  return "草稿";
+  return "内部";
 }
 
 export function getPostStatusTone(post: Pick<PostStatusLike, "status">) {
@@ -48,15 +30,7 @@ export function getPostStatusTone(post: Pick<PostStatusLike, "status">) {
     return "published" as const;
   }
 
-  if (isArchivedPost(post)) {
-    return "archived" as const;
-  }
-
-  if (isReviewPost(post)) {
-    return "review" as const;
-  }
-
-  return "draft" as const;
+  return "internal" as const;
 }
 
 export function summarizePostStatuses(
@@ -66,21 +40,15 @@ export function summarizePostStatuses(
     (summary, post) => {
       if (isPublishedPost(post)) {
         summary.publishedCount += 1;
-      } else if (isArchivedPost(post)) {
-        summary.archivedCount += 1;
-      } else if (isReviewPost(post)) {
-        summary.reviewCount += 1;
       } else {
-        summary.draftCount += 1;
+        summary.internalCount += 1;
       }
 
       return summary;
     },
     {
-      draftCount: 0,
-      reviewCount: 0,
+      internalCount: 0,
       publishedCount: 0,
-      archivedCount: 0,
     },
   );
 }

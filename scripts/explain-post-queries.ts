@@ -12,7 +12,6 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
-const ACTIVE_POST_STATUSES = ["draft", "review", "published"] as const;
 const analyzeMode = process.argv.includes("--analyze");
 
 type ExplainRow = {
@@ -39,11 +38,8 @@ async function main() {
       : "Running EXPLAIN for posts query baselines...",
   );
 
-  const activeStatusesSql = Prisma.join(
-    ACTIVE_POST_STATUSES.map((status) => Prisma.sql`${status}`),
-  );
   await printExplain(
-    "Admin folder feed: active posts ordered for the current notebook",
+    "Admin folder feed: posts ordered for the current notebook",
     Prisma.sql`
       SELECT
         p.id,
@@ -52,13 +48,12 @@ async function main() {
         p.status,
         p."updatedAt"
       FROM "post" p
-      WHERE p.status IN (${activeStatusesSql})
-        AND p."folderId" = (
-          SELECT f.id
-          FROM "folder" f
-          ORDER BY f."sortOrder" ASC, f."createdAt" ASC
-          LIMIT 1
-        )
+      WHERE p."folderId" = (
+        SELECT f.id
+        FROM "folder" f
+        ORDER BY f."sortOrder" ASC, f."createdAt" ASC
+        LIMIT 1
+      )
       ORDER BY p."createdAt" DESC
       LIMIT 20
     `,
@@ -80,13 +75,11 @@ async function main() {
   );
 
   await printExplain(
-    "Admin metrics snapshot: lifecycle status counts",
+    "Admin metrics snapshot: internal and published counts",
     Prisma.sql`
       SELECT
-        COUNT(*) FILTER (WHERE status = 'draft') AS "drafts",
-        COUNT(*) FILTER (WHERE status = 'review') AS "review",
-        COUNT(*) FILTER (WHERE status = 'published') AS "published",
-        COUNT(*) FILTER (WHERE status = 'archived') AS "archived"
+        COUNT(*) FILTER (WHERE status <> 'published') AS "internal",
+        COUNT(*) FILTER (WHERE status = 'published') AS "published"
       FROM "post"
     `,
   );

@@ -8,7 +8,6 @@ import {
   type MediaPresentation,
 } from "@/features/media/queries/media.queries";
 import { getRecentPostOperationLogs } from "@/features/posts/queries/post-operation-log.query";
-import { countReadyToPublishPosts } from "@/features/posts/lib/post-publishability";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
@@ -45,21 +44,11 @@ export interface AdminDashboardPageData {
   recentActivity: Awaited<ReturnType<typeof getRecentPostOperationLogs>>;
 }
 
-export type AdminPostCounts = {
-  snapshot: AdminPostMetricsSnapshot;
-  derived: {
-    ready: number;
-  };
-  drafts: number;
-  review: number;
-  ready: number;
-  published: number;
-  archived: number;
-};
+export type AdminPostCounts = AdminPostMetricsSnapshot;
 
 export type AdminDashboardOverviewStats = Pick<
   AdminPostCounts,
-  "published" | "drafts" | "review" | "ready" | "archived"
+  "published" | "internal"
 >;
 
 export type AdminDashboardTaxonomyStats = {
@@ -241,27 +230,14 @@ export const getHomepageFeaturedOrLatestPosts =
 
 type AdminPostCountsRepository = Pick<
   typeof postRepo,
-  "getAdminPostMetricsSnapshot" | "findDraftPublishabilityCandidates"
+  "getAdminPostMetricsSnapshot"
 >;
 
 export function createAdminPostCountsQuery(
   repo: AdminPostCountsRepository = postRepo,
 ) {
   return async function getAdminPostCounts(): Promise<AdminPostCounts> {
-    const [metrics, draftCandidates] = await Promise.all([
-      repo.getAdminPostMetricsSnapshot(),
-      repo.findDraftPublishabilityCandidates(),
-    ]);
-    const ready = metrics.review + countReadyToPublishPosts(draftCandidates);
-
-    return {
-      snapshot: metrics,
-      derived: {
-        ready,
-      },
-      ...metrics,
-      ready,
-    };
+    return repo.getAdminPostMetricsSnapshot();
   };
 }
 
@@ -283,10 +259,7 @@ export function projectAdminDashboardOverviewStats(
 ): AdminDashboardOverviewStats {
   return {
     published: counts.published,
-    drafts: counts.drafts,
-    review: counts.review,
-    ready: counts.ready,
-    archived: counts.archived,
+    internal: counts.internal,
   };
 }
 
@@ -317,25 +290,11 @@ export function projectAdminDashboardStatCards(input: {
       href: "/admin/posts",
     },
     {
-      label: "草稿",
-      value: input.overview.drafts,
-      description: "仍在编辑中的内容",
+      label: "内部",
+      value: input.overview.internal,
+      description: "仅在后台可见的内容",
       iconKey: "trend",
-      href: "/admin/posts",
-    },
-    {
-      label: "待发布",
-      value: input.overview.ready,
-      description: "进入最终检查的文章",
-      iconKey: "trend",
-      href: "/admin/posts",
-    },
-    {
-      label: "已归档",
-      value: input.overview.archived,
-      description: "已下线但可恢复的文章",
-      iconKey: "post",
-      href: "/admin/posts?status=archived",
+      href: "/admin/posts?status=internal",
     },
     {
       label: "分类",

@@ -4,7 +4,10 @@ import {
   collectCandidateMediaUrls,
 } from "@/features/media/lib/post-media-reference";
 import * as mediaRepo from "@/features/media/repositories/media.repository";
-import { buildPostOperationSummary } from "@/features/posts/lib/post-operation-log";
+import {
+  buildPostOperationSummary,
+  getPostSaveOperationType,
+} from "@/features/posts/lib/post-operation-log";
 import { requirePublishablePost } from "@/features/posts/lib/post-publishability";
 import {
   areMediaReferenceSetsEqual,
@@ -12,7 +15,7 @@ import {
   hasPostContentChanged,
   shouldLogPostUpdate,
 } from "@/features/posts/lib/post-save-plan";
-import { isPublishedPost, isReviewPost } from "@/features/posts/lib/post-status";
+import { isPublishedPost } from "@/features/posts/lib/post-status";
 import {
   requirePostFolderId,
   type PostStatus,
@@ -23,7 +26,7 @@ import * as postSaveRepo from "@/features/posts/repositories/post-save.repositor
 import { NotFoundError } from "@/shared/lib/app-error";
 
 function requiresPublishableStatus(status: PostStatus) {
-  return isReviewPost({ status }) || isPublishedPost({ status });
+  return isPublishedPost({ status });
 }
 
 async function resolvePostMediaReferences(input: {
@@ -137,7 +140,11 @@ export async function updatePostIncrementally(
       nextStatus: post.status,
     })
   ) {
-    const operation = input.saveIntent === "publish" ? "publish" : "save";
+    const operation = getPostSaveOperationType({
+      saveIntent: input.saveIntent,
+      previousStatus: existingPost.status,
+      nextStatus: post.status,
+    });
 
     await postOperationLogRepo.createPostOperationLog({
       operation,

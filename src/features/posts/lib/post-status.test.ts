@@ -4,46 +4,32 @@ import {
   getPostDisplayDate,
   getPostStatusLabel,
   getPostStatusTone,
-  isArchivedPost,
-  isDraftPost,
+  isInternalPost,
   isPublishedPost,
-  isReviewPost,
   summarizePostStatuses,
 } from "./post-status";
 
-test("post status helpers identify published posts and labels", () => {
-  assert.equal(isDraftPost({ status: "draft" }), true);
-  assert.equal(isDraftPost({ status: "review" }), false);
-  assert.equal(isReviewPost({ status: "review" }), true);
-  assert.equal(isReviewPost({ status: "published" }), false);
+test("post status helpers expose only internal and published product states", () => {
+  assert.equal(isInternalPost({ status: "draft" }), true);
+  assert.equal(isInternalPost({ status: "published" }), false);
   assert.equal(isPublishedPost({ status: "published" }), true);
   assert.equal(isPublishedPost({ status: "draft" }), false);
-  assert.equal(isArchivedPost({ status: "archived" }), true);
-  assert.equal(isArchivedPost({ status: "draft" }), false);
   assert.equal(getPostStatusLabel({ status: "published" }), "已发布");
-  assert.equal(getPostStatusLabel({ status: "archived" }), "已归档");
-  assert.equal(getPostStatusLabel({ status: "review" }), "待发布");
-  assert.equal(getPostStatusLabel({ status: "draft" }), "草稿");
+  assert.equal(getPostStatusLabel({ status: "draft" }), "内部");
   assert.equal(getPostStatusTone({ status: "published" }), "published");
-  assert.equal(getPostStatusTone({ status: "archived" }), "archived");
-  assert.equal(getPostStatusTone({ status: "review" }), "review");
-  assert.equal(getPostStatusTone({ status: "draft" }), "draft");
+  assert.equal(getPostStatusTone({ status: "draft" }), "internal");
 });
 
-test("summarizePostStatuses groups draft, review, and published posts", () => {
+test("summarizePostStatuses groups internal and published posts", () => {
   assert.deepEqual(
     summarizePostStatuses([
       { status: "draft" },
-      { status: "review" },
       { status: "published" },
-      { status: "review" },
-      { status: "archived" },
+      { status: "draft" },
     ]),
     {
-      draftCount: 1,
-      reviewCount: 2,
+      internalCount: 2,
       publishedCount: 1,
-      archivedCount: 1,
     },
   );
 });

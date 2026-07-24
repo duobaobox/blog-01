@@ -120,7 +120,7 @@ test("buildBulkUpdatePostsWorkflow refreshes published posts involved in bulk up
         { status: "published", slug: "published-before" },
       ],
       updatedPosts: [
-        { status: "review", slug: "review-a" },
+        { status: "draft", slug: "internal-a" },
         { status: "published", slug: "published-after" },
       ],
     }),

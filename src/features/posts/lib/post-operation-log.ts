@@ -4,9 +4,9 @@ export const POST_OPERATION_TYPES = [
   "create",
   "save",
   "publish",
+  "unpublish",
+  "delete",
   "update",
-  "archive",
-  "restore",
   "bulkStatus",
   "bulkCategory",
   "bulkFolder",
@@ -78,7 +78,7 @@ export function getPostBulkOperationType(
 
 export function buildPostOperationSummary(input:
   | {
-      type: "create" | "save" | "publish" | "update" | "archive" | "restore";
+      type: "create" | "save" | "publish" | "unpublish" | "delete" | "update";
       title: string;
     }
   | {
@@ -92,12 +92,12 @@ export function buildPostOperationSummary(input:
       return `保存文章《${input.title}》`;
     case "publish":
       return `发布文章《${input.title}》`;
+    case "unpublish":
+      return `取消发布《${input.title}》`;
+    case "delete":
+      return `删除文章《${input.title}》`;
     case "update":
       return `更新文章《${input.title}》`;
-    case "archive":
-      return `归档文章《${input.title}》`;
-    case "restore":
-      return `恢复文章《${input.title}》`;
     case "bulkStatus":
       return `批量修改 ${input.count} 篇文章状态`;
     case "bulkCategory":
@@ -111,4 +111,29 @@ export function buildPostOperationSummary(input:
     case "bulkRemoveTags":
       return `批量移除 ${input.count} 篇文章标签`;
   }
+}
+
+export function getPostSaveOperationType(input: {
+  saveIntent?: string;
+  previousStatus?: string | null;
+  nextStatus: string;
+  isNew?: boolean;
+}): Extract<
+  PostOperationType,
+  "create" | "save" | "publish" | "unpublish"
+> {
+  if (input.saveIntent === "publish") {
+    if (
+      input.previousStatus === "published" &&
+      input.nextStatus !== "published"
+    ) {
+      return "unpublish";
+    }
+
+    if (input.nextStatus === "published") {
+      return "publish";
+    }
+  }
+
+  return input.isNew ? "create" : "save";
 }

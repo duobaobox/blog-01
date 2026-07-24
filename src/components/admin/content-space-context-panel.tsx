@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ellipsis, FilePlus2, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { Ellipsis, FilePlus2, Search, Trash2, X } from "lucide-react";
 import type {
   FolderPostStatusCounts,
   FolderPostStatusFilter,
@@ -44,7 +44,6 @@ type ContentSpaceContextPanelProps = {
   onCreateNew: () => void | Promise<void>;
   onSearch: (query: string) => void | Promise<void>;
   onDeletePost: (postId: string) => void | Promise<void>;
-  onRestorePost: (postId: string) => void | Promise<void>;
 };
 
 const STATUS_TABS: Array<{
@@ -52,10 +51,8 @@ const STATUS_TABS: Array<{
   label: string;
 }> = [
   { key: "all", label: "全部" },
-  { key: "draft", label: "草稿" },
-  { key: "review", label: "待发布" },
+  { key: "internal", label: "内部" },
   { key: "published", label: "已发布" },
-  { key: "archived", label: "已归档" },
 ];
 
 function formatRelativeDate(value: Date | string) {
@@ -72,10 +69,8 @@ function formatRelativeDate(value: Date | string) {
 }
 
 function getEmptyTitle(status: FolderPostStatusFilter) {
-  if (status === "draft") return "当前文件夹没有草稿";
-  if (status === "review") return "当前文件夹没有待发布文章";
+  if (status === "internal") return "当前文件夹没有内部内容";
   if (status === "published") return "当前文件夹没有已发布文章";
-  if (status === "archived") return "当前文件夹没有已归档文章";
   return "当前文件夹还没有文章";
 }
 
@@ -90,7 +85,6 @@ export function ContentSpaceContextPanel({
   onCreateNew,
   onSearch,
   onDeletePost,
-  onRestorePost,
 }: ContentSpaceContextPanelProps) {
   const deleteConfirm = useConfirm();
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
@@ -105,15 +99,7 @@ export function ContentSpaceContextPanel({
     try {
       await onDeletePost(postId);
     } catch {
-      window.alert("归档失败，请稍后重试。");
-    }
-  }
-
-  async function handleRestorePost(postId: string) {
-    try {
-      await onRestorePost(postId);
-    } catch {
-      window.alert("恢复失败，请稍后重试。");
+      window.alert("删除失败，请稍后重试。");
     }
   }
 
@@ -223,11 +209,7 @@ export function ContentSpaceContextPanel({
                                 "h-2 w-2 shrink-0 rounded-full",
                                 getPostStatusTone(post) === "published"
                                   ? "bg-emerald-500"
-                                  : getPostStatusTone(post) === "review"
-                                    ? "bg-sky-500"
-                                    : getPostStatusTone(post) === "archived"
-                                      ? "bg-slate-400"
-                                      : "bg-amber-500",
+                                  : "bg-amber-500",
                               )}
                             />
                             <OverflowTooltipLabel
@@ -271,22 +253,13 @@ export function ContentSpaceContextPanel({
                             <Ellipsis className="size-3.5" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="min-w-28">
-                            {post.status === "archived" ? (
-                              <DropdownMenuItem
-                                onClick={() => void handleRestorePost(post.id)}
-                              >
-                                <RotateCcw className="size-3.5" />
-                                恢复为草稿
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => void handleDeletePost(post.id)}
-                              >
-                                <Trash2 className="size-3.5" />
-                                归档
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => void handleDeletePost(post.id)}
+                            >
+                              <Trash2 className="size-3.5" />
+                              删除
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -306,7 +279,7 @@ export function ContentSpaceContextPanel({
               suppressHydrationWarning
             >
               <TabsList
-                className="grid w-full grid-cols-5 rounded-xl bg-muted/70 p-1"
+                className="grid w-full grid-cols-3 rounded-xl bg-muted/70 p-1"
                 suppressHydrationWarning
               >
                 {STATUS_TABS.map((item) => (
@@ -329,9 +302,10 @@ export function ContentSpaceContextPanel({
       <ConfirmDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => !open && deleteConfirm.handleCancel()}
-        title="归档文章"
-        description="归档后文章会从当前文件夹的默认列表和公开页面下线。"
-        confirmText="归档"
+        title="永久删除文章"
+        description="文章删除后无法恢复。请输入“删除”完成二次确认。"
+        confirmText="永久删除"
+        confirmationText="删除"
         variant="destructive"
         onConfirm={deleteConfirm.handleConfirm}
       />

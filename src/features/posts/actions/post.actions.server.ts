@@ -71,15 +71,6 @@ export async function deletePost(id: string) {
   });
 }
 
-export async function restorePost(id: string) {
-  const session = await requireAdminSession();
-  await postService.restorePost({
-    id,
-    restoredBy: session.user.id,
-  });
-  revalidateAdminPosts();
-}
-
 export async function applyBulkPostAction(formData: FormData) {
   const session = await requireAdminSession();
   const input = parsePostBulkActionFormData(formData);

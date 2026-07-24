@@ -1,20 +1,13 @@
 import { db } from "@/infrastructure/db";
 
 const CONTENT_TREE_POST_PREVIEW_LIMIT = 3;
-const ACTIVE_POST_STATUSES = ["draft", "review", "published"] as const;
 
 export async function findFolders() {
   return db.folder.findMany({
     include: {
       _count: {
         select: {
-          posts: {
-            where: {
-              status: {
-                in: [...ACTIVE_POST_STATUSES],
-              },
-            },
-          },
+          posts: true,
         },
       },
     },
@@ -27,21 +20,10 @@ export async function findFoldersWithPostPreviews() {
     include: {
       _count: {
         select: {
-          posts: {
-            where: {
-              status: {
-                in: [...ACTIVE_POST_STATUSES],
-              },
-            },
-          },
+          posts: true,
         },
       },
       posts: {
-        where: {
-          status: {
-            in: [...ACTIVE_POST_STATUSES],
-          },
-        },
         orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
         take: CONTENT_TREE_POST_PREVIEW_LIMIT,
         select: {

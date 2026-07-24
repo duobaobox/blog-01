@@ -72,19 +72,19 @@ test("parsePostWriteFormData falls back to manual for unknown save intents", () 
   assert.equal(parsePostWriteFormData(formData).saveIntent, "manual");
 });
 
-test("parsePostWriteFormData accepts archived status", () => {
-  const formData = createBaseFormData("archived");
-  assert.equal(parsePostWriteFormData(formData).status, "archived");
-});
-
 test("parsePostWriteFormData rejects invalid status values", () => {
   const formData = createBaseFormData("invalid-status");
   assert.throws(() => parsePostWriteFormData(formData), ValidationError);
 });
 
-test("parsePostWriteFormData accepts review status", () => {
+test("parsePostWriteFormData rejects removed review status", () => {
   const formData = createBaseFormData("review");
-  assert.equal(parsePostWriteFormData(formData).status, "review");
+  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
+});
+
+test("parsePostWriteFormData rejects removed archived status", () => {
+  const formData = createBaseFormData("archived");
+  assert.throws(() => parsePostWriteFormData(formData), ValidationError);
 });
 
 test("parsePostWriteFormData rejects invalid canonical urls", () => {

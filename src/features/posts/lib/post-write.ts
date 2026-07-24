@@ -7,7 +7,7 @@ import {
   validateOptionalHttpUrl,
 } from "@/shared/lib/validation";
 
-export const POST_STATUSES = ["draft", "review", "published", "archived"] as const;
+export const POST_STATUSES = ["draft", "published"] as const;
 export const POST_SAVE_INTENTS = [
   "autosave",
   "manual",

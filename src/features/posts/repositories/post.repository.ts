@@ -12,7 +12,6 @@ export type PostFilters = {
   tagId?: string;
   isFeatured?: boolean;
   query?: string;
-  includeArchived?: boolean;
 };
 
 export type FindPostsOptions = {
@@ -25,14 +24,11 @@ export type FindPostsOptions = {
   isFeatured?: boolean;
   query?: string;
   order?: "created" | "updated" | "published";
-  includeArchived?: boolean;
 };
 
 export type AdminPostMetricsSnapshot = {
-  drafts: number;
-  review: number;
+  internal: number;
   published: number;
-  archived: number;
 };
 
 const postListSelect = {
@@ -140,15 +136,6 @@ const editablePostSelect = {
   },
 } satisfies Prisma.postSelect;
 
-const postPublishabilitySelect = {
-  id: true,
-  title: true,
-  contentText: true,
-  status: true,
-} satisfies Prisma.postSelect;
-
-const ACTIVE_POST_STATUSES = ["draft", "review", "published"] as const;
-
 type AdminPostMetricsSnapshotRow = Record<
   keyof AdminPostMetricsSnapshot,
   bigint | number
@@ -195,25 +182,13 @@ export function mapAdminPostMetricsSnapshotRow(
   row: AdminPostMetricsSnapshotRow,
 ): AdminPostMetricsSnapshot {
   return {
-    drafts: toCountNumber(row.drafts),
-    review: toCountNumber(row.review),
+    internal: toCountNumber(row.internal),
     published: toCountNumber(row.published),
-    archived: toCountNumber(row.archived),
-  };
-}
-
-function getDefaultActiveStatusWhere(): Prisma.postWhereInput {
-  return {
-    status: {
-      in: [...ACTIVE_POST_STATUSES],
-    },
   };
 }
 
 function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
-  const where: Prisma.postWhereInput = filters?.includeArchived
-    ? {}
-    : getDefaultActiveStatusWhere();
+  const where: Prisma.postWhereInput = {};
   const andConditions: Prisma.postWhereInput[] = [];
 
   if (filters?.status) {
@@ -307,7 +282,6 @@ export async function findUntitledPostTitles(createdBy: string) {
   return db.post.findMany({
     where: {
       createdBy,
-      ...getDefaultActiveStatusWhere(),
       OR: [
         { title: UNTITLED_POST_TITLE },
         { title: { startsWith: `${UNTITLED_POST_TITLE_PREFIX} ` } },
@@ -340,10 +314,8 @@ export async function countPosts(filters?: string | PostFilters) {
 export async function getAdminPostMetricsSnapshot(): Promise<AdminPostMetricsSnapshot> {
   const [row] = await db.$queryRaw<AdminPostMetricsSnapshotRow[]>(Prisma.sql`
     SELECT
-      COUNT(*) FILTER (WHERE status = 'draft') AS "drafts",
-      COUNT(*) FILTER (WHERE status = 'review') AS "review",
-      COUNT(*) FILTER (WHERE status = 'published') AS "published",
-      COUNT(*) FILTER (WHERE status = 'archived') AS "archived"
+      COUNT(*) FILTER (WHERE status <> 'published') AS "internal",
+      COUNT(*) FILTER (WHERE status = 'published') AS "published"
     FROM "post"
   `);
 
@@ -476,13 +448,9 @@ export async function updatePost(
   });
 }
 
-export async function updatePostArchiveStatus(id: string, archived: boolean) {
-  return db.post.update({
+export async function deletePost(id: string) {
+  return db.post.delete({
     where: { id },
-    data: {
-      status: archived ? "archived" : "draft",
-      publishedAt: null,
-    },
     select: {
       id: true,
       slug: true,
@@ -536,13 +504,6 @@ export async function findPostsByFolder(
   return findPosts({
     ...options,
     folderId,
-  });
-}
-
-export async function findDraftPublishabilityCandidates() {
-  return db.post.findMany({
-    where: { status: "draft" },
-    select: postPublishabilitySelect,
   });
 }
 

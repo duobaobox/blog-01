@@ -8,6 +8,7 @@ import * as mediaRepo from "@/features/media/repositories/media.repository";
 import {
   buildPostOperationSummary,
   getPostBulkOperationType,
+  getPostSaveOperationType,
 } from "@/features/posts/lib/post-operation-log";
 import { isUserInitiatedPostSave } from "@/features/posts/lib/post-save-plan";
 import {
@@ -16,11 +17,7 @@ import {
   UNTITLED_POST_TITLE_PREFIX,
 } from "@/features/posts/lib/post-title";
 import { requirePublishablePost } from "@/features/posts/lib/post-publishability";
-import {
-  isArchivedPost,
-  isPublishedPost,
-  isReviewPost,
-} from "@/features/posts/lib/post-status";
+import { isPublishedPost } from "@/features/posts/lib/post-status";
 import type { PostBulkActionInput } from "@/features/posts/lib/post-bulk-action";
 import {
   requirePostFolderId,
@@ -31,7 +28,7 @@ import * as postOperationLogRepo from "@/features/posts/repositories/post-operat
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
 import * as tagRepo from "@/features/taxonomy/repositories/tag.repository";
-import { NotFoundError, ValidationError } from "@/shared/lib/app-error";
+import { NotFoundError } from "@/shared/lib/app-error";
 import { generateSemanticSlug } from "@/shared/lib/slug";
 
 async function resolveSlug(userSlug?: string, title?: string) {
@@ -71,7 +68,7 @@ async function resolveUntitledPostTitle(createdBy: string) {
 }
 
 function requiresPublishableStatus(status: PostStatus) {
-  return isReviewPost({ status }) || isPublishedPost({ status });
+  return isPublishedPost({ status });
 }
 
 async function resolvePostMediaReferences(input: {
@@ -133,7 +130,11 @@ export async function createPost(
   });
 
   if (isUserInitiatedPostSave(input.saveIntent)) {
-    const operation = input.saveIntent === "publish" ? "publish" : "create";
+    const operation = getPostSaveOperationType({
+      saveIntent: input.saveIntent,
+      nextStatus: post.status,
+      isNew: true,
+    });
 
     await postOperationLogRepo.createPostOperationLog({
       operation,
@@ -238,7 +239,11 @@ export async function updatePost(
   });
 
   if (isUserInitiatedPostSave(input.saveIntent)) {
-    const operation = input.saveIntent === "publish" ? "publish" : "save";
+    const operation = getPostSaveOperationType({
+      saveIntent: input.saveIntent,
+      previousStatus: existingPost.status,
+      nextStatus: post.status,
+    });
 
     await postOperationLogRepo.createPostOperationLog({
       operation,
@@ -265,42 +270,6 @@ export async function updatePost(
   };
 }
 
-export async function restorePost(input: {
-  id: string;
-  restoredBy: string;
-}) {
-  const existingPost = await postRepo.findPostById(input.id);
-  if (!existingPost) {
-    throw new NotFoundError("文章不存在");
-  }
-
-  if (!isArchivedPost(existingPost)) {
-    throw new ValidationError("只有已归档文章可以恢复");
-  }
-
-  const post = await postRepo.updatePostArchiveStatus(input.id, false);
-
-  await postOperationLogRepo.createPostOperationLog({
-    operation: "restore",
-    summary: buildPostOperationSummary({
-      type: "restore",
-      title: existingPost.title,
-    }),
-    detail: {
-      postIds: [input.id],
-      count: 1,
-      status: "draft",
-      categoryId: existingPost.categoryId,
-      folderId: existingPost.folder?.id ?? null,
-      tagIds: existingPost.tags.map((item) => item.tag.id),
-    },
-    createdBy: input.restoredBy,
-    postId: input.id,
-  });
-
-  return post;
-}
-
 export async function deletePost(input: {
   id: string;
   deletedBy: string;
@@ -310,28 +279,23 @@ export async function deletePost(input: {
     throw new NotFoundError("文章不存在");
   }
 
-  if (isArchivedPost(existingPost)) {
-    throw new NotFoundError("文章已归档");
-  }
-
-  const post = await postRepo.updatePostArchiveStatus(input.id, true);
+  const post = await postRepo.deletePost(input.id);
 
   await postOperationLogRepo.createPostOperationLog({
-    operation: "archive",
+    operation: "delete",
     summary: buildPostOperationSummary({
-      type: "archive",
+      type: "delete",
       title: existingPost.title,
     }),
     detail: {
       postIds: [input.id],
       count: 1,
-      status: "archived",
+      status: existingPost.status,
       categoryId: existingPost.categoryId,
       folderId: existingPost.folder?.id ?? null,
       tagIds: existingPost.tags.map((item) => item.tag.id),
     },
     createdBy: input.deletedBy,
-    postId: input.id,
   });
 
   return {

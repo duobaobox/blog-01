@@ -25,17 +25,13 @@ export type AdminPostsPageQueryParams = {
 
 export type FolderPostStatusFilter =
   | "all"
-  | "draft"
-  | "review"
-  | "published"
-  | "archived";
+  | "internal"
+  | "published";
 
 export type FolderPostStatusCounts = {
   all: number;
-  draft: number;
-  review: number;
+  internal: number;
   published: number;
-  archived: number;
 };
 
 function toContextPostSummary(post: {
@@ -77,12 +73,11 @@ function firstParam(value: string | string[] | undefined) {
 }
 
 function normalizeStatusFilter(value: string | undefined): FolderPostStatusFilter {
-  return value === "draft" ||
-    value === "review" ||
-    value === "published" ||
-    value === "archived"
-    ? value
-    : "all";
+  if (value === "published") return "published";
+  if (value === "internal" || value === "draft") {
+    return "internal";
+  }
+  return "all";
 }
 
 function matchesSearch(
@@ -108,14 +103,12 @@ function countFolderStatuses(
 ): FolderPostStatusCounts {
   return posts.reduce<FolderPostStatusCounts>(
     (counts, post) => {
-      if (post.status !== "archived") counts.all += 1;
-      if (post.status === "draft") counts.draft += 1;
-      if (post.status === "review") counts.review += 1;
+      counts.all += 1;
+      if (post.status !== "published") counts.internal += 1;
       if (post.status === "published") counts.published += 1;
-      if (post.status === "archived") counts.archived += 1;
       return counts;
     },
-    { all: 0, draft: 0, review: 0, published: 0, archived: 0 },
+    { all: 0, internal: 0, published: 0 },
   );
 }
 
@@ -204,17 +197,17 @@ export function createAdminPostsPageDataQuery(
 
     const folderPosts = activeFolder
       ? await dependencies.getPosts({
-          folderId: activeFolder.id,
-          order: "created",
-          includeArchived: true,
-        })
+        folderId: activeFolder.id,
+        order: "created",
+      })
       : [];
     const folderStatusCounts = countFolderStatuses(folderPosts);
     const visiblePosts = folderPosts.filter((post) => {
       const matchesStatus =
-        statusFilter === "all"
-          ? post.status !== "archived"
-          : post.status === statusFilter;
+        statusFilter === "all" ||
+        (statusFilter === "internal"
+          ? post.status !== "published"
+          : post.status === "published");
       return matchesStatus && matchesSearch(post, searchQuery);
     });
     const contextPosts = visiblePosts.map(toContextPostSummary);

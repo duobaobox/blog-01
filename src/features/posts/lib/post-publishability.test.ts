@@ -2,9 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { ValidationError } from "@/shared/lib/app-error";
 import {
-  countReadyToPublishPosts,
   getPostPublishability,
-  isReadyToPublishPost,
   requirePublishablePost,
 } from "./post-publishability";
 
@@ -45,41 +43,6 @@ test("getPostPublishability accepts posts with a meaningful title and content", 
   );
 });
 
-test("isReadyToPublishPost reuses publishability rules for stored draft summaries", () => {
-  assert.equal(
-    isReadyToPublishPost({
-      status: "review",
-      title: "Growth Loop",
-      contentText: "",
-    }),
-    true,
-  );
-  assert.equal(
-    isReadyToPublishPost({
-      status: "draft",
-      title: "Growth Loop",
-      contentText: "hello world",
-    }),
-    true,
-  );
-  assert.equal(
-    isReadyToPublishPost({
-      status: "draft",
-      title: "未命名 1",
-      contentText: "hello world",
-    }),
-    false,
-  );
-  assert.equal(
-    isReadyToPublishPost({
-      status: "published",
-      title: "Growth Loop",
-      contentText: "hello world",
-    }),
-    false,
-  );
-});
-
 test("requirePublishablePost throws a validation error when the post cannot be published", () => {
   assert.throws(
     () =>
@@ -88,33 +51,5 @@ test("requirePublishablePost throws a validation error when the post cannot be p
         contentJson: { type: "doc", content: [{ type: "paragraph" }] },
       }),
     ValidationError,
-  );
-});
-
-test("countReadyToPublishPosts counts review posts and publishable drafts", () => {
-  assert.equal(
-    countReadyToPublishPosts([
-      {
-        status: "review",
-        title: "Ready A",
-        contentText: "",
-      },
-      {
-        status: "draft",
-        title: "Ready B",
-        contentText: "hello world",
-      },
-      {
-        status: "draft",
-        title: " ",
-        contentText: "hello world",
-      },
-      {
-        status: "published",
-        title: "Published",
-        contentText: "hello world",
-      },
-    ]),
-    2,
   );
 });

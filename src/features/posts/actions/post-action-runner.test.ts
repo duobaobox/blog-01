@@ -127,7 +127,7 @@ test("post action runner refreshes admin and public content for published update
   ]]);
 });
 
-test("post action runner skips public refresh for draft archives", async () => {
+test("post action runner skips public refresh for internal deletions", async () => {
   const calls: string[] = [];
   const runner = createPostActionRunner({
     postService: {
@@ -144,7 +144,7 @@ test("post action runner skips public refresh for draft archives", async () => {
         calls.push("service:delete");
         return {
           previousStatus: "draft",
-          post: { status: "archived", slug: "draft-post" },
+          post: { status: "draft", slug: "draft-post" },
         };
       },
       async applyBulkAction() {
@@ -167,7 +167,7 @@ test("post action runner skips public refresh for draft archives", async () => {
   assert.deepEqual(calls, ["service:delete", "cache:admin"]);
 });
 
-test("post action runner refreshes public content for published archives", async () => {
+test("post action runner refreshes public content for published deletions", async () => {
   const calls: string[] = [];
   const publicPayloads: Array<unknown> = [];
   const runner = createPostActionRunner({
@@ -186,7 +186,7 @@ test("post action runner refreshes public content for published archives", async
         return {
           previousStatus: "published",
           post: {
-            status: "archived",
+            status: "published",
             slug: "published-post",
             category: { slug: "notes" },
           },
@@ -213,7 +213,7 @@ test("post action runner refreshes public content for published archives", async
   assert.deepEqual(calls, ["service:delete", "cache:admin", "cache:public"]);
   assert.deepEqual(publicPayloads, [[
     {
-      status: "archived",
+      status: "published",
       slug: "published-post",
       category: { slug: "notes" },
     },
@@ -245,7 +245,7 @@ test("post action runner refreshes admin and published content for bulk updates"
             { status: "published", slug: "published-before" },
           ],
           updatedPosts: [
-            { status: "review", slug: "review-a" },
+            { status: "draft", slug: "internal-a" },
             { status: "published", slug: "published-after" },
           ],
         };
@@ -263,7 +263,7 @@ test("post action runner refreshes admin and published content for bulk updates"
   await runner.applyBulkAction({
     type: "setStatus",
     postIds: ["post-1", "post-2"],
-    status: "review",
+    status: "draft",
     updatedBy: "user-1",
   });
 

@@ -9,70 +9,36 @@ import {
   createPublicPostQueries,
 } from "./post.queries";
 
-test("getAdminPostCounts keeps snapshot metrics and derived ready count separate", async () => {
+test("getAdminPostCounts returns only internal and published counts", async () => {
   const query = createAdminPostCountsQuery({
     async getAdminPostMetricsSnapshot() {
       return {
-        drafts: 4,
-        review: 2,
+        internal: 4,
         published: 18,
-        archived: 1,
       };
     },
-    async findDraftPublishabilityCandidates() {
-      return [
-        { status: "draft", title: "Ready Draft", contentText: "Body" },
-        { status: "draft", title: "", contentText: "" },
-      ] as never;
-    },
   });
 
-  const result = await query();
-
-  assert.deepEqual(result.snapshot, {
-    drafts: 4,
-    review: 2,
+  assert.deepEqual(await query(), {
+    internal: 4,
     published: 18,
-    archived: 1,
   });
-  assert.deepEqual(result.derived, {
-    ready: 3,
-  });
-  assert.equal(result.ready, 3);
-  assert.equal(result.review, 2);
 });
 
 test("createAdminPostCountsQuery returns a reusable async query function", async () => {
   const query = createAdminPostCountsQuery({
     async getAdminPostMetricsSnapshot() {
       return {
-        drafts: 1,
-        review: 0,
+        internal: 1,
         published: 0,
-        archived: 0,
       };
-    },
-    async findDraftPublishabilityCandidates() {
-      return [] as never;
     },
   });
 
   assert.equal(typeof query, "function");
   assert.deepEqual(await query(), {
-    snapshot: {
-      drafts: 1,
-      review: 0,
-      published: 0,
-      archived: 0,
-    },
-    derived: {
-      ready: 0,
-    },
-    drafts: 1,
-    review: 0,
-    ready: 0,
+    internal: 1,
     published: 0,
-    archived: 0,
   });
 });
 
@@ -80,10 +46,7 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
   const stats = projectAdminDashboardStatCards({
     overview: {
       published: 18,
-      drafts: 4,
-      review: 2,
-      ready: 3,
-      archived: 1,
+      internal: 4,
     },
     taxonomy: {
       categories: 6,
@@ -91,7 +54,7 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     },
   });
 
-  assert.equal(stats.length, 6);
+  assert.equal(stats.length, 4);
   assert.deepEqual(stats[0], {
     label: "已发布文章",
     value: 18,
@@ -99,14 +62,14 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     iconKey: "post",
     href: "/admin/posts",
   });
-  assert.deepEqual(stats[3], {
-    label: "已归档",
-    value: 1,
-    description: "已下线但可恢复的文章",
-    iconKey: "post",
-    href: "/admin/posts?status=archived",
+  assert.deepEqual(stats[1], {
+    label: "内部",
+    value: 4,
+    description: "仅在后台可见的内容",
+    iconKey: "trend",
+    href: "/admin/posts?status=internal",
   });
-  assert.deepEqual(stats[4], {
+  assert.deepEqual(stats[2], {
     label: "分类",
     value: 6,
     description: "内容分类数量",
@@ -122,10 +85,7 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
       calls.push("overview");
       return {
         published: 18,
-        drafts: 4,
-        review: 2,
-        ready: 3,
-        archived: 1,
+        internal: 4,
       };
     },
     async getCategories() {
@@ -163,15 +123,15 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
     "recent:5",
     "tags",
   ]);
-  assert.equal(result.statCards.length, 6);
-  assert.deepEqual(result.statCards[4], {
+  assert.equal(result.statCards.length, 4);
+  assert.deepEqual(result.statCards[2], {
     label: "分类",
     value: 2,
     description: "内容分类数量",
     iconKey: "folder",
     href: "/admin/categories",
   });
-  assert.deepEqual(result.statCards[5], {
+  assert.deepEqual(result.statCards[3], {
     label: "标签",
     value: 3,
     description: "文章标签数量",
@@ -205,10 +165,7 @@ test("createAdminDashboardPageDataQuery short-circuits during production build",
       calls.push("overview");
       return {
         published: 1,
-        drafts: 1,
-        review: 0,
-        ready: 0,
-        archived: 0,
+        internal: 1,
       };
     },
     async getCategories() {

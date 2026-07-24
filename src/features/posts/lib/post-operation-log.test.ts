@@ -4,6 +4,7 @@ import {
   USER_INITIATED_POST_OPERATION_TYPES,
   buildPostOperationSummary,
   getPostBulkOperationType,
+  getPostSaveOperationType,
 } from "./post-operation-log";
 
 test("getPostBulkOperationType maps bulk inputs to audit operation types", () => {
@@ -11,7 +12,7 @@ test("getPostBulkOperationType maps bulk inputs to audit operation types", () =>
     getPostBulkOperationType({
       type: "setStatus",
       postIds: ["post-1"],
-      status: "review",
+      status: "draft",
     }),
     "bulkStatus",
   );
@@ -49,17 +50,17 @@ test("buildPostOperationSummary formats single-post and bulk operation copy", ()
   );
   assert.equal(
     buildPostOperationSummary({
-      type: "archive",
+      type: "unpublish",
       title: "旧版本首页复盘",
     }),
-    "归档文章《旧版本首页复盘》",
+    "取消发布《旧版本首页复盘》",
   );
   assert.equal(
     buildPostOperationSummary({
-      type: "restore",
+      type: "delete",
       title: "旧版本首页复盘",
     }),
-    "恢复文章《旧版本首页复盘》",
+    "删除文章《旧版本首页复盘》",
   );
   assert.equal(
     buildPostOperationSummary({
@@ -76,4 +77,31 @@ test("user initiated operations exclude legacy update noise", () => {
   assert.equal(operations.includes("save"), true);
   assert.equal(operations.includes("publish"), true);
   assert.equal(operations.includes("update"), false);
+});
+
+test("getPostSaveOperationType distinguishes publish and unpublish", () => {
+  assert.equal(
+    getPostSaveOperationType({
+      saveIntent: "publish",
+      previousStatus: "draft",
+      nextStatus: "published",
+    }),
+    "publish",
+  );
+  assert.equal(
+    getPostSaveOperationType({
+      saveIntent: "publish",
+      previousStatus: "published",
+      nextStatus: "draft",
+    }),
+    "unpublish",
+  );
+  assert.equal(
+    getPostSaveOperationType({
+      saveIntent: "manual",
+      previousStatus: "published",
+      nextStatus: "published",
+    }),
+    "save",
+  );
 });
