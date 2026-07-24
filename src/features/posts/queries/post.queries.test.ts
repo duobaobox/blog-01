@@ -5,7 +5,6 @@ import {
   createAdminPostCountsQuery,
   createHomepageFeaturedOrLatestPostsQuery,
   createPublicPostsPageDataQuery,
-  projectAdminDashboardGovernanceStats,
   projectAdminDashboardOverviewStats,
   projectAdminDashboardStatCards,
   projectAdminDashboardTaxonomyStats,
@@ -20,12 +19,6 @@ test("getAdminPostCounts keeps snapshot metrics and derived ready count separate
         review: 2,
         published: 18,
         archived: 1,
-        uncategorized: 3,
-        untagged: 5,
-        unfiled: 6,
-        missingExcerpt: 7,
-        missingSeoTitle: 8,
-        missingSeoDescription: 9,
       };
     },
     async findDraftPublishabilityCandidates() {
@@ -43,12 +36,6 @@ test("getAdminPostCounts keeps snapshot metrics and derived ready count separate
     review: 2,
     published: 18,
     archived: 1,
-    uncategorized: 3,
-    untagged: 5,
-    unfiled: 6,
-    missingExcerpt: 7,
-    missingSeoTitle: 8,
-    missingSeoDescription: 9,
   });
   assert.deepEqual(result.derived, {
     ready: 3,
@@ -65,12 +52,6 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
         review: 0,
         published: 0,
         archived: 0,
-        uncategorized: 0,
-        untagged: 0,
-        unfiled: 0,
-        missingExcerpt: 0,
-        missingSeoTitle: 0,
-        missingSeoDescription: 0,
       };
     },
     async findDraftPublishabilityCandidates() {
@@ -85,12 +66,6 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
       review: 0,
       published: 0,
       archived: 0,
-      uncategorized: 0,
-      untagged: 0,
-      unfiled: 0,
-      missingExcerpt: 0,
-      missingSeoTitle: 0,
-      missingSeoDescription: 0,
     },
     derived: {
       ready: 0,
@@ -100,73 +75,7 @@ test("createAdminPostCountsQuery returns a reusable async query function", async
     ready: 0,
     published: 0,
     archived: 0,
-    uncategorized: 0,
-    untagged: 0,
-    unfiled: 0,
-    missingExcerpt: 0,
-    missingSeoTitle: 0,
-    missingSeoDescription: 0,
   });
-});
-
-test("admin dashboard stat queries project overview and governance slices", async () => {
-  const counts = {
-    snapshot: {
-      drafts: 4,
-      review: 2,
-      published: 18,
-      archived: 1,
-      uncategorized: 3,
-      untagged: 5,
-      unfiled: 6,
-      missingExcerpt: 7,
-      missingSeoTitle: 8,
-      missingSeoDescription: 9,
-    },
-    derived: {
-      ready: 3,
-    },
-    drafts: 4,
-    review: 2,
-    ready: 3,
-    published: 18,
-    archived: 1,
-    uncategorized: 3,
-    untagged: 5,
-    unfiled: 6,
-    missingExcerpt: 7,
-    missingSeoTitle: 8,
-    missingSeoDescription: 9,
-  };
-
-  const overview = projectAdminDashboardOverviewStats(counts);
-  const governance = projectAdminDashboardGovernanceStats(counts);
-
-  assert.deepEqual(overview, {
-    published: 18,
-    drafts: 4,
-    review: 2,
-    ready: 3,
-    archived: 1,
-  });
-  assert.deepEqual(governance, {
-    uncategorized: 3,
-    untagged: 5,
-    unfiled: 6,
-    missingExcerpt: 7,
-    missingSeoTitle: 8,
-    missingSeoDescription: 9,
-  });
-  assert.deepEqual(
-    projectAdminDashboardTaxonomyStats({
-      categories: 6,
-      tags: 11,
-    }),
-    {
-      categories: 6,
-      tags: 11,
-    },
-  );
 });
 
 test("projectAdminDashboardStatCards builds dashboard card view-models from projections", () => {
@@ -182,17 +91,9 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
       categories: 6,
       tags: 11,
     },
-    governance: {
-      uncategorized: 3,
-      untagged: 5,
-      unfiled: 6,
-      missingExcerpt: 7,
-      missingSeoTitle: 8,
-      missingSeoDescription: 9,
-    },
   });
 
-  assert.equal(stats.length, 12);
+  assert.equal(stats.length, 6);
   assert.deepEqual(stats[0], {
     label: "已发布文章",
     value: 18,
@@ -200,33 +101,19 @@ test("projectAdminDashboardStatCards builds dashboard card view-models from proj
     iconKey: "post",
     href: "/admin/posts",
   });
-  assert.deepEqual(stats[4], {
+  assert.deepEqual(stats[3], {
+    label: "已归档",
+    value: 1,
+    description: "已下线但可恢复的文章",
+    iconKey: "post",
+    href: "/admin/posts?status=archived",
+  });
+  assert.deepEqual(stats[4],
     label: "分类",
     value: 6,
     description: "内容分类数量",
     iconKey: "folder",
     href: "/admin/categories",
-  });
-  assert.deepEqual(stats[6], {
-    label: "无分类",
-    value: 3,
-    description: "还没有归类的文章",
-    iconKey: "folder",
-    href: "/admin/posts",
-  });
-  assert.deepEqual(stats[7], {
-    label: "无标签",
-    value: 5,
-    description: "还没有添加标签的文章",
-    iconKey: "tag",
-    href: "/admin/posts",
-  });
-  assert.deepEqual(stats.at(-1), {
-    label: "缺 SEO 描述",
-    value: 9,
-    description: "还没有 SEO 描述的文章",
-    iconKey: "post",
-    href: "/admin/posts",
   });
 });
 
@@ -241,17 +128,6 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
         review: 2,
         ready: 3,
         archived: 1,
-      };
-    },
-    async getGovernanceStats() {
-      calls.push("governance");
-      return {
-        uncategorized: 3,
-        untagged: 5,
-        unfiled: 6,
-        missingExcerpt: 7,
-        missingSeoTitle: 8,
-        missingSeoDescription: 9,
       };
     },
     async getCategories() {
@@ -285,12 +161,11 @@ test("createAdminDashboardPageDataQuery aggregates stat cards and recent activit
 
   assert.deepEqual(calls.sort(), [
     "categories",
-    "governance",
     "overview",
     "recent:5",
     "tags",
   ]);
-  assert.equal(result.statCards.length, 12);
+  assert.equal(result.statCards.length, 6);
   assert.deepEqual(result.statCards[4], {
     label: "分类",
     value: 2,
@@ -336,17 +211,6 @@ test("createAdminDashboardPageDataQuery short-circuits during production build",
         review: 0,
         ready: 0,
         archived: 0,
-      };
-    },
-    async getGovernanceStats() {
-      calls.push("governance");
-      return {
-        uncategorized: 0,
-        untagged: 0,
-        unfiled: 0,
-        missingExcerpt: 0,
-        missingSeoTitle: 0,
-        missingSeoDescription: 0,
       };
     },
     async getCategories() {

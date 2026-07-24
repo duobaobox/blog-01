@@ -80,47 +80,14 @@ async function main() {
   );
 
   await printExplain(
-    "Admin metrics snapshot: active counts and governance debt scan",
+    "Admin metrics snapshot: lifecycle status counts",
     Prisma.sql`
-      WITH post_tag_counts AS (
-        SELECT
-          pt."postId",
-          COUNT(*) AS "tagCount"
-        FROM "postTag" pt
-        GROUP BY pt."postId"
-      )
       SELECT
-        COUNT(*) FILTER (WHERE p.status = 'draft') AS "drafts",
-        COUNT(*) FILTER (WHERE p.status = 'review') AS "review",
-        COUNT(*) FILTER (WHERE p.status = 'published') AS "published",
-        COUNT(*) FILTER (WHERE p.status = 'archived') AS "archived",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND p."categoryId" IS NULL
-        ) AS "uncategorized",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND COALESCE(ptc."tagCount", 0) = 0
-        ) AS "untagged",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND p."folderId" IS NULL
-        ) AS "unfiled",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND COALESCE(p.excerpt, '') = ''
-        ) AS "missingExcerpt",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND COALESCE(p."seoTitle", '') = ''
-        ) AS "missingSeoTitle",
-        COUNT(*) FILTER (
-          WHERE p.status IN (${activeStatusesSql})
-            AND COALESCE(p."seoDescription", '') = ''
-        ) AS "missingSeoDescription"
-      FROM "post" p
-      LEFT JOIN post_tag_counts ptc
-        ON ptc."postId" = p.id
+        COUNT(*) FILTER (WHERE status = 'draft') AS "drafts",
+        COUNT(*) FILTER (WHERE status = 'review') AS "review",
+        COUNT(*) FILTER (WHERE status = 'published') AS "published",
+        COUNT(*) FILTER (WHERE status = 'archived') AS "archived"
+      FROM "post"
     `,
   );
 }

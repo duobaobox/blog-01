@@ -12,7 +12,6 @@ import {
   countReadyToPublishPosts,
   isReadyToPublishPost,
 } from "@/features/posts/lib/post-publishability";
-import { POST_GOVERNANCE_DEBT_DEFINITIONS } from "@/features/posts/lib/post-governance";
 import * as postRepo from "@/features/posts/repositories/post.repository";
 import { getCategories } from "@/features/taxonomy/queries/category.queries";
 import { getTags } from "@/features/taxonomy/queries/tag.queries";
@@ -59,12 +58,6 @@ export type AdminPostCounts = {
   ready: number;
   published: number;
   archived: number;
-  uncategorized: number;
-  untagged: number;
-  unfiled: number;
-  missingExcerpt: number;
-  missingSeoTitle: number;
-  missingSeoDescription: number;
 };
 
 export type AdminDashboardOverviewStats = Pick<
@@ -88,16 +81,6 @@ export type AdminDashboardStatCard = {
     | "trend";
   href: string;
 };
-
-export type AdminDashboardGovernanceStats = Pick<
-  AdminPostCounts,
-  | "uncategorized"
-  | "untagged"
-  | "unfiled"
-  | "missingExcerpt"
-  | "missingSeoTitle"
-  | "missingSeoDescription"
->;
 
 function buildCoverImagePresentation(
   coverImageUrl: string | null,
@@ -310,19 +293,6 @@ export function projectAdminDashboardOverviewStats(
   };
 }
 
-export function projectAdminDashboardGovernanceStats(
-  counts: AdminPostCounts,
-): AdminDashboardGovernanceStats {
-  return {
-    uncategorized: counts.uncategorized,
-    untagged: counts.untagged,
-    unfiled: counts.unfiled,
-    missingExcerpt: counts.missingExcerpt,
-    missingSeoTitle: counts.missingSeoTitle,
-    missingSeoDescription: counts.missingSeoDescription,
-  };
-}
-
 export async function getAdminDashboardOverviewStats(): Promise<AdminDashboardOverviewStats> {
   return projectAdminDashboardOverviewStats(await getAdminPostCounts());
 }
@@ -337,24 +307,9 @@ export function projectAdminDashboardTaxonomyStats(input: {
   };
 }
 
-function getAdminDashboardGovernanceIconKey(
-  key: keyof AdminDashboardGovernanceStats,
-): AdminDashboardStatCard["iconKey"] {
-  if (key === "uncategorized") {
-    return "folder";
-  }
-
-  if (key === "untagged") {
-    return "tag";
-  }
-
-  return "post";
-}
-
 export function projectAdminDashboardStatCards(input: {
   overview: AdminDashboardOverviewStats;
   taxonomy: AdminDashboardTaxonomyStats;
-  governance: AdminDashboardGovernanceStats;
 }): AdminDashboardStatCard[] {
   return [
     {
@@ -383,7 +338,7 @@ export function projectAdminDashboardStatCards(input: {
       value: input.overview.archived,
       description: "已下线但可恢复的文章",
       iconKey: "post",
-      href: "/admin/posts",
+      href: "/admin/posts?status=archived",
     },
     {
       label: "分类",
@@ -399,20 +354,12 @@ export function projectAdminDashboardStatCards(input: {
       iconKey: "tag",
       href: "/admin/tags",
     },
-    ...POST_GOVERNANCE_DEBT_DEFINITIONS.map((definition) => ({
-      label: definition.label,
-      value: input.governance[definition.key],
-      description: definition.description,
-      iconKey: getAdminDashboardGovernanceIconKey(definition.key),
-      href: "/admin/posts",
-    })),
   ];
 }
 
 type AdminDashboardPageDataDependencies = {
   isProductionBuildPhase: () => boolean;
   getOverviewStats: () => Promise<AdminDashboardOverviewStats>;
-  getGovernanceStats: () => Promise<AdminDashboardGovernanceStats>;
   getCategories: () => Promise<Array<{ id: string }>>;
   getTags: () => Promise<Array<{ id: string }>>;
   getRecentActivity: (take: number) => Promise<AdminDashboardPageData["recentActivity"]>;
@@ -422,7 +369,6 @@ export function createAdminDashboardPageDataQuery(
   dependencies: Partial<AdminDashboardPageDataDependencies> = {
     isProductionBuildPhase,
     getOverviewStats: getAdminDashboardOverviewStats,
-    getGovernanceStats: getAdminDashboardGovernanceStats,
     getCategories: () => getCategories("admin"),
     getTags: () => getTags("admin"),
     getRecentActivity: getRecentPostOperationLogs,
@@ -431,7 +377,6 @@ export function createAdminDashboardPageDataQuery(
   const resolvedDependencies: AdminDashboardPageDataDependencies = {
     isProductionBuildPhase,
     getOverviewStats: getAdminDashboardOverviewStats,
-    getGovernanceStats: getAdminDashboardGovernanceStats,
     getCategories: () => getCategories("admin"),
     getTags: () => getTags("admin"),
     getRecentActivity: getRecentPostOperationLogs,
@@ -450,13 +395,11 @@ export function createAdminDashboardPageDataQuery(
 
     const [
       overview,
-      governance,
       categories,
       tags,
       recentActivity,
     ] = await Promise.all([
       resolvedDependencies.getOverviewStats(),
-      resolvedDependencies.getGovernanceStats(),
       resolvedDependencies.getCategories(),
       resolvedDependencies.getTags(),
       resolvedDependencies.getRecentActivity(recentActivityTake),
@@ -471,7 +414,6 @@ export function createAdminDashboardPageDataQuery(
       statCards: projectAdminDashboardStatCards({
         overview,
         taxonomy,
-        governance,
       }),
       recentActivity,
     };
@@ -484,10 +426,6 @@ export async function getAdminDashboardPageData(
   recentActivityTake = 8,
 ): Promise<AdminDashboardPageData> {
   return getAdminDashboardPageDataQuery(recentActivityTake);
-}
-
-export async function getAdminDashboardGovernanceStats(): Promise<AdminDashboardGovernanceStats> {
-  return projectAdminDashboardGovernanceStats(await getAdminPostCounts());
 }
 
 type PublicPostsPageDataDependencies = {

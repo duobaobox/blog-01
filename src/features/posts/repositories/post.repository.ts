@@ -11,13 +11,6 @@ export type PostFilters = {
   folderId?: string;
   tagId?: string;
   isFeatured?: boolean;
-  missingCategory?: boolean;
-  missingTags?: boolean;
-  missingFolder?: boolean;
-  missingExcerpt?: boolean;
-  missingSeoTitle?: boolean;
-  missingSeoDescription?: boolean;
-  updatedAfter?: Date;
   query?: string;
   includeArchived?: boolean;
 };
@@ -30,13 +23,6 @@ export type FindPostsOptions = {
   take?: number;
   skip?: number;
   isFeatured?: boolean;
-  missingCategory?: boolean;
-  missingTags?: boolean;
-  missingFolder?: boolean;
-  missingExcerpt?: boolean;
-  missingSeoTitle?: boolean;
-  missingSeoDescription?: boolean;
-  updatedAfter?: Date;
   query?: string;
   order?: "created" | "updated" | "published";
   includeArchived?: boolean;
@@ -47,12 +33,6 @@ export type AdminPostMetricsSnapshot = {
   review: number;
   published: number;
   archived: number;
-  uncategorized: number;
-  untagged: number;
-  unfiled: number;
-  missingExcerpt: number;
-  missingSeoTitle: number;
-  missingSeoDescription: number;
 };
 
 const postListSelect = {
@@ -219,12 +199,6 @@ export function mapAdminPostMetricsSnapshotRow(
     review: toCountNumber(row.review),
     published: toCountNumber(row.published),
     archived: toCountNumber(row.archived),
-    uncategorized: toCountNumber(row.uncategorized),
-    untagged: toCountNumber(row.untagged),
-    unfiled: toCountNumber(row.unfiled),
-    missingExcerpt: toCountNumber(row.missingExcerpt),
-    missingSeoTitle: toCountNumber(row.missingSeoTitle),
-    missingSeoDescription: toCountNumber(row.missingSeoDescription),
   };
 }
 
@@ -250,59 +224,16 @@ function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
     where.categoryId = filters.categoryId;
   }
 
-  if (filters?.missingCategory) {
-    where.categoryId = null;
-  }
-
   if (filters?.folderId) {
     where.folderId = filters.folderId;
-  }
-
-  if (filters?.missingFolder) {
-    where.folderId = null;
   }
 
   if (filters?.tagId) {
     where.tags = { some: { tagId: filters.tagId } };
   }
 
-  if (filters?.missingTags) {
-    where.tags = { none: {} };
-  }
-
-  if (filters?.missingExcerpt) {
-    andConditions.push({
-      OR: [
-        { excerpt: null },
-        { excerpt: "" },
-      ],
-    });
-  }
-
-  if (filters?.missingSeoTitle) {
-    andConditions.push({
-      OR: [
-        { seoTitle: null },
-        { seoTitle: "" },
-      ],
-    });
-  }
-
-  if (filters?.missingSeoDescription) {
-    andConditions.push({
-      OR: [
-        { seoDescription: null },
-        { seoDescription: "" },
-      ],
-    });
-  }
-
   if (typeof filters?.isFeatured === "boolean") {
     where.isFeatured = filters.isFeatured;
-  }
-
-  if (filters?.updatedAfter) {
-    where.updatedAt = { gte: filters.updatedAfter };
   }
 
   const query = filters?.query?.trim();
@@ -407,50 +338,13 @@ export async function countPosts(filters?: string | PostFilters) {
 }
 
 export async function getAdminPostMetricsSnapshot(): Promise<AdminPostMetricsSnapshot> {
-  const activeStatusesSql = Prisma.join(
-    ACTIVE_POST_STATUSES.map((status) => Prisma.sql`${status}`),
-  );
-
   const [row] = await db.$queryRaw<AdminPostMetricsSnapshotRow[]>(Prisma.sql`
-    WITH post_tag_counts AS (
-      SELECT
-        pt."postId",
-        COUNT(*) AS "tagCount"
-      FROM "postTag" pt
-      GROUP BY pt."postId"
-    )
     SELECT
-      COUNT(*) FILTER (WHERE p.status = 'draft') AS "drafts",
-      COUNT(*) FILTER (WHERE p.status = 'review') AS "review",
-      COUNT(*) FILTER (WHERE p.status = 'published') AS "published",
-      COUNT(*) FILTER (WHERE p.status = 'archived') AS "archived",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND p."categoryId" IS NULL
-      ) AS "uncategorized",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND COALESCE(ptc."tagCount", 0) = 0
-      ) AS "untagged",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND p."folderId" IS NULL
-      ) AS "unfiled",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND COALESCE(p.excerpt, '') = ''
-      ) AS "missingExcerpt",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND COALESCE(p."seoTitle", '') = ''
-      ) AS "missingSeoTitle",
-      COUNT(*) FILTER (
-        WHERE p.status IN (${activeStatusesSql})
-          AND COALESCE(p."seoDescription", '') = ''
-      ) AS "missingSeoDescription"
-    FROM "post" p
-    LEFT JOIN post_tag_counts ptc
-      ON ptc."postId" = p.id
+      COUNT(*) FILTER (WHERE status = 'draft') AS "drafts",
+      COUNT(*) FILTER (WHERE status = 'review') AS "review",
+      COUNT(*) FILTER (WHERE status = 'published') AS "published",
+      COUNT(*) FILTER (WHERE status = 'archived') AS "archived"
+    FROM "post"
   `);
 
   return mapAdminPostMetricsSnapshotRow(row);
@@ -642,43 +536,6 @@ export async function findPostsByFolder(
   return findPosts({
     ...options,
     folderId,
-  });
-}
-
-export async function findRecentlyUpdatedPosts(
-  options?: number | {
-    take?: number;
-    skip?: number;
-  },
-) {
-  const normalizedOptions = typeof options === "number"
-    ? { take: options }
-    : options;
-
-  return db.post.findMany({
-    where: getDefaultActiveStatusWhere(),
-    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-    take: normalizedOptions?.take,
-    skip: normalizedOptions?.skip,
-    select: postListSelect,
-  });
-}
-
-export async function findDraftPosts(take = 20) {
-  return db.post.findMany({
-    where: { status: "draft" },
-    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-    take,
-    select: postListSelect,
-  });
-}
-
-export async function findReviewPosts(take = 20) {
-  return db.post.findMany({
-    where: { status: "review" },
-    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-    take,
-    select: postListSelect,
   });
 }
 

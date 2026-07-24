@@ -13,7 +13,7 @@ npm run db:explain:posts:analyze
 
 - 后台当前文件夹笔记列表：按 `folderId + status + createdAt` 读取
 - 前台 Blog 列表：按发布状态、精选和发布时间读取
-- 后台概览统计：状态数量与可选元数据治理统计
+- 后台概览统计：草稿、待发布、已发布和已归档数量
 
 ## 判断原则
 
@@ -21,7 +21,7 @@ npm run db:explain:posts:analyze
 
 1. 数据量增长后，文件夹列表是否稳定命中 `status + folderId` 相关索引。
 2. 前台列表的 `isFeatured + publishedAt + createdAt` 排序是否出现明显成本。
-3. 概览统计中的 `postTag` 聚合是否退化成按文章重复扫描。
+3. 概览状态统计是否保持单次轻量聚合。
 
 需要更接近真实规模的样本时：
 
