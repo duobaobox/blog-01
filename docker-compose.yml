@@ -16,6 +16,14 @@ x-app-environment: &app-environment
   SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
   SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
   SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123456}
+  AI_ENABLED: ${AI_ENABLED:-false}
+  AI_PROVIDER: ${AI_PROVIDER:-openai-compatible}
+  AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
+  AI_API_KEY: ${AI_API_KEY:-}
+  AI_MODEL: ${AI_MODEL:-}
+  AI_PROTOCOL: ${AI_PROTOCOL:-chat-completions}
+  AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-30000}
+  AI_MAX_INPUT_CHARS: ${AI_MAX_INPUT_CHARS:-30000}
 
 services:
   app:
