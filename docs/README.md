@@ -6,6 +6,7 @@
 
 - [当前架构基线](./architecture-baseline.md)
 - [首页风格 DIY](./homepage-diy.md)
+- [SEO 与 AI 编辑助手 PRD](./ai-seo-prd.md)
 
 ## 部署与发版
 
