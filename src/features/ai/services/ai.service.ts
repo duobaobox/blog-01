@@ -62,7 +62,7 @@ async function requestChatCompletion(
   input: AiGenerateInput,
   useJsonMode: boolean,
 ) {
-  const config = getAiConfig();
+  const config = await getAiConfig();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
 
