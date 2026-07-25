@@ -1,5 +1,5 @@
 import { getAiProviderPreset } from "@/features/ai/lib/ai-provider-presets";
-import { normalizeOptionalString, requireTrimmedString, validateOptionalHttpUrl } from "@/shared/lib/validation";
+import { normalizeOptionalString, validateOptionalHttpUrl } from "@/shared/lib/validation";
 import { ValidationError } from "@/shared/lib/app-error";
 
 export type AiSettingsWriteInput = {
