@@ -15,7 +15,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { Switch } from "@/shared/ui/switch";
-import { HelpCircle, ImagePlus, Trash2 } from "lucide-react";
+import { HelpCircle, ImagePlus, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
 import {
   Tooltip,
@@ -23,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
 interface SettingsFormProps {
   settings: {
@@ -135,7 +136,26 @@ export function SettingsForm({
 
   return (
     <TooltipProvider>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <Tabs defaultValue="site" className="gap-6">
+        <TabsList
+          variant="line"
+          className="w-full justify-start rounded-none border-b border-border/70 p-0"
+        >
+          <TabsTrigger value="site" className="flex-none gap-2 px-1 pb-3 pt-1">
+            <Settings2 className="size-4" />
+            站点设置
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex-none gap-2 px-1 pb-3 pt-1">
+            <Sparkles className="size-4" />
+            AI 配置
+            {settings?.aiConfigured && settings.aiApiKeyConfigured ? (
+              <span className="size-1.5 rounded-full bg-emerald-500" aria-label="已配置" />
+            ) : null}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="site" className="mt-0 max-w-5xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
         {showSetupNotice ? (
           <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
             当前站点信息还比较基础。建议优先完善站点标题；站点 URL、Logo 和头像都可以后续再补。
@@ -344,12 +364,14 @@ export function SettingsForm({
             <span className="text-sm text-destructive">{saveError}</span>
           )}
         </div>
-      </form>
+          </form>
+        </TabsContent>
 
-      <form
-        onSubmit={handleAiSubmit}
-        className="space-y-5 rounded-xl border border-border/70 bg-card p-5"
-      >
+        <TabsContent value="ai" className="mt-0 max-w-5xl">
+          <form
+            onSubmit={handleAiSubmit}
+            className="space-y-6"
+          >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold">AI / BYOK 配置</h2>
@@ -495,7 +517,9 @@ export function SettingsForm({
             <span className="text-sm text-destructive">{aiSaveError}</span>
           ) : null}
         </div>
-      </form>
+          </form>
+        </TabsContent>
+      </Tabs>
       <MediaPickerDialog
         open={pickerField !== null}
         onOpenChange={(open) => {
