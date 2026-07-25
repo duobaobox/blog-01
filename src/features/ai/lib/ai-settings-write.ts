@@ -19,8 +19,8 @@ export function parseAiSettingsFormData(
   const preset = getAiProviderPreset(provider);
   const baseUrl =
     normalizeOptionalString(formData.get("aiBaseUrl")) || preset.baseUrl;
-  const model = normalizeOptionalString(formData.get("aiModel"));
-  const apiKey = normalizeOptionalString(formData.get("aiApiKey"));
+  const model = normalizeOptionalString(formData.get("aiModel")) || "";
+  const apiKey = normalizeOptionalString(formData.get("aiApiKey")) || "";
   const enabled = formData.get("aiEnabled") === "true";
   const clearApiKey = formData.get("aiClearApiKey") === "true";
 
