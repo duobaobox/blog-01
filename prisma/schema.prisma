@@ -184,6 +184,13 @@ model siteSetting {
   xUrl            String?  @db.Text
   email           String?
   footerText      String?  @db.Text
+  aiConfigured    Boolean  @default(false)
+  aiEnabled       Boolean  @default(false)
+  aiProvider      String   @default("openai-compatible")
+  aiBaseUrl       String?  @db.Text
+  aiModel         String?
+  aiApiKeyEncrypted String? @db.Text
+  aiProtocol      String   @default("chat-completions")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
