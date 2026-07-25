@@ -329,7 +329,7 @@ function SimpleEditorInstance({
                 }
 
                 const { from, to } = editor.state.selection
-                const text = editor.state.doc.textBetween(from, to, "\\n").trim()
+                const text = editor.state.doc.textBetween(from, to, "\n").trim()
                 onRequestAiEdit?.(text ? { from, to, text } : null)
               }}
               isMobile={isMobile}
