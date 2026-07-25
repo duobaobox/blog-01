@@ -74,7 +74,7 @@ ${input.instruction || "无"}
 }
 
 async function requestEdit(input: AiGenerateInput, useJsonMode: boolean) {
-  const config = getAiConfig();
+  const config = await getAiConfig();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
 
