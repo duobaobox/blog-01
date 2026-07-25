@@ -124,7 +124,7 @@ async function requestChatCompletion(
 export async function generateSeoMetadata(
   input: AiGenerateInput,
 ): Promise<AiSeoMetadataResult> {
-  const config = getAiConfig();
+  const config = await getAiConfig();
 
   if (!config.enabled) {
     throw new ConfigurationError(
