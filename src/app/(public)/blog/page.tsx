@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Separator } from "@/shared/ui/separator";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
+import { assignMotifIndices } from "@/features/posts/components/card-motifs";
 import { PostsPagination } from "@/components/blog/posts-pagination";
 import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
 import { getPublicCategories } from "@/features/taxonomy/queries/category.queries";
@@ -41,6 +42,8 @@ export default async function BlogPage({
   const { posts, totalPages, totalPosts, currentPage } = pageData;
   const hasSidebarContent = categories.length > 0 || tags.length > 0;
 
+  const motifIndices = assignMotifIndices(posts.length);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight">博客</h1>
@@ -70,8 +73,8 @@ export default async function BlogPage({
               />
             ) : (
               <>
-                {posts.map((post) => (
-                  <PostListCard key={post.slug} post={post} />
+                {posts.map((post, i) => (
+                  <PostListCard key={post.slug} post={post} motifIndex={motifIndices[i]} />
                 ))}
                 <PostsPagination
                   pathname="/blog"

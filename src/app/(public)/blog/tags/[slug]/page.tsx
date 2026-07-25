@@ -4,6 +4,7 @@ import { Separator } from "@/shared/ui/separator";
 import { PostsPagination } from "@/components/blog/posts-pagination";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
+import { assignMotifIndices } from "@/features/posts/components/card-motifs";
 import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
 import { getPublicTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
@@ -48,6 +49,8 @@ export default async function TagPage({
 
   if (!isValidPage || isOutOfRange) notFound();
 
+  const motifIndices = assignMotifIndices(posts.length);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <div className="flex flex-wrap items-center gap-3">
@@ -69,8 +72,8 @@ export default async function TagPage({
           />
         ) : (
           <>
-            {posts.map((post) => (
-              <PostListCard key={post.slug} post={post} />
+            {posts.map((post, i) => (
+              <PostListCard key={post.slug} post={post} motifIndex={motifIndices[i]} />
             ))}
             <PostsPagination
               pathname={`/blog/tags/${tag.slug}`}

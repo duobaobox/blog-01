@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { cardMotifs, getMotifIndex } from "@/features/posts/components/card-motifs";
 
 type PostListCardProps = {
   post: {
@@ -38,18 +39,23 @@ type PostListCardProps = {
     }>;
   };
   showCategory?: boolean;
+  /** 可选：由父组件统一分配图腾索引，保证相邻卡片不同；不传则基于 slug 哈希 */
+  motifIndex?: number;
 };
 
-export function PostListCard({ post, showCategory = true }: PostListCardProps) {
+export function PostListCard({ post, showCategory = true, motifIndex }: PostListCardProps) {
   const preview = post.excerpt ?? `${post.contentText.slice(0, 120)}...`;
   const displayDate = getPostDisplayDate(post);
   const coverImage = post.coverImage;
   const cardImage = coverImage?.variants?.card ?? coverImage;
   const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
 
+  const motifIdx = motifIndex ?? getMotifIndex(post.slug);
+  const MotifComponent = cardMotifs[motifIdx];
+
   return (
-    <Link href={`/blog/${post.slug}`} className="block">
-      <Card className="gap-0 py-0 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
+    <Link href={`/blog/${post.slug}`} className="block group">
+      <Card className="relative gap-0 py-0 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
         {coverImageUrl ? (
           <div className="overflow-hidden rounded-t-xl border-b bg-muted/30">
             <Image
@@ -108,6 +114,20 @@ export function PostListCard({ post, showCategory = true }: PostListCardProps) {
             </div>
           )}
         </CardHeader>
+
+        {/* 右下角 SVG 几何图腾（8 种随机） */}
+        <div
+          className="pointer-events-none absolute right-0 bottom-0 h-36 w-48 overflow-hidden rounded-br-xl select-none"
+          aria-hidden="true"
+          style={{
+            maskImage:
+              "linear-gradient(to top left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.72) 36%, rgba(0,0,0,0) 80%)",
+            WebkitMaskImage:
+              "linear-gradient(to top left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.72) 36%, rgba(0,0,0,0) 80%)",
+          }}
+        >
+          <MotifComponent className="absolute right-0 bottom-0 h-full w-full text-primary/12 transition-all duration-500 ease-out group-hover:scale-[1.04] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5" />
+        </div>
       </Card>
     </Link>
   );

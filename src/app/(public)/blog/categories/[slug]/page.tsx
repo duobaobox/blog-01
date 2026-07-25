@@ -4,6 +4,7 @@ import { Separator } from "@/shared/ui/separator";
 import { PostsPagination } from "@/components/blog/posts-pagination";
 import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
+import { assignMotifIndices } from "@/features/posts/components/card-motifs";
 import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
 import { getPublicCategoryBySlug } from "@/features/taxonomy/queries/category.queries";
 import { generateSeo } from "@/infrastructure/seo";
@@ -48,6 +49,8 @@ export default async function CategoryPage({
 
   if (!isValidPage || isOutOfRange) notFound();
 
+  const motifIndices = assignMotifIndices(posts.length);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-bold tracking-tight">
@@ -68,8 +71,8 @@ export default async function CategoryPage({
           />
         ) : (
           <>
-            {posts.map((post) => (
-              <PostListCard key={post.slug} post={post} showCategory={false} />
+            {posts.map((post, i) => (
+              <PostListCard key={post.slug} post={post} showCategory={false} motifIndex={motifIndices[i]} />
             ))}
             <PostsPagination
               pathname={`/blog/categories/${category.slug}`}
