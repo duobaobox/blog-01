@@ -31,8 +31,8 @@ const OPERATION_LABELS: Record<string, string> = {
 function stripCodeFence(value: string) {
   return value
     .trim()
-    .replace(/^\`\`\`(?:json)?\\s*/i, "")
-    .replace(/\\s*\`\`\`$/i, "")
+    .replace(/^\`\`\`(?:json)?\s*/i, "")
+    .replace(/\s*\`\`\`$/i, "")
     .trim();
 }
 
