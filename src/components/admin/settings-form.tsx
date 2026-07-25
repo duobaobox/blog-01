@@ -438,6 +438,14 @@ export function SettingsForm({
           {getAiProviderPreset(aiProvider).docsUrl ? (
             <p className="text-xs text-muted-foreground">
               请以服务商官方文档为准，必要时可以直接修改 Base URL。
+              <a
+                href={getAiProviderPreset(aiProvider).docsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 text-foreground underline underline-offset-4"
+              >
+                查看官方文档
+              </a>
             </p>
           ) : null}
         </div>
