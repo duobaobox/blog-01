@@ -15,6 +15,7 @@ import {
 } from "@/features/editor/content-types"
 import {
   SimpleEditor,
+  type SimpleEditorSelection,
   type SimpleEditorUpdate,
 } from "@/components/tiptap/templates/simple/simple-editor"
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog"
@@ -40,12 +41,6 @@ export type PostRichEditorProps = {
   placeholder?: string
   onChange: (snapshot: EditorSnapshot) => void
   onEditorReady?: (editor: Editor | null) => void
-}
-
-type EditorSelection = {
-  from: number
-  to: number
-  text: string
 }
 
 type AiEditOperation =
@@ -94,10 +89,8 @@ export function PostRichEditor({
   const hasHydrated = useHasHydrated()
   const [editor, setEditor] = useState<Editor | null>(null)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
-  const [editorSelection, setEditorSelection] =
-    useState<EditorSelection | null>(null)
   const [aiEditSelection, setAiEditSelection] =
-    useState<EditorSelection | null>(null)
+    useState<SimpleEditorSelection | null>(null)
   const [aiEditDialogOpen, setAiEditDialogOpen] = useState(false)
   const [aiEditOperation, setAiEditOperation] =
     useState<AiEditOperation>("polish")
@@ -129,27 +122,6 @@ export function PostRichEditor({
     [onChange],
   )
 
-  useEffect(() => {
-    if (!editor) {
-      setEditorSelection(null)
-      return
-    }
-
-    const syncSelection = () => {
-      const { from, to } = editor.state.selection
-      const text = editor.state.doc.textBetween(from, to, "\n").trim()
-
-      setEditorSelection(text ? { from, to, text } : null)
-    }
-
-    syncSelection()
-    editor.on("selectionUpdate", syncSelection)
-
-    return () => {
-      editor.off("selectionUpdate", syncSelection)
-    }
-  }, [editor])
-
   const handleMediaSelect = useCallback(
     (media: MediaItem) => {
       editor
@@ -165,19 +137,25 @@ export function PostRichEditor({
     [editor],
   )
 
-  const handleOpenAiEdit = useCallback(() => {
-    if (!editorSelection) {
-      setAiEditError("请先在正文中选中一段文本。")
-      return
-    }
+  const handleOpenAiEdit = useCallback(
+    (selection: SimpleEditorSelection | null) => {
+      if (!selection) {
+        setAiEditSelection(null)
+        setAiEditResult(null)
+        setAiEditError("请先在正文中选中一段文本。")
+        setAiEditDialogOpen(true)
+        return
+      }
 
-    setAiEditSelection(editorSelection)
-    setAiEditResult(null)
-    setAiEditError(null)
-    setAiEditInstruction("")
-    setAiEditOperation("polish")
-    setAiEditDialogOpen(true)
-  }, [editorSelection])
+      setAiEditSelection(selection)
+      setAiEditResult(null)
+      setAiEditError(null)
+      setAiEditInstruction("")
+      setAiEditOperation("polish")
+      setAiEditDialogOpen(true)
+    },
+    [],
+  )
 
   const handleGenerateAiEdit = useCallback(async () => {
     if (!aiEditSelection) {
@@ -249,25 +227,6 @@ export function PostRichEditor({
 
   return (
     <div className="post-rich-editor">
-      <div className="flex items-center justify-between gap-3 border-b px-4 py-2">
-        <span className="text-xs text-muted-foreground">
-          {editorSelection
-            ? `已选中 ${editorSelection.text.length} 个字符`
-            : "选中文本后可以使用 AI 改写"}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-          disabled={!editorSelection || aiEditLoading}
-          onClick={handleOpenAiEdit}
-        >
-          <Sparkles className="size-3.5" />
-          AI 改写选中文本
-        </Button>
-      </div>
-
       <SimpleEditor
         initialContent={initialContent}
         contentKey={contentKey}
@@ -275,6 +234,7 @@ export function PostRichEditor({
         onUpdate={handleUpdate}
         onEditorReady={handleEditorReady}
         onRequestMedia={() => setMediaPickerOpen(true)}
+        onRequestAiEdit={handleOpenAiEdit}
       />
 
       <MediaPickerDialog
