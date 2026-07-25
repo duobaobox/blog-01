@@ -1,3 +1,5 @@
+import "server-only";
+
 import { ConfigurationError } from "@/shared/lib/app-error";
 
 export type AiProtocol = "chat-completions";
