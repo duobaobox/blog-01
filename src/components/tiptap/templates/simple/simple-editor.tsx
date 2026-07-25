@@ -5,7 +5,7 @@ import type { Editor, JSONContent } from "@tiptap/core"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 import { Markdown } from "@tiptap/markdown"
 import { Selection } from "@tiptap/extensions"
-import { Table2 } from "lucide-react"
+import { Sparkles, Table2 } from "lucide-react"
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap/ui-primitive/button"
@@ -72,6 +72,12 @@ export type SimpleEditorUpdate = {
   text: string
 }
 
+export type SimpleEditorSelection = {
+  from: number
+  to: number
+  text: string
+}
+
 export type SimpleEditorProps = {
   initialContent?: JSONContent | null
   contentKey?: string
@@ -79,6 +85,7 @@ export type SimpleEditorProps = {
   onUpdate?: (snapshot: SimpleEditorUpdate) => void
   onEditorReady?: (editor: Editor | null) => void
   onRequestMedia?: () => void
+  onRequestAiEdit?: (selection: SimpleEditorSelection | null) => void
 }
 
 const MainToolbarContent = ({
@@ -86,12 +93,14 @@ const MainToolbarContent = ({
   onLinkClick,
   onMediaClick,
   onInsertTable,
+  onAiEditClick,
   isMobile,
 }: {
   onHighlighterClick: () => void
   onLinkClick: () => void
   onMediaClick: () => void
   onInsertTable: () => void
+  onAiEditClick: () => void
   isMobile: boolean
 }) => {
   return (
@@ -167,6 +176,15 @@ const MainToolbarContent = ({
         >
           <Table2 className="tiptap-button-icon" />
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onAiEditClick}
+          aria-label="AI 改写选中文本"
+          tooltip="AI 改写选中文本"
+        >
+          <Sparkles className="tiptap-button-icon" />
+        </Button>
       </ToolbarGroup>
 
       <Spacer />
@@ -218,6 +236,7 @@ function SimpleEditorInstance({
   onUpdate,
   onEditorReady,
   onRequestMedia,
+  onRequestAiEdit,
 }: SimpleEditorProps) {
   const isMobile = useIsBreakpoint()
   const { height } = useWindowSize()
@@ -303,6 +322,16 @@ function SimpleEditorInstance({
                   .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
                   .run()
               }
+              onAiEditClick={() => {
+                if (!editor) {
+                  onRequestAiEdit?.(null)
+                  return
+                }
+
+                const { from, to } = editor.state.selection
+                const text = editor.state.doc.textBetween(from, to, "\\n").trim()
+                onRequestAiEdit?.(text ? { from, to, text } : null)
+              }}
               isMobile={isMobile}
             />
           ) : (
