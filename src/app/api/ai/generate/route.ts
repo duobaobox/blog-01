@@ -4,6 +4,7 @@ import {
   parseAiGenerateInput,
 } from "@/features/ai/lib/ai-schema";
 import { generateSeoMetadata } from "@/features/ai/services/ai.service";
+import { generateTextEdit } from "@/features/ai/services/ai-edit.service";
 import { toErrorResponse } from "@/shared/lib/api-error";
 import { ConfigurationError } from "@/shared/lib/app-error";
 
@@ -13,7 +14,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => null);
     const input = parseAiGenerateInput(body);
-    const result = await generateSeoMetadata(input);
+    const result =
+      input.action === "edit-text"
+        ? await generateTextEdit(input)
+        : await generateSeoMetadata(input);
 
     return NextResponse.json({ result });
   } catch (error) {
