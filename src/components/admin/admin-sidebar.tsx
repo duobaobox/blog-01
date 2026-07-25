@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Tags,
   Settings,
+  Sparkles,
   LogOut,
   Globe,
   BookOpen,
@@ -34,6 +35,7 @@ const navItems = [
   { label: "媒体", href: "/admin/media", icon: ImageIcon },
   { label: "分类", href: "/admin/categories", icon: FolderOpen },
   { label: "标签", href: "/admin/tags", icon: Tags },
+  { label: "AI", href: "/admin/ai", icon: Sparkles },
   { label: "设置", href: "/admin/settings", icon: Settings },
   { label: "账户", href: "/admin/account", icon: UserCog },
 ];
