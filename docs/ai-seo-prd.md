@@ -1,6 +1,6 @@
 # Blog-01 SEO 与 AI 编辑助手 PRD
 
-> 当前实现：SEO 基础建设、BYOK AI SEO 建议和 AI 选中文本改写首版已接入主分支，且已通过本地功能验证。
+> 当前实现：SEO 基础建设、BYOK AI SEO 建议、AI 选中文本改写和后台 BYOK 配置模块已接入主分支；AI 改写入口已放入 Tiptap 工具栏表格按钮后方。
 
 ## 1. 文档目的
 
@@ -29,8 +29,16 @@
 ### 2.3 AI 编辑辅助首版
 
 - 支持对正文中明确选中的文本进行润色、简化、扩写、缩写和语气调整。
+- AI 改写入口位于 Tiptap 工具栏中，紧跟在表格按钮之后。
 - 改写结果先在弹窗中预览，用户明确点击后才替换选中文本。
 - 改写只影响当前编辑器内容，仍通过现有保存流程持久化。
+
+### 2.4 后台 BYOK 配置
+
+- 在现有“站点设置”页面提供管理员专用 AI / BYOK 配置模块。
+- 支持选择服务商、Base URL、模型、启用状态和 API Key。
+- API Key 只保存服务端加密值，前端只显示是否已配置。
+- 内置国内常用 OpenAI-compatible 服务商，并允许自定义服务商。
 
 ## 3. 非目标
 
@@ -77,12 +85,22 @@
 ### 5.3 AI 选中文本改写流程
 
 1. 管理员在正文编辑器中选中一段文本。
-2. 点击“AI 改写选中文本”，选择润色、简化、扩写、缩写、专业化、口语化或自定义要求。
-3. 浏览器只发送选中文本和必要的改写参数到站内 AI API。
-4. 服务端校验 action、改写方式、输入长度和管理员身份。
-5. 前端展示改写结果预览。
-6. 管理员点击“替换选中文本”后，结果才写回编辑器。
-7. 用户点击保存后，复用现有文章保存流程。
+2. 点击工具栏中表格按钮后方的 AI 图标。
+3. 选择润色、简化、扩写、缩写、专业化、口语化或自定义要求。
+4. 浏览器只发送选中文本和必要的改写参数到站内 AI API。
+5. 服务端校验 action、改写方式、输入长度和管理员身份。
+6. 前端展示改写结果预览。
+7. 管理员点击“替换选中文本”后，结果才写回编辑器。
+8. 用户点击保存后，复用现有文章保存流程。
+
+### 5.4 BYOK 配置流程
+
+1. 管理员进入 `/admin/settings` 的“AI / BYOK 配置”模块。
+2. 从服务商预设中选择 OpenAI、DeepSeek、阿里云百炼、智谱 AI、Kimi、火山方舟、硅基流动或自定义兼容服务。
+3. 确认或修改 Base URL 和模型名称。
+4. 输入 API Key；已有 Key 留空即可保持不变。
+5. 保存后服务端使用 `BETTER_AUTH_SECRET` 加密保存 Key。
+6. AI 调用优先使用后台保存的配置；未保存后台配置时继续兼容环境变量配置。
 
 ## 6. SEO 功能需求
 
@@ -162,6 +180,20 @@ API Key 只在服务端读取，不能下发给浏览器、不能写入日志、
 - 服务端始终进行本地 JSON / Schema 校验。
 - 不假设第三方服务支持所有 OpenAI 专属能力。
 
+内置服务商预设：
+
+| 服务商 | 默认 Base URL | 默认模型示例 |
+| --- | --- | --- |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| DeepSeek | `https://api.deepseek.com` | `deepseek-v4-flash` |
+| 阿里云百炼 / 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
+| 智谱 AI / GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-5.2` |
+| 月之暗面 / Kimi | `https://api.moonshot.cn/v1` | `kimi-k3` |
+| 火山方舟 / 豆包 | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-seed-1-6-250615` |
+| 硅基流动 | `https://api.siliconflow.cn/v1` | `Qwen/Qwen3-8B` |
+
+预设只负责减少配置成本，模型名称和 Base URL 仍允许管理员修改，以适应供应商的模型更新和业务空间地址。
+
 ### 7.3 AI SEO 输出
 
 ```ts
@@ -200,7 +232,14 @@ type AiEditTextResult = {
 - 用户点击“替换选中文本”后才写回编辑器。
 - 选中文本替换后页面进入未保存状态。
 
-### 7.5 人工确认
+### 7.5 BYOK 安全
+
+- 后台配置页面只显示 API Key 是否已配置，不回显原始 Key。
+- API Key 使用服务端 `BETTER_AUTH_SECRET` 派生的 AES-256-GCM 密钥加密保存。
+- 浏览器请求只能访问站内 AI API，不直接访问供应商接口。
+- 服务商、Base URL 和模型可以修改，但协议首版固定为 Chat Completions。
+
+### 7.6 人工确认
 
 - AI 建议默认只在前端展示。
 - SEO 建议不覆盖已有字段，除非用户明确点击应用。
@@ -218,7 +257,7 @@ type AiEditTextResult = {
 - 对 401、403、429、5xx 返回安全的用户提示。
 - 不把上游原始错误、API Key 或完整请求内容返回给客户端。
 - 远程 AI 服务可能接收到文章正文，界面应明确提示这一点。
-- 第一阶段不实现浏览器端 BYOK；如未来增加后台配置，密钥必须加密存储并且永不回显。
+- 浏览器端不直接保存或调用 BYOK；后台配置的密钥必须加密存储并且永不回显。
 
 ## 9. 技术落点
 
@@ -233,13 +272,18 @@ type AiEditTextResult = {
 ### AI
 
 - `src/features/ai/lib/ai-config.ts`
+- `src/features/ai/lib/ai-secrets.ts`
+- `src/features/ai/lib/ai-provider-presets.ts`
+- `src/features/ai/lib/ai-settings-write.ts`
 - `src/features/ai/lib/ai-schema.ts`
 - `src/features/ai/services/ai.service.ts`
 - `src/features/ai/services/ai-edit.service.ts`
+- `src/features/ai/services/ai-settings.service.ts`
+- `src/features/ai/actions/ai-settings.actions.ts`
 - `src/app/api/ai/generate/route.ts`
 - `src/components/admin/post-form.tsx`
 - `src/components/admin/post-rich-editor.tsx`
-
+- `src/components/admin/settings-form.tsx`
 ## 10. 验收标准
 
 ### SEO
@@ -273,5 +317,4 @@ type AiEditTextResult = {
 - 内部链接建议。
 - AI 调用记录和成本统计。
 - Search Console 查询词辅助。
-- 后台 Provider 配置和加密密钥存储。
 - 多 Provider 的高级能力适配，例如 Responses API、流式输出和工具调用。
