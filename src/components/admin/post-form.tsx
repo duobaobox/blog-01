@@ -984,7 +984,7 @@ export function PostForm({
                       AI SEO 助手
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      使用服务端 BYOK 配置生成标题、摘要和 SEO metadata。结果只作为建议，不会自动发布。
+                      使用服务端 BYOK 配置生成标题、摘要和 SEO 元数据。结果只作为建议，不会自动发布；已有字段不会被覆盖。
                     </p>
                   </div>
                   <Button
@@ -1010,10 +1010,28 @@ export function PostForm({
                   <div className="mt-3 space-y-2 rounded-md border bg-background p-3 text-xs">
                     <p className="font-medium">建议预览</p>
                     {aiSeoSuggestion.titleCandidates.length > 0 ? (
-                      <p>
+                      <div className="space-y-1.5">
                         <span className="text-muted-foreground">标题候选：</span>
-                        {aiSeoSuggestion.titleCandidates.join(" / ")}
-                      </p>
+                        <div className="flex flex-col gap-1.5">
+                          {aiSeoSuggestion.titleCandidates.map((candidate) => (
+                            <div
+                              key={candidate}
+                              className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-2"
+                            >
+                              <span className="min-w-0 flex-1">{candidate}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="shrink-0"
+                                onClick={() => patchForm({ title: candidate })}
+                              >
+                                用此标题
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ) : null}
                     <p>
                       <span className="text-muted-foreground">摘要：</span>
@@ -1022,10 +1040,20 @@ export function PostForm({
                     <p>
                       <span className="text-muted-foreground">SEO 标题：</span>
                       {aiSeoSuggestion.seoTitle || "未生成"}
+                      {aiSeoSuggestion.seoTitle ? (
+                        <span className="ml-1 text-muted-foreground">
+                          （{aiSeoSuggestion.seoTitle.length} 字）
+                        </span>
+                      ) : null}
                     </p>
                     <p>
                       <span className="text-muted-foreground">SEO 描述：</span>
                       {aiSeoSuggestion.seoDescription || "未生成"}
+                      {aiSeoSuggestion.seoDescription ? (
+                        <span className="ml-1 text-muted-foreground">
+                          （{aiSeoSuggestion.seoDescription.length} 字）
+                        </span>
+                      ) : null}
                     </p>
                     {aiSeoSuggestion.issues.length > 0 ? (
                       <p>
@@ -1039,7 +1067,7 @@ export function PostForm({
                       className="mt-1"
                       onClick={applyAiSeoSuggestion}
                     >
-                      应用未填写字段
+                      应用空白字段
                     </Button>
                   </div>
                 ) : null}
