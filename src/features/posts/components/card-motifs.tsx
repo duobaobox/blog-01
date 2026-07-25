@@ -48,29 +48,37 @@ function Motif02(props: MotifProps) {
   );
 }
 
-/* ====== MOTIF-03: PCB 电路与信号总线 ====== */
+/* ====== MOTIF-03: 便签纸与图钉 ====== */
 function Motif03(props: MotifProps) {
   return (
     <svg viewBox="0 0 160 120" fill="none" stroke="currentColor" strokeWidth="0.8" {...props}>
-      <path d="M20 30 H70 L90 50 H150" strokeWidth="1" />
-      <path d="M20 40 H66 L86 60 H150" strokeWidth="0.7" />
-      <path d="M20 50 H62 L82 70 H150" strokeWidth="0.7" strokeDasharray="2 1" />
-      <path d="M20 60 H58 L78 80 H150" strokeWidth="0.7" />
-      <path d="M40 10 V110" strokeWidth="0.5" strokeDasharray="1 3" opacity="0.4" />
-      <path d="M120 10 V110" strokeWidth="0.5" strokeDasharray="1 3" opacity="0.4" />
-      <path d="M110 20 L110 40 L130 60 L130 100" strokeWidth="1.2" stroke="#3b82f6" opacity="0.9" />
-      <circle cx="70" cy="30" r="1.5" fill="none" strokeWidth="0.8" />
-      <circle cx="70" cy="30" r="0.5" fill="currentColor" />
-      <circle cx="90" cy="50" r="1.5" fill="none" strokeWidth="0.8" />
-      <circle cx="90" cy="50" r="0.5" fill="currentColor" />
-      <circle cx="110" cy="40" r="1.8" fill="currentColor" />
-      <circle cx="130" cy="60" r="1.8" fill="currentColor" />
-      <rect x="25" y="75" width="25" height="30" rx="1" strokeWidth="0.8" strokeDasharray="1 1" />
-      <text x="28" y="92" fontFamily="monospace" fontSize="3" fill="currentColor" opacity="0.8">
-        MCU_CORTEX
-      </text>
-      <text x="100" y="15" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.6">
-        BUS_CLK:400MHz
+      <path d="M18 20 H146 M18 40 H146 M18 60 H146 M18 80 H146 M18 100 H146" strokeDasharray="0.8 2" opacity="0.16" />
+      <path d="M24 14 V108 M48 14 V108 M72 14 V108 M96 14 V108 M120 14 V108 M144 14 V108" strokeDasharray="0.8 2" opacity="0.16" />
+
+      <path d="M24 48 H66 V82 H24 Z" opacity="0.6" />
+      <path d="M56 48 V58 H66" opacity="0.6" />
+      <path d="M32 58 H52 M32 65 H48 M32 72 H54" opacity="0.5" />
+
+      <path d="M54 24 H112 V72 H54 Z" strokeWidth="1" />
+      <path d="M100 24 V36 H112" />
+      <path d="M66 39 H96 M66 47 H92 M66 55 H98" opacity="0.68" />
+      <rect x="66" y="61" width="8" height="6" rx="1" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+      <path d="M78 64 H98" stroke="#3b82f6" opacity="0.9" />
+
+      <path d="M86 62 H132 V98 H86 Z" strokeWidth="1" />
+      <path d="M121 62 V73 H132" />
+      <rect x="96" y="74" width="7" height="7" rx="1" />
+      <path d="M97 77.5 L99.5 80 L103.5 75.5" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+      <path d="M108 77.5 H122" />
+      <rect x="96" y="86" width="7" height="7" rx="1" />
+      <path d="M108 89.5 H120" opacity="0.7" />
+
+      <circle cx="86" cy="30" r="5" fill="currentColor" opacity="0.85" />
+      <path d="M86 35 V44" strokeWidth="1" />
+      <path d="M82.5 44 H89.5 L86 50 Z" fill="currentColor" stroke="none" opacity="0.85" />
+
+      <text x="24" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.55">
+        NOTES / PINBOARD
       </text>
     </svg>
   );
@@ -100,89 +108,144 @@ function Motif04(props: MotifProps) {
   );
 }
 
-/* ====== MOTIF-05: 谐振曲线与频域波动 ====== */
+/* ====== MOTIF-05: 尺子与测量刻度 ====== */
 function Motif05(props: MotifProps) {
   return (
     <svg viewBox="0 0 160 120" fill="none" stroke="currentColor" strokeWidth="0.8" {...props}>
-      <path d="M 20 60 C 40 10, 70 110, 90 60 C 110 10, 140 110, 160 60" strokeWidth="1.2" stroke="#3b82f6" opacity="0.9" />
-      <path d="M 20 60 C 40 30, 70 90, 90 60 C 110 30, 140 90, 160 60" strokeWidth="0.6" strokeDasharray="2 1" opacity="0.6" />
-      <path d="M 20 60 C 40 50, 70 70, 90 60 C 110 50, 140 70, 160 60" strokeWidth="0.5" opacity="0.4" />
-      <line x1="20" y1="20" x2="160" y2="20" strokeDasharray="1 3" opacity="0.4" />
-      <line x1="20" y1="100" x2="160" y2="100" strokeDasharray="1 3" opacity="0.4" />
-      <line x1="90" y1="10" x2="90" y2="110" strokeDasharray="1 3" opacity="0.4" />
-      <circle cx="90" cy="60" r="1.8" fill="currentColor" />
-      <circle cx="55" cy="60" r="1.2" fill="currentColor" />
-      <circle cx="125" cy="60" r="1.2" fill="currentColor" />
-      <text x="100" y="28" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.8">
-        f(t) = sin(3ωt + φ)
-      </text>
-      <text x="25" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.5">
-        FFT_SPECTRUM_ANALYSIS
+      <path d="M18 18 H146 M18 38 H146 M18 58 H146 M18 78 H146 M18 98 H146" strokeDasharray="0.8 2" opacity="0.14" />
+      <path d="M24 12 V108 M48 12 V108 M72 12 V108 M96 12 V108 M120 12 V108 M144 12 V108" strokeDasharray="0.8 2" opacity="0.14" />
+
+      <path d="M92 20 L140 20 L140 68 Z" strokeWidth="1" />
+      <path d="M108 30 L130 30 L130 52 Z" opacity="0.55" />
+      <path d="M102 20 V27 M112 20 V25 M122 20 V27 M132 20 V25" opacity="0.65" />
+      <path d="M140 30 H133 M140 40 H135 M140 50 H133 M140 60 H135" opacity="0.65" />
+      <circle cx="126" cy="54" r="1.5" fill="currentColor" />
+
+      <g transform="rotate(-14 76 74)">
+        <rect x="20" y="62" width="112" height="22" rx="2.5" strokeWidth="1" />
+        <path d="M30 62 V78 M38 62 V72 M46 62 V76 M54 62 V72 M62 62 V78 M70 62 V72 M78 62 V76 M86 62 V72 M94 62 V78 M102 62 V72 M110 62 V76 M118 62 V72" opacity="0.82" />
+        <path d="M30 62 V82 M62 62 V82 M94 62 V82" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+        <text x="70" y="78" fontFamily="monospace" fontSize="4" fill="currentColor" opacity="0.65">
+          cm
+        </text>
+      </g>
+
+      <path d="M22 99 H126" opacity="0.6" />
+      <path d="M22 94 V104 M126 94 V104" opacity="0.6" />
+      <path d="M22 99 L29 95 M22 99 L29 103 M126 99 L119 95 M126 99 L119 103" opacity="0.55" />
+      <text x="67" y="95" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.55">
+        120 mm
       </text>
     </svg>
   );
 }
 
-/* ====== MOTIF-06: 等高线地貌与高程采样 ====== */
+/* ====== MOTIF-06: 日历与待办清单 ====== */
 function Motif06(props: MotifProps) {
   return (
     <svg viewBox="0 0 160 120" fill="none" stroke="currentColor" strokeWidth="0.8" {...props}>
-      <path d="M 20 20 Q 60 10, 90 40 T 150 30" strokeWidth="0.6" opacity="0.5" />
-      <path d="M 20 40 Q 70 25, 100 60 T 150 50" strokeWidth="0.7" opacity="0.7" />
-      <path d="M 20 60 Q 80 40, 110 80 T 150 70" strokeWidth="1" stroke="#3b82f6" opacity="0.9" />
-      <path d="M 20 80 Q 90 55, 120 100 T 150 90" strokeWidth="0.7" opacity="0.7" />
-      <path d="M 20 100 Q 100 70, 130 115 T 150 110" strokeWidth="0.5" strokeDasharray="2 1" opacity="0.5" />
-      <line x1="110" y1="10" x2="110" y2="110" strokeDasharray="0.8 2" opacity="0.5" />
-      <circle cx="110" cy="80" r="1.5" fill="currentColor" />
-      <circle cx="110" cy="60" r="1" fill="currentColor" />
-      <text x="115" y="82" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.85">
-        ELEV: 2480m
+      <path d="M18 18 H146 M18 38 H146 M18 58 H146 M18 78 H146 M18 98 H146" strokeDasharray="0.8 2" opacity="0.14" />
+      <path d="M24 12 V108 M48 12 V108 M72 12 V108 M96 12 V108 M120 12 V108 M144 12 V108" strokeDasharray="0.8 2" opacity="0.14" />
+
+      <rect x="68" y="22" width="62" height="62" rx="4" strokeWidth="1" />
+      <path d="M68 38 H130" />
+      <path d="M84 16 V30 M114 16 V30" strokeWidth="1" />
+      <circle cx="84" cy="18" r="2" fill="currentColor" />
+      <circle cx="114" cy="18" r="2" fill="currentColor" />
+
+      <path d="M78 47 H120 M78 57 H120 M78 67 H120 M78 77 H120" opacity="0.42" />
+      <path d="M88 42 V80 M98 42 V80 M108 42 V80" opacity="0.42" />
+      <circle cx="103" cy="62" r="5" stroke="#3b82f6" strokeWidth="1.1" opacity="0.9" />
+      <text x="100.4" y="63.4" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.8">
+        18
       </text>
-      <text x="30" y="25" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.5">
-        LAT:31.23° N
+
+      <rect x="22" y="38" width="38" height="50" rx="3" opacity="0.72" />
+      <path d="M30 48 H52" opacity="0.5" />
+      <rect x="30" y="56" width="6" height="6" rx="1" />
+      <path d="M31 59 L33.5 61.5 L37 57" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+      <path d="M41 59 H53" />
+      <rect x="30" y="68" width="6" height="6" rx="1" />
+      <path d="M41 71 H52" opacity="0.72" />
+      <rect x="30" y="80" width="6" height="6" rx="1" />
+      <path d="M41 83 H55" opacity="0.72" />
+
+      <path d="M68 94 H126 M68 102 H116" opacity="0.48" />
+      <text x="22" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.55">
+        CALENDAR / TODO
       </text>
     </svg>
   );
 }
 
-/* ====== MOTIF-07: 等轴测三维量子节点阵列 ====== */
+/* ====== MOTIF-07: 桌面小工具组合 ====== */
 function Motif07(props: MotifProps) {
   return (
     <svg viewBox="0 0 160 120" fill="none" stroke="currentColor" strokeWidth="0.8" {...props}>
-      <path d="M 80 20 L 120 40 L 80 60 L 40 40 Z" strokeWidth="1" />
-      <path d="M 40 40 L 40 80 L 80 100 L 80 60" strokeWidth="0.8" />
-      <path d="M 120 40 L 120 80 L 80 100" strokeWidth="0.8" />
-      <path d="M 120 40 L 150 55 L 120 70 L 90 55 Z" strokeWidth="0.5" strokeDasharray="1 1.5" opacity="0.6" />
-      <path d="M 80 60 L 120 80 L 80 100 L 40 80 Z" strokeWidth="1.2" stroke="#3b82f6" opacity="0.9" />
-      <line x1="80" y1="20" x2="80" y2="0" strokeDasharray="1 1" />
-      <circle cx="80" cy="20" r="1.5" fill="currentColor" />
-      <circle cx="120" cy="40" r="1.5" fill="currentColor" />
-      <circle cx="40" cy="40" r="1.5" fill="currentColor" />
-      <circle cx="80" cy="60" r="2" fill="currentColor" />
-      <text x="95" y="95" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.8">
-        ISO_GRID [3D_TENSOR]
+      <path d="M18 20 H146 M18 40 H146 M18 60 H146 M18 80 H146 M18 100 H146" strokeDasharray="0.8 2" opacity="0.14" />
+      <path d="M24 14 V108 M48 14 V108 M72 14 V108 M96 14 V108 M120 14 V108 M144 14 V108" strokeDasharray="0.8 2" opacity="0.14" />
+
+      <rect x="22" y="42" width="42" height="58" rx="4" strokeWidth="1" />
+      <rect x="29" y="50" width="28" height="10" rx="1.5" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+      <path d="M30 68 H56 M30 78 H56 M30 88 H56" opacity="0.45" />
+      <path d="M38 64 V94 M48 64 V94" opacity="0.45" />
+      <circle cx="34" cy="73" r="1.1" fill="currentColor" />
+      <circle cx="43" cy="73" r="1.1" fill="currentColor" />
+      <circle cx="53" cy="73" r="1.1" fill="currentColor" />
+      <circle cx="34" cy="83" r="1.1" fill="currentColor" />
+      <circle cx="43" cy="83" r="1.1" fill="currentColor" />
+      <circle cx="53" cy="83" r="1.1" fill="currentColor" />
+      <circle cx="34" cy="93" r="1.1" fill="currentColor" />
+      <circle cx="43" cy="93" r="1.1" fill="currentColor" />
+      <circle cx="53" cy="93" r="1.1" fill="currentColor" />
+
+      <circle cx="108" cy="40" r="18" strokeWidth="1" />
+      <path d="M102 18 H114 M108 18 V22" />
+      <path d="M108 40 V29" stroke="#3b82f6" strokeWidth="1.1" opacity="0.9" />
+      <path d="M108 40 L117 45" strokeWidth="1" />
+      <circle cx="108" cy="40" r="1.5" fill="currentColor" />
+      <path d="M108 25 V28 M123 40 H120 M108 55 V52 M93 40 H96" opacity="0.55" />
+
+      <rect x="78" y="72" width="58" height="28" rx="4" strokeWidth="1" />
+      <rect x="88" y="80" width="16" height="8" rx="4" />
+      <circle cx="94" cy="84" r="2.6" fill="currentColor" />
+      <rect x="110" y="80" width="16" height="8" rx="4" stroke="#3b82f6" opacity="0.9" />
+      <circle cx="120" cy="84" r="2.6" fill="#3b82f6" stroke="none" opacity="0.9" />
+      <path d="M88 94 H126" opacity="0.45" />
+
+      <text x="83" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.55">
+        DESK TOOLS
       </text>
     </svg>
   );
 }
 
-/* ====== MOTIF-08: 精细贝塞尔曲率控制场 ====== */
+/* ====== MOTIF-08: 笔记本、书签与回形针 ====== */
 function Motif08(props: MotifProps) {
   return (
     <svg viewBox="0 0 160 120" fill="none" stroke="currentColor" strokeWidth="0.8" {...props}>
-      <path d="M 20 100 C 50 10, 110 110, 140 20" strokeWidth="1.2" stroke="#3b82f6" opacity="0.9" />
-      <line x1="20" y1="100" x2="50" y2="10" strokeWidth="0.6" strokeDasharray="1.5 1.5" />
-      <line x1="140" y1="20" x2="110" y2="110" strokeWidth="0.6" strokeDasharray="1.5 1.5" />
-      <circle cx="20" cy="100" r="1.8" fill="currentColor" />
-      <circle cx="140" cy="20" r="1.8" fill="currentColor" />
-      <rect x="48" y="8" width="4" height="4" strokeWidth="0.6" fill="white" />
-      <rect x="108" y="108" width="4" height="4" strokeWidth="0.6" fill="white" />
-      <path d="M 30 85 L 38 90 M 50 58 L 60 62 M 80 48 L 90 52 M 110 52 L 120 50" strokeWidth="0.5" opacity="0.6" />
-      <text x="30" y="20" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.85">
-        P1(50, 10) P2(110, 110)
-      </text>
-      <text x="85" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.5">
-        CURVATURE_CONTINUITY_C2
+      <path d="M18 18 H146 M18 38 H146 M18 58 H146 M18 78 H146 M18 98 H146" strokeDasharray="0.8 2" opacity="0.14" />
+      <path d="M24 12 V108 M48 12 V108 M72 12 V108 M96 12 V108 M120 12 V108 M144 12 V108" strokeDasharray="0.8 2" opacity="0.14" />
+
+      <rect x="26" y="20" width="66" height="78" rx="4" strokeWidth="1" />
+      <path d="M40 20 V98" opacity="0.55" />
+      <path d="M47 35 H82 M47 45 H82 M47 55 H82 M47 65 H78 M47 75 H80 M47 85 H72" opacity="0.62" />
+      <path d="M67 20 V43 L61 38 L55 43 V20" stroke="#3b82f6" strokeWidth="1.1" opacity="0.9" />
+      <path d="M33 30 H38 M33 42 H38 M33 54 H38 M33 66 H38 M33 78 H38 M33 90 H38" opacity="0.55" />
+
+      <path d="M107 29 C107 21, 120 21, 120 29 V59 C120 68, 106 68, 106 59 V36 C106 29, 115 29, 115 36 V57" strokeWidth="1" opacity="0.8" />
+
+      <g transform="rotate(-26 118 84)">
+        <path d="M98 79 H132 L140 84 L132 89 H98 Z" strokeWidth="1" />
+        <path d="M132 79 V89" opacity="0.55" />
+        <path d="M103 79 V89" opacity="0.55" />
+        <path d="M98 84 H132" stroke="#3b82f6" strokeWidth="1" opacity="0.9" />
+        <path d="M140 84 L134.5 82 V86 Z" fill="currentColor" stroke="none" opacity="0.8" />
+      </g>
+
+      <path d="M101 101 H138" opacity="0.45" />
+      <text x="20" y="112" fontFamily="monospace" fontSize="3.5" fill="currentColor" opacity="0.55">
+        NOTEBOOK / CLIP
       </text>
     </svg>
   );
