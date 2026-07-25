@@ -136,7 +136,7 @@ async function requestEdit(input: AiGenerateInput, useJsonMode: boolean) {
 export async function generateTextEdit(
   input: AiGenerateInput,
 ): Promise<AiEditTextResult> {
-  const config = getAiConfig();
+  const config = await getAiConfig();
 
   if (!config.enabled) {
     throw new ConfigurationError(
