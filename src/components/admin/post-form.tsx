@@ -10,7 +10,7 @@ import {
 } from "react";
 import Image from "next/image";
 import readingTime from "reading-time";
-import { HelpCircle, SlidersHorizontal } from "lucide-react";
+import { HelpCircle, SlidersHorizontal, Sparkles } from "lucide-react";
 import {
   hasMeaningfulContent,
   parseStoredContentJson,
@@ -142,6 +142,14 @@ type SaveOptions = {
   intent?: SaveIntent;
 };
 
+type AiSeoSuggestion = {
+  titleCandidates: string[];
+  excerpt: string;
+  seoTitle: string;
+  seoDescription: string;
+  issues: string[];
+};
+
 const POST_STATUS_BADGE_CLASSES = {
   internal:
     "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300",
@@ -264,6 +272,9 @@ export function PostForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
+  const [aiSeoLoading, setAiSeoLoading] = useState(false);
+  const [aiSeoSuggestion, setAiSeoSuggestion] = useState<AiSeoSuggestion | null>(null);
+  const [aiSeoError, setAiSeoError] = useState<string | null>(null);
   const [titleEditing, setTitleEditing] = useState(false);
   const {
     open: leaveConfirmOpen,
@@ -357,6 +368,66 @@ export function PostForm({
         formRef.current = updated;
       }
       return updated;
+    });
+  }
+
+  async function handleGenerateAiSeo() {
+    if (!form.contentText.trim()) {
+      setAiSeoError("请先写入一些正文内容，再生成 SEO 建议。");
+      return;
+    }
+
+    setAiSeoLoading(true);
+    setAiSeoError(null);
+
+    try {
+      const response = await fetch("/api/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "seo-metadata",
+          title: form.title,
+          contentText: form.contentText,
+          excerpt: form.excerpt,
+          seoTitle: form.seoTitle,
+          seoDescription: form.seoDescription,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { result?: AiSeoSuggestion; error?: string }
+        | null;
+
+      if (!response.ok || !payload?.result) {
+        throw new Error(payload?.error || "AI 建议生成失败");
+      }
+
+      setAiSeoSuggestion(payload.result);
+    } catch (error) {
+      setAiSeoError(
+        error instanceof Error && error.message
+          ? error.message
+          : "AI 建议生成失败，请稍后重试。",
+      );
+    } finally {
+      setAiSeoLoading(false);
+    }
+  }
+
+  function applyAiSeoSuggestion() {
+    if (!aiSeoSuggestion) return;
+
+    patchForm({
+      title:
+        form.title.trim() ||
+        aiSeoSuggestion.titleCandidates[0] ||
+        form.title,
+      excerpt: form.excerpt.trim() ? form.excerpt : aiSeoSuggestion.excerpt,
+      seoTitle: form.seoTitle.trim()
+        ? form.seoTitle
+        : aiSeoSuggestion.seoTitle,
+      seoDescription: form.seoDescription.trim()
+        ? form.seoDescription
+        : aiSeoSuggestion.seoDescription,
     });
   }
 
@@ -905,6 +976,75 @@ export function PostForm({
               className="mt-5 flex flex-col gap-4"
               suppressHydrationWarning
             >
+              <div className="rounded-lg border bg-muted/20 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="flex items-center gap-1.5 text-sm font-medium">
+                      <Sparkles className="size-4 text-primary" />
+                      AI SEO 助手
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      使用服务端 BYOK 配置生成标题、摘要和 SEO metadata。结果只作为建议，不会自动发布。
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    disabled={aiSeoLoading || !form.contentText.trim()}
+                    onClick={() => void handleGenerateAiSeo()}
+                  >
+                    <Sparkles className="size-3.5" />
+                    {aiSeoLoading ? "生成中..." : "生成建议"}
+                  </Button>
+                </div>
+
+                {aiSeoError ? (
+                  <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs text-destructive">
+                    {aiSeoError}
+                  </p>
+                ) : null}
+
+                {aiSeoSuggestion ? (
+                  <div className="mt-3 space-y-2 rounded-md border bg-background p-3 text-xs">
+                    <p className="font-medium">建议预览</p>
+                    {aiSeoSuggestion.titleCandidates.length > 0 ? (
+                      <p>
+                        <span className="text-muted-foreground">标题候选：</span>
+                        {aiSeoSuggestion.titleCandidates.join(" / ")}
+                      </p>
+                    ) : null}
+                    <p>
+                      <span className="text-muted-foreground">摘要：</span>
+                      {aiSeoSuggestion.excerpt || "未生成"}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">SEO 标题：</span>
+                      {aiSeoSuggestion.seoTitle || "未生成"}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">SEO 描述：</span>
+                      {aiSeoSuggestion.seoDescription || "未生成"}
+                    </p>
+                    {aiSeoSuggestion.issues.length > 0 ? (
+                      <p>
+                        <span className="text-muted-foreground">检查提示：</span>
+                        {aiSeoSuggestion.issues.join("；")}
+                      </p>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="mt-1"
+                      onClick={applyAiSeoSuggestion}
+                    >
+                      应用未填写字段
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+
               <TooltipProvider>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-1.5">
