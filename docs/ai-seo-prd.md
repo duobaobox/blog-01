@@ -97,11 +97,11 @@
 
 1. 管理员进入 `/admin/settings`，页面通过“站点设置”和“AI 配置”两个 Tab 分离基础设置与 AI 配置。
 2. 管理员在“AI 配置”Tab 中进入“AI / BYOK 配置”模块。
-2. 从服务商预设中选择 OpenAI、DeepSeek、阿里云百炼、智谱 AI、Kimi、火山方舟、硅基流动或自定义兼容服务。
-3. 确认或修改 Base URL 和模型名称。
-4. 输入 API Key；已有 Key 留空即可保持不变。
-5. 保存后服务端使用 `BETTER_AUTH_SECRET` 加密保存 Key。
-6. AI 调用优先使用后台保存的配置；未保存后台配置时继续兼容环境变量配置。
+3. 从服务商预设中选择 OpenAI、DeepSeek、阿里云百炼、智谱 AI、Kimi、火山方舟、硅基流动或自定义兼容服务。
+4. 确认或修改 Base URL 和模型名称。
+5. 输入 API Key；已有 Key 留空即可保持不变。
+6. 保存后服务端使用 `BETTER_AUTH_SECRET` 加密保存 Key。
+7. AI 调用优先使用后台保存的配置；未保存后台配置时继续兼容环境变量配置。
 
 ## 6. SEO 功能需求
 
