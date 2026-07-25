@@ -9,7 +9,7 @@ export type AiProviderPreset = {
 
 export const AI_PROVIDER_PRESETS: AiProviderPreset[] = [
   {
-    id: "openai",
+    id: "openai-compatible",
     name: "OpenAI",
     baseUrl: "https://api.openai.com/v1",
     defaultModel: "gpt-4o-mini",
