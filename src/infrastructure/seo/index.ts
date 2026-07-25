@@ -8,6 +8,8 @@ interface SeoProps {
   url?: string;
   type?: "website" | "article";
   publishedTime?: string;
+  modifiedTime?: string;
+  imageAlt?: string;
 }
 
 function resolveAbsoluteUrl(baseUrl: string, value?: string) {
@@ -20,6 +22,19 @@ function resolveAbsoluteUrl(baseUrl: string, value?: string) {
   }
 }
 
+function resolveCanonicalUrl(baseUrl: string, value?: string) {
+  const resolved = resolveAbsoluteUrl(baseUrl, value);
+  if (!resolved) return undefined;
+
+  try {
+    const base = new URL(baseUrl);
+    const candidate = new URL(resolved);
+    return candidate.origin === base.origin ? candidate.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generateSeo({
   title,
   description,
@@ -27,12 +42,14 @@ export async function generateSeo({
   url,
   type = "website",
   publishedTime,
+  modifiedTime,
+  imageAlt,
 }: SeoProps = {}): Promise<Metadata> {
   const site = await getResolvedSiteConfig();
   const pageTitle = title?.trim() || undefined;
   const socialTitle = pageTitle ? `${pageTitle} | ${site.name}` : site.name;
   const siteDescription = description || site.description;
-  const siteUrl = resolveAbsoluteUrl(site.url, url) ?? site.url;
+  const siteUrl = resolveCanonicalUrl(site.url, url) ?? site.url;
   const imageUrl = resolveAbsoluteUrl(site.url, image);
 
   return {
@@ -44,8 +61,11 @@ export async function generateSeo({
       url: siteUrl,
       siteName: site.name,
       type,
-      ...(imageUrl && { images: [{ url: imageUrl }] }),
+      ...(imageUrl && {
+        images: [{ url: imageUrl, ...(imageAlt ? { alt: imageAlt } : {}) }],
+      }),
       ...(publishedTime && { publishedTime }),
+      ...(modifiedTime && { modifiedTime }),
     },
     twitter: {
       card: "summary_large_image",
