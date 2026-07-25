@@ -126,7 +126,10 @@ export function PostListCard({ post, showCategory = true, motifIndex }: PostList
               "linear-gradient(to top left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.72) 36%, rgba(0,0,0,0) 80%)",
           }}
         >
-          <MotifComponent className="absolute right-0 bottom-0 h-full w-full text-primary/12 transition-all duration-500 ease-out group-hover:scale-[1.04] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5" />
+          <MotifComponent
+            strokeWidth={0.95}
+            className="absolute right-0 bottom-0 h-full w-full text-primary/[0.16] transition-all duration-500 ease-out group-hover:scale-[1.04] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
+          />
         </div>
       </Card>
     </Link>
