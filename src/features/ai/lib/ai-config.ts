@@ -1,5 +1,7 @@
 import "server-only";
 
+import { decryptAiApiKey } from "@/features/ai/lib/ai-secrets";
+import { findSiteSettings } from "@/features/settings/repositories/settings.repository";
 import { ConfigurationError } from "@/shared/lib/app-error";
 
 export type AiProtocol = "chat-completions";
@@ -19,15 +21,42 @@ function readPositiveInteger(value: string | undefined, fallback: number) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-export function getAiConfig(): AiConfig {
-  const enabled = process.env.AI_ENABLED === "true";
-  const baseUrl = (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(
-    /\/+$/,
-    "",
-  );
-  const apiKey = process.env.AI_API_KEY?.trim() ?? "";
-  const model = process.env.AI_MODEL?.trim() ?? "";
-  const protocol = "chat-completions" as const;
+function readEnvironmentConfig() {
+  return {
+    enabled: process.env.AI_ENABLED === "true",
+    baseUrl: (
+      process.env.AI_BASE_URL || "https://api.openai.com/v1"
+    ).replace(/\/+$/, ""),
+    apiKey: process.env.AI_API_KEY?.trim() ?? "",
+    model: process.env.AI_MODEL?.trim() ?? "",
+    protocol: process.env.AI_PROTOCOL || "chat-completions",
+  };
+}
+
+export async function getAiConfig(): Promise<AiConfig> {
+  const settings = await findSiteSettings();
+  const environment = readEnvironmentConfig();
+  const useStoredConfig = Boolean(settings?.aiConfigured);
+
+  const enabled = useStoredConfig ? settings?.aiEnabled === true : environment.enabled;
+  const baseUrl = (
+    useStoredConfig ? settings?.aiBaseUrl || environment.baseUrl : environment.baseUrl
+  ).replace(/\/+$/, "");
+  const apiKey = useStoredConfig
+    ? decryptAiApiKey(settings?.aiApiKeyEncrypted)
+    : environment.apiKey;
+  const model = useStoredConfig
+    ? settings?.aiModel?.trim() || ""
+    : environment.model;
+  const protocolValue = useStoredConfig
+    ? settings?.aiProtocol || "chat-completions"
+    : environment.protocol;
+
+  if (protocolValue !== "chat-completions") {
+    throw new ConfigurationError(
+      "当前只支持 OpenAI-compatible Chat Completions 协议。",
+    );
+  }
 
   if (!enabled) {
     return {
@@ -35,7 +64,7 @@ export function getAiConfig(): AiConfig {
       baseUrl,
       apiKey,
       model,
-      protocol,
+      protocol: "chat-completions",
       timeoutMs: readPositiveInteger(process.env.AI_TIMEOUT_MS, 30_000),
       maxInputChars: readPositiveInteger(
         process.env.AI_MAX_INPUT_CHARS,
@@ -46,13 +75,17 @@ export function getAiConfig(): AiConfig {
 
   if (!apiKey) {
     throw new ConfigurationError(
-      "AI 已启用，但缺少 AI_API_KEY。请在服务端环境变量中配置 BYOK 密钥。",
+      useStoredConfig
+        ? "AI 已启用，但还没有配置 API Key。请到后台设置中完成 BYOK 配置。"
+        : "AI 已启用，但缺少 AI_API_KEY。请在服务端环境变量中配置 BYOK 密钥。",
     );
   }
 
   if (!model) {
     throw new ConfigurationError(
-      "AI 已启用，但缺少 AI_MODEL。请在服务端环境变量中配置模型名称。",
+      useStoredConfig
+        ? "AI 已启用，但还没有配置模型名称。请到后台设置中完成 BYOK 配置。"
+        : "AI 已启用，但缺少 AI_MODEL。请在服务端环境变量中配置模型名称。",
     );
   }
 
@@ -61,7 +94,7 @@ export function getAiConfig(): AiConfig {
     baseUrl,
     apiKey,
     model,
-    protocol,
+    protocol: "chat-completions",
     timeoutMs: readPositiveInteger(process.env.AI_TIMEOUT_MS, 30_000),
     maxInputChars: readPositiveInteger(
       process.env.AI_MAX_INPUT_CHARS,
