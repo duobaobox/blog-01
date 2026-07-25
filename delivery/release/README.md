@@ -91,7 +91,19 @@ npm run db:check:migration-coverage
 - `BETTER_AUTH_TRUSTED_ORIGINS`
 - `SITE_URL`
 
-## 4. 访问
+## 4. 媒体库（图片、PDF、ZIP）
+
+发布版默认使用本地媒体存储：
+
+- `.env.release` 保持 `STORAGE_PROVIDER=local`；
+- Docker 会把媒体持久化到 `media_data` 卷，并挂载到应用内固定路径 `/app/public/media`；
+- 后台上传后的地址为 `https://你的域名/media/文件名`，文章会保存并引用这个地址；
+- 上传、插入图片、复制 PDF/ZIP 链接都从后台媒体库操作，**不要手动把文件拷进容器**，否则后台没有对应的媒体记录；
+- 更新应用时使用 `docker compose ... up --wait`，不要执行 `docker compose ... down -v`，后者会删除数据库和媒体卷。
+
+首次部署后，请登录 `/admin/login`，在后台「媒体」上传一张小图片；打开它的 `/media/...` 地址，并在一篇文章中插入该图片后发布，确认图片能在前台显示。媒体文件和数据库必须一起备份，见下面的备份命令。
+
+## 5. 访问
 
 - 前台：`http://你的域名或IP:端口`
 - 后台：`http://你的域名或IP:端口/admin/login`
@@ -105,7 +117,7 @@ npm run db:check:migration-coverage
 登录时尽量始终使用同一个访问地址，比如全程都用 `http://47.100.193.93:3000`，不要先用 IP 再切 localhost 或域名，这样可以避免 `Invalid origin`。
 
 
-## 5. 备份与恢复
+## 6. 备份与恢复
 
 每天备份数据库和媒体：
 

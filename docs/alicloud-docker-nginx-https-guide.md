@@ -156,7 +156,9 @@ https://your-domain.com
 当前自托管模式下，至少备份：
 
 - `postgres_data`
-- 项目目录下的 `./media`
+- 媒体持久化存储：源码部署是项目目录下的 `./media`；发布版交付是 Docker 的 `media_data` 卷
+
+仓库/发布包提供的 `backup-docker.sh` 会从应用容器的 `/app/public/media` 打包媒体，因此可同时兼容以上两种挂载方式。不要用 `docker compose down -v` 更新应用，否则会删除数据库和媒体卷。
 
 ## 7. 常见排障
 

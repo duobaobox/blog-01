@@ -20,6 +20,8 @@ services:
       - BETTER_AUTH_TRUSTED_ORIGINS=${BETTER_AUTH_TRUSTED_ORIGINS:-}
       - SITE_URL=${SITE_URL:?SITE_URL is required}
       - ADMIN_SETUP_TOKEN=${ADMIN_SETUP_TOKEN:?ADMIN_SETUP_TOKEN is required}
+      # 默认使用 Docker 持久化卷中的本地媒体库；不要把上传文件留在容器可写层。
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
     depends_on:
       db:
         condition: service_healthy
