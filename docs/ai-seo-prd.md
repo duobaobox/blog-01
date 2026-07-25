@@ -95,7 +95,8 @@
 
 ### 5.4 BYOK 配置流程
 
-1. 管理员进入 `/admin/settings` 的“AI / BYOK 配置”模块。
+1. 管理员进入 `/admin/settings`，页面通过“站点设置”和“AI 配置”两个 Tab 分离基础设置与 AI 配置。
+2. 管理员在“AI 配置”Tab 中进入“AI / BYOK 配置”模块。
 2. 从服务商预设中选择 OpenAI、DeepSeek、阿里云百炼、智谱 AI、Kimi、火山方舟、硅基流动或自定义兼容服务。
 3. 确认或修改 Base URL 和模型名称。
 4. 输入 API Key；已有 Key 留空即可保持不变。
