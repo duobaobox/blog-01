@@ -73,6 +73,9 @@ export default async function PostPage({
   const originalCoverImage = coverImage?.variants?.original ?? coverImage;
   const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
   const articleUrl = new URL(`/blog/${post.slug}`, site.url).toString();
+  const articleImageUrl = coverImageUrl
+    ? new URL(coverImageUrl, site.url).toString()
+    : undefined;
 
   return (
     <>
@@ -85,7 +88,7 @@ export default async function PostPage({
           post.excerpt ||
           post.contentText.slice(0, 160)
         }
-        image={coverImageUrl ?? undefined}
+        image={articleImageUrl}
         authorName={post.author.name}
         publishedAt={post.publishedAt?.toISOString()}
         modifiedAt={post.updatedAt?.toISOString()}
