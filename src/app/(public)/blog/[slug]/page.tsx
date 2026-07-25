@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PostArticleView } from "@/components/blog/post-article-view";
+import { ArticleJsonLd } from "@/components/blog/article-json-ld";
 import { parseToc } from "@/features/editor/content-types";
 import {
   getPostDisplayDate,
@@ -12,6 +13,7 @@ import {
   getPublishedSlugs,
 } from "@/features/posts/queries/post.queries";
 import { generateSeo } from "@/infrastructure/seo";
+import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 
 export const revalidate = 300;
 
@@ -48,6 +50,8 @@ export async function generateMetadata({
     url: post.canonicalUrl || `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.publishedAt?.toISOString(),
+    modifiedTime: post.updatedAt?.toISOString(),
+    imageAlt: post.coverImage?.alt ?? post.title,
   });
 }
 
@@ -57,7 +61,10 @@ export default async function PostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const [post, site] = await Promise.all([
+    getPostBySlug(slug),
+    getResolvedSiteConfig(),
+  ]);
 
   if (!post || !isPublishedPost(post)) notFound();
 
@@ -65,9 +72,25 @@ export default async function PostPage({
   const coverImage = post.coverImage;
   const originalCoverImage = coverImage?.variants?.original ?? coverImage;
   const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
+  const articleUrl = new URL(`/blog/${post.slug}`, site.url).toString();
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
+    <>
+      <ArticleJsonLd
+        url={articleUrl}
+        siteName={site.name}
+        title={post.title}
+        description={
+          post.seoDescription ||
+          post.excerpt ||
+          post.contentText.slice(0, 160)
+        }
+        image={coverImageUrl ?? undefined}
+        authorName={post.author.name}
+        publishedAt={post.publishedAt?.toISOString()}
+        modifiedAt={post.updatedAt?.toISOString()}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -91,6 +114,7 @@ export default async function PostPage({
         contentHtml={post.contentHtml}
         toc={parseToc(post.contentToc)}
       />
-    </div>
+      </div>
+    </>
   );
 }
