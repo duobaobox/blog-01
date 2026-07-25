@@ -22,7 +22,7 @@ export type AdminShellStatus = {
 };
 
 export type AdminSettingsPageData = {
-  settings: Awaited<ReturnType<typeof settingsRepo.findSiteSettings>>;
+  settings: Awaited<ReturnType<typeof settingsRepo.findSiteSettingsForAdmin>>;
   showSetupNotice: boolean;
 };
 
@@ -49,6 +49,19 @@ const getSiteSettingsCached = unstable_cache(
   },
 );
 
+const getAdminSiteSettingsCached = unstable_cache(
+  () => settingsRepo.findSiteSettingsForAdmin(),
+  ["admin-site-settings-safe"],
+  {
+    revalidate: ADMIN_CACHE_REVALIDATE_SECONDS,
+    tags: [ADMIN_CACHE_TAGS.settings],
+  },
+);
+
+export async function getAdminSiteSettings() {
+  return getAdminSiteSettingsCached();
+}
+
 export async function getSiteSetupStatus() {
   return getSiteSetupStatusCached();
 }
@@ -60,7 +73,7 @@ type AdminSettingsPageDataDependencies = {
 
 export function createAdminSettingsPageDataQuery(
   dependencies: AdminSettingsPageDataDependencies = {
-    getSiteSettings,
+    getSiteSettings: getAdminSiteSettings,
     getSiteSetupStatus,
   },
 ) {
