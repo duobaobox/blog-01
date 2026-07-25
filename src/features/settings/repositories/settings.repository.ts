@@ -10,6 +10,43 @@ export async function findSiteSettings() {
   });
 }
 
+
+export async function findSiteSettingsForAdmin() {
+  const settings = await db.siteSetting.findUnique({
+    where: {
+      scopeKey: SITE_SETTINGS_SINGLETON_KEY,
+    },
+    select: {
+      siteTitle: true,
+      siteSubtitle: true,
+      siteDescription: true,
+      siteUrl: true,
+      logoUrl: true,
+      avatarUrl: true,
+      githubUrl: true,
+      xUrl: true,
+      email: true,
+      footerText: true,
+      aiConfigured: true,
+      aiEnabled: true,
+      aiProvider: true,
+      aiBaseUrl: true,
+      aiModel: true,
+      aiProtocol: true,
+      aiApiKeyEncrypted: true,
+    },
+  });
+
+  if (!settings) return null;
+
+  const { aiApiKeyEncrypted, ...safeSettings } = settings;
+
+  return {
+    ...safeSettings,
+    aiApiKeyConfigured: Boolean(aiApiKeyEncrypted),
+  };
+}
+
 export async function findSiteSettingsSummary() {
   return db.siteSetting.findUnique({
     where: {
@@ -42,6 +79,24 @@ export async function upsertSiteSettings(data: {
       scopeKey: SITE_SETTINGS_SINGLETON_KEY,
       ...data,
     },
+  });
+}
+
+
+export async function updateAiSettings(data: {
+  aiConfigured: boolean;
+  aiEnabled: boolean;
+  aiProvider: string;
+  aiBaseUrl: string;
+  aiModel: string | null;
+  aiApiKeyEncrypted?: string | null;
+  aiProtocol: string;
+}) {
+  return db.siteSetting.update({
+    where: {
+      scopeKey: SITE_SETTINGS_SINGLETON_KEY,
+    },
+    data,
   });
 }
 
