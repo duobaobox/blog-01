@@ -100,7 +100,7 @@
 3. 从服务商预设中选择 OpenAI、DeepSeek、阿里云百炼、智谱 AI、Kimi、火山方舟、硅基流动或自定义兼容服务。
 4. 确认或修改 Base URL 和模型名称。
 5. 输入 API Key；已有 Key 留空即可保持不变。
-6. 保存后服务端使用 `BETTER_AUTH_SECRET` 加密保存 Key。
+6. 保存后服务端使用 `BETTER_AUTH_SECRET` 加密保存 Key，AI 配置写入独立的 `aiSetting` 记录，不依赖站点基本设置。
 7. AI 调用优先使用后台保存的配置；未保存后台配置时继续兼容环境变量配置。
 
 ## 6. SEO 功能需求
@@ -236,6 +236,7 @@ type AiEditTextResult = {
 ### 7.5 BYOK 安全
 
 - 后台配置页面只显示 API Key 是否已配置，不回显原始 Key。
+- AI 配置与站点基本设置分离，站点设置未完成时也可以独立保存 AI 配置。
 - API Key 使用服务端 `BETTER_AUTH_SECRET` 派生的 AES-256-GCM 密钥加密保存。
 - 浏览器请求只能访问站内 AI API，不直接访问供应商接口。
 - 服务商、Base URL 和模型可以修改，但协议首版固定为 Chat Completions。
@@ -279,6 +280,8 @@ type AiEditTextResult = {
 - `src/features/ai/lib/ai-schema.ts`
 - `src/features/ai/services/ai.service.ts`
 - `src/features/ai/services/ai-edit.service.ts`
+- `src/features/ai/repositories/ai-settings.repository.ts`
+- `src/features/ai/queries/ai-settings.queries.ts`
 - `src/features/ai/services/ai-settings.service.ts`
 - `src/features/ai/actions/ai-settings.actions.ts`
 - `src/app/api/ai/generate/route.ts`
