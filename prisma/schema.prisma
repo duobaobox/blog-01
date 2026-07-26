@@ -192,7 +192,6 @@ model aiSetting {
   id                String   @id @default(uuid())
   scopeKey          String   @unique @default("default")
   aiConfigured      Boolean  @default(false)
-  aiEnabled         Boolean  @default(false)
   aiProvider        String   @default("openai-compatible")
   aiBaseUrl         String?  @db.Text
   aiModel           String?
