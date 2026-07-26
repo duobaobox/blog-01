@@ -49,6 +49,14 @@ export function isHttpUrl(value: string): boolean {
   }
 }
 
+export function isSiteResourceUrl(value: string): boolean {
+  if (isHttpUrl(value)) {
+    return true;
+  }
+
+  return value.startsWith("/") && !value.startsWith("//") && !value.includes("\\");
+}
+
 export function validateOptionalHttpUrl(
   value: string | null | undefined,
   message: string,
@@ -59,6 +67,20 @@ export function validateOptionalHttpUrl(
   }
 
   if (!isHttpUrl(normalized)) {
+    throw new ValidationError(message);
+  }
+}
+
+export function validateOptionalSiteResourceUrl(
+  value: string | null | undefined,
+  message: string,
+) {
+  const normalized = value?.trim() ?? "";
+  if (!normalized) {
+    return;
+  }
+
+  if (!isSiteResourceUrl(normalized)) {
     throw new ValidationError(message);
   }
 }
