@@ -134,6 +134,7 @@
   }
   html {
     @apply font-sans;
+    scroll-padding-top: 5.5rem;
   }
 }
 
@@ -180,9 +181,16 @@
     color: var(--foreground);
   }
 
+
+  .public-main :where([id]) {
+    scroll-margin-top: 5.5rem;
+  }
+
   .public-header__shell {
     position: relative;
     z-index: 1;
+    isolation: isolate;
+    overflow: hidden;
     border: 1px solid transparent;
     transition:
       width 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -202,9 +210,16 @@
     padding-inline: 14px !important;
     border-color: rgb(15 23 42 / 0.1) !important;
     border-radius: 9999px !important;
-    background: rgb(255 255 255 / 0.74) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(1.5) !important;
-    backdrop-filter: blur(18px) saturate(1.5) !important;
+    background:
+      linear-gradient(
+        115deg,
+        rgb(255 255 255 / 0.9) 0%,
+        rgb(255 255 255 / 0.64) 42%,
+        rgb(238 242 255 / 0.58) 72%,
+        rgb(255 247 237 / 0.7) 100%
+      ) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) contrast(1.06) !important;
+    backdrop-filter: blur(24px) saturate(1.8) contrast(1.06) !important;
     box-shadow:
       inset 0 0 1px 1px rgb(255 255 255 / 0.86),
       0 8px 24px rgb(15 23 42 / 0.12),
@@ -212,12 +227,84 @@
   }
 
   .dark .public-header--scrolled .public-header__shell {
-    border-color: rgb(148 163 184 / 0.18);
-    background: rgb(15 23 42 / 0.72);
+    border-color: rgb(148 163 184 / 0.26) !important;
+    background:
+      linear-gradient(
+        115deg,
+        rgb(30 41 59 / 0.88) 0%,
+        rgb(15 23 42 / 0.68) 46%,
+        rgb(49 46 129 / 0.58) 78%,
+        rgb(67 20 7 / 0.5) 100%
+      ) !important;
     box-shadow:
-      inset 0 0 1px 1px rgb(255 255 255 / 0.08),
-      0 8px 26px rgb(0 0 0 / 0.24),
-      0 18px 44px rgb(0 0 0 / 0.16);
+      inset 0 0 1px 1px rgb(255 255 255 / 0.14),
+      0 8px 26px rgb(0 0 0 / 0.3),
+      0 18px 44px rgb(0 0 0 / 0.22) !important;
+  }
+
+  .public-header__shell::before,
+  .public-header__shell::after {
+    position: absolute;
+    pointer-events: none;
+    content: "";
+    opacity: 0;
+    transition: opacity 260ms ease;
+  }
+
+  .public-header__shell::before {
+    inset: 1px;
+    z-index: 0;
+    border: 1px solid rgb(255 255 255 / 0.66);
+    border-radius: inherit;
+    background:
+      linear-gradient(
+        125deg,
+        rgb(255 255 255 / 0.52),
+        transparent 34%,
+        transparent 68%,
+        rgb(196 181 253 / 0.2)
+      );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(255 255 255 / 0.2);
+  }
+
+  .public-header__shell::after {
+    top: -22px;
+    left: 18%;
+    z-index: 0;
+    width: 42%;
+    height: 54px;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.52);
+    filter: blur(18px);
+    transform: rotate(-4deg);
+  }
+
+  .public-header--scrolled .public-header__shell::before,
+  .public-header--scrolled .public-header__shell::after {
+    opacity: 1;
+  }
+
+  .public-header__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .dark .public-header__shell::before {
+    border-color: rgb(255 255 255 / 0.16);
+    background:
+      linear-gradient(
+        125deg,
+        rgb(255 255 255 / 0.14),
+        transparent 34%,
+        transparent 68%,
+        rgb(129 140 248 / 0.18)
+      );
+  }
+
+  .dark .public-header__shell::after {
+    background: rgb(165 180 252 / 0.2);
   }
 
   .public-brand {
