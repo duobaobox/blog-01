@@ -1,14 +1,11 @@
-import * as settingsRepo from "@/features/settings/repositories/settings.repository";
+import * as aiSettingsRepo from "@/features/ai/repositories/ai-settings.repository";
 import { encryptAiApiKey } from "@/features/ai/lib/ai-secrets";
 import { ValidationError } from "@/shared/lib/app-error";
 import type { AiSettingsWriteInput } from "@/features/ai/lib/ai-settings-write";
 
 export async function updateAiSettings(input: AiSettingsWriteInput) {
-  const existingSettings = await settingsRepo.findSiteSettings();
+  const existingSettings = await aiSettingsRepo.findAiSettings();
 
-  if (!existingSettings) {
-    throw new ValidationError("请先保存站点基本设置，再配置 AI 服务。");
-  }
 
   if (
     input.enabled &&
@@ -31,7 +28,7 @@ export async function updateAiSettings(input: AiSettingsWriteInput) {
     throw new ValidationError("启用 AI 前请配置 API Key。");
   }
 
-  await settingsRepo.updateAiSettings({
+  await aiSettingsRepo.upsertAiSettings({
     aiConfigured: true,
     aiEnabled: input.enabled,
     aiProvider: input.provider,
