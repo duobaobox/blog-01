@@ -36,9 +36,12 @@ function readEnvironmentConfig() {
 export async function getAiConfig(): Promise<AiConfig> {
   const settings = await findAiSettings();
   const environment = readEnvironmentConfig();
-  const useStoredConfig = Boolean(settings?.aiConfigured);
+  const hasStoredSettings = Boolean(settings);
+  const useStoredConfig = settings?.aiConfigured === true;
 
-  const enabled = useStoredConfig ? true : environment.enabled;
+  const enabled = hasStoredSettings
+    ? settings?.aiConfigured === true
+    : environment.enabled;
   const baseUrl = (
     useStoredConfig ? settings?.aiBaseUrl || environment.baseUrl : environment.baseUrl
   ).replace(/\/+$/, "");
