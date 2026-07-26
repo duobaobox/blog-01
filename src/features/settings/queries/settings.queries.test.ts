@@ -59,10 +59,7 @@ test("createAdminShellStatusQuery aggregates onboarding and security reminders f
     userId: "admin-1",
   });
 
-  assert.deepEqual(calls.sort(), [
-    "onboarding",
-    "security:admin-1",
-  ]);
+  assert.deepEqual(calls.sort(), ["onboarding", "security:admin-1"]);
   assert.deepEqual(result, {
     onboarding: {
       needsSiteSetup: true,
@@ -73,20 +70,16 @@ test("createAdminShellStatusQuery aggregates onboarding and security reminders f
   });
 });
 
-test("createAdminSettingsPageDataQuery aggregates settings form data and setup notice", async () => {
+test("createAdminSettingsPageDataQuery aggregates the focused settings form data", async () => {
   const calls: string[] = [];
   const query = createAdminSettingsPageDataQuery({
     async getSiteSettings() {
       calls.push("settings");
       return {
         siteTitle: "Duobao Notes",
-        siteSubtitle: "Personal blog",
         siteDescription: "Thoughts and notes",
         siteUrl: "https://example.com",
         logoUrl: null,
-        avatarUrl: null,
-        githubUrl: null,
-        xUrl: null,
         email: null,
         footerText: null,
       };
@@ -99,20 +92,13 @@ test("createAdminSettingsPageDataQuery aggregates settings form data and setup n
 
   const result = await query();
 
-  assert.deepEqual(calls.sort(), [
-    "settings",
-    "setup",
-  ]);
+  assert.deepEqual(calls.sort(), ["settings", "setup"]);
   assert.deepEqual(result, {
     settings: {
       siteTitle: "Duobao Notes",
-      siteSubtitle: "Personal blog",
       siteDescription: "Thoughts and notes",
       siteUrl: "https://example.com",
       logoUrl: null,
-      avatarUrl: null,
-      githubUrl: null,
-      xUrl: null,
       email: null,
       footerText: null,
     },
@@ -137,10 +123,7 @@ test("createAdminAccountPageDataQuery aggregates account defaults and security n
 
   const result = await query();
 
-  assert.deepEqual(calls, [
-    "session",
-    "security:admin-1",
-  ]);
+  assert.deepEqual(calls, ["session", "security:admin-1"]);
   assert.deepEqual(result, {
     defaultName: "Duobao",
     showPasswordNotice: true,
@@ -169,10 +152,7 @@ test("createAdminShellPageDataQuery centralizes admin session identity and shell
 
   const result = await query();
 
-  assert.deepEqual(calls, [
-    "session",
-    "shell:admin-1",
-  ]);
+  assert.deepEqual(calls, ["session", "shell:admin-1"]);
   assert.deepEqual(result, {
     session: {
       id: "admin-1",
