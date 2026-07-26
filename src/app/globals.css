@@ -560,3 +560,16 @@
     }
   }
 }
+
+
+@layer components {
+  /* 页脚与未滚动标题栏保持同样的纯透明基底；旧装饰仅保留兼容样式，不再显示。 */
+  .public-footer {
+    background: transparent !important;
+  }
+
+  .public-footer::before {
+    display: none !important;
+    content: none !important;
+  }
+}
