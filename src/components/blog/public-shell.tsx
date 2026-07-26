@@ -50,6 +50,7 @@ export async function PublicShell({
         xUrl={site.social.x}
         email={site.social.email}
         footerText={site.footerText}
+        nav={site.nav}
       />
     </div>
   );
