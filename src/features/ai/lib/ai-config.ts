@@ -38,7 +38,7 @@ export async function getAiConfig(): Promise<AiConfig> {
   const environment = readEnvironmentConfig();
   const useStoredConfig = Boolean(settings?.aiConfigured);
 
-  const enabled = useStoredConfig ? settings?.aiEnabled === true : environment.enabled;
+  const enabled = useStoredConfig ? true : environment.enabled;
   const baseUrl = (
     useStoredConfig ? settings?.aiBaseUrl || environment.baseUrl : environment.baseUrl
   ).replace(/\/+$/, "");
@@ -76,7 +76,7 @@ export async function getAiConfig(): Promise<AiConfig> {
   if (!apiKey) {
     throw new ConfigurationError(
       useStoredConfig
-        ? "AI 已启用，但还没有配置 API Key。请到后台设置中完成 BYOK 配置。"
+        ? "AI 已绑定，但还没有配置 API Key。请到后台 AI 设置中完成 BYOK 配置。"
         : "AI 已启用，但缺少 AI_API_KEY。请在服务端环境变量中配置 BYOK 密钥。",
     );
   }
@@ -84,7 +84,7 @@ export async function getAiConfig(): Promise<AiConfig> {
   if (!model) {
     throw new ConfigurationError(
       useStoredConfig
-        ? "AI 已启用，但还没有配置模型名称。请到后台设置中完成 BYOK 配置。"
+        ? "AI 已绑定，但还没有配置模型名称。请到后台 AI 设置中完成 BYOK 配置。"
         : "AI 已启用，但缺少 AI_MODEL。请在服务端环境变量中配置模型名称。",
     );
   }
