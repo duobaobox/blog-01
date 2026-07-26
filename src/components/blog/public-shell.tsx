@@ -46,9 +46,8 @@ export async function PublicShell({
 
       <Footer
         siteName={site.name}
-        githubUrl={site.social.github}
-        xUrl={site.social.x}
-        email={site.social.email}
+        description={site.description}
+        email={site.email}
         footerText={site.footerText}
         nav={site.nav}
       />
