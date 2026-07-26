@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight, Github, Mail } from "lucide-react";
+import { ArrowUpRight, Mail } from "lucide-react";
 
 interface FooterProps {
   siteName: string;
-  githubUrl?: string;
-  xUrl?: string;
+  description: string;
   email?: string;
   footerText?: string;
   nav: ReadonlyArray<{
@@ -15,8 +14,7 @@ interface FooterProps {
 
 export function Footer({
   siteName,
-  githubUrl,
-  xUrl,
+  description,
   email,
   footerText,
   nav,
@@ -44,7 +42,7 @@ export function Footer({
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">
-              技术文章、项目经验和学习笔记，持续记录正在构建的东西。
+              {description}
             </p>
           </div>
 
@@ -62,20 +60,6 @@ export function Footer({
           <div>
             <p className="public-footer__kicker">Connect</p>
             <div className="public-footer__links">
-              {githubUrl ? (
-                <Link
-                  href={githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  GitHub
-                </Link>
-              ) : null}
-              {xUrl ? (
-                <Link href={xUrl} target="_blank" rel="noopener noreferrer">
-                  X / Twitter
-                </Link>
-              ) : null}
               {email ? <Link href={`mailto:${email}`}>Email</Link> : null}
               <Link href="/feed.xml">RSS</Link>
             </div>
@@ -95,17 +79,6 @@ export function Footer({
         <div className="public-footer__bottom">
           <p className="text-xs text-muted-foreground">{copyrightText}</p>
           <div className="flex items-center gap-3">
-            {githubUrl ? (
-              <Link
-                href={githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="GitHub"
-              >
-                <Github className="h-4 w-4" />
-              </Link>
-            ) : null}
             {email ? (
               <Link
                 href={`mailto:${email}`}
