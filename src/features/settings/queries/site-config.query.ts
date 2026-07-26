@@ -21,6 +21,8 @@ export interface ResolvedSiteConfig {
   footerText?: string;
   logo?: MediaPresentation;
   logoUrl?: string;
+  favicon?: MediaPresentation;
+  faviconUrl?: string;
 }
 
 function buildMediaPresentation(
@@ -65,8 +67,13 @@ export function createResolvedSiteConfigQuery(
     if (dbSettings) {
       const mediaByUrl = await dependencies.resolveMediaPresentationMap([
         dbSettings.logoUrl,
+        dbSettings.faviconUrl,
       ]);
       const logo = buildMediaPresentation(dbSettings.logoUrl, mediaByUrl);
+      const favicon = buildMediaPresentation(
+        dbSettings.faviconUrl,
+        mediaByUrl,
+      );
 
       return {
         name: dbSettings.siteTitle,
@@ -78,6 +85,8 @@ export function createResolvedSiteConfigQuery(
         footerText: dbSettings.footerText ?? undefined,
         logo,
         logoUrl: logo?.url,
+        favicon,
+        faviconUrl: favicon?.url,
       };
     }
 
