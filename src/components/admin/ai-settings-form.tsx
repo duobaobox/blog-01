@@ -74,7 +74,7 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
   return (
     <form
       onSubmit={handleAiSubmit}
-      className="max-w-5xl space-y-6 rounded-xl border border-border/70 bg-card p-5"
+      className="space-y-6 rounded-xl border border-border/70 bg-card p-5"
     >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
