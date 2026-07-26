@@ -10,7 +10,6 @@ export async function findSiteSettings() {
   });
 }
 
-
 export async function findSiteSettingsForAdmin() {
   const settings = await db.siteSetting.findUnique({
     where: {
@@ -18,13 +17,9 @@ export async function findSiteSettingsForAdmin() {
     },
     select: {
       siteTitle: true,
-      siteSubtitle: true,
       siteDescription: true,
       siteUrl: true,
       logoUrl: true,
-      avatarUrl: true,
-      githubUrl: true,
-      xUrl: true,
       email: true,
       footerText: true,
     },
@@ -48,13 +43,9 @@ export async function findSiteSettingsSummary() {
 
 export async function upsertSiteSettings(data: {
   siteTitle: string;
-  siteSubtitle: string | null;
   siteDescription: string | null;
   siteUrl: string;
   logoUrl: string | null;
-  avatarUrl: string | null;
-  githubUrl: string | null;
-  xUrl: string | null;
   email: string | null;
   footerText: string | null;
 }) {
@@ -69,7 +60,6 @@ export async function upsertSiteSettings(data: {
     },
   });
 }
-
 
 export async function updateAdminProfile(
   userId: string,
