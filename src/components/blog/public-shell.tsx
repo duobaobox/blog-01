@@ -30,6 +30,7 @@ export async function PublicShell({
     <div
       className={cn("flex min-h-dvh min-w-0 flex-col", className)}
       data-public-shell
+      data-public-surface={surface}
     >
       <Header siteName={site.name} logo={site.logo} nav={site.nav} />
 
@@ -44,13 +45,7 @@ export async function PublicShell({
         {children}
       </main>
 
-      <Footer
-        siteName={site.name}
-        description={site.description}
-        email={site.email}
-        footerText={site.footerText}
-        nav={site.nav}
-      />
+      <Footer siteName={site.name} footerText={site.footerText} />
     </div>
   );
 }
