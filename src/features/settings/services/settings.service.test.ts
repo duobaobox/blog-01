@@ -31,13 +31,9 @@ test("updateSiteSettings falls back to the persisted site url when the form omit
 
   await updateSiteSettings({
     siteTitle: "Blog",
-    siteSubtitle: null,
     siteDescription: null,
     siteUrl: null,
     logoUrl: null,
-    avatarUrl: null,
-    githubUrl: null,
-    xUrl: null,
     email: null,
     footerText: null,
   });
@@ -48,13 +44,9 @@ test("updateSiteSettings falls back to the persisted site url when the form omit
       type: "repo:upsert",
       data: {
         siteTitle: "Blog",
-        siteSubtitle: null,
         siteDescription: null,
         siteUrl: "https://persisted.example.com",
         logoUrl: null,
-        avatarUrl: null,
-        githubUrl: null,
-        xUrl: null,
         email: null,
         footerText: null,
       },
@@ -75,26 +67,18 @@ test("updateSiteSettings preserves the submitted site url when present", async (
 
   await updateSiteSettings({
     siteTitle: "Blog",
-    siteSubtitle: null,
     siteDescription: null,
     siteUrl: "https://submitted.example.com/",
     logoUrl: null,
-    avatarUrl: null,
-    githubUrl: null,
-    xUrl: null,
     email: null,
     footerText: null,
   });
 
   assert.deepEqual(persistedInput, {
     siteTitle: "Blog",
-    siteSubtitle: null,
     siteDescription: null,
     siteUrl: "https://submitted.example.com",
     logoUrl: null,
-    avatarUrl: null,
-    githubUrl: null,
-    xUrl: null,
     email: null,
     footerText: null,
   });
