@@ -20,6 +20,7 @@ export async function findSiteSettingsForAdmin() {
       siteDescription: true,
       siteUrl: true,
       logoUrl: true,
+      faviconUrl: true,
       email: true,
       footerText: true,
     },
@@ -46,6 +47,7 @@ export async function upsertSiteSettings(data: {
   siteDescription: string | null;
   siteUrl: string;
   logoUrl: string | null;
+  faviconUrl: string | null;
   email: string | null;
   footerText: string | null;
 }) {
