@@ -17,7 +17,6 @@ export async function findAiSettingsForAdmin() {
     },
     select: {
       aiConfigured: true,
-      aiEnabled: true,
       aiProvider: true,
       aiBaseUrl: true,
       aiModel: true,
@@ -38,7 +37,6 @@ export async function findAiSettingsForAdmin() {
 
 export async function upsertAiSettings(data: {
   aiConfigured: boolean;
-  aiEnabled: boolean;
   aiProvider: string;
   aiBaseUrl: string;
   aiModel: string | null;
