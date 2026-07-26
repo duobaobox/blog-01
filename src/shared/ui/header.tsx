@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -30,7 +30,29 @@ interface HeaderProps {
 export function Header({ siteName, logo, nav }: HeaderProps) {
   const pathname = usePathname();
   const [openPathname, setOpenPathname] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigationOpen = openPathname === pathname;
+
+  useEffect(() => {
+    let frame = 0;
+
+    function handleScroll() {
+      if (frame) return;
+
+      frame = window.requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 16);
+        frame = 0;
+      });
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -38,84 +60,110 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/20 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-      <div className="mx-auto flex h-14 min-w-0 max-w-5xl items-center px-4 sm:px-6">
-        <Link
-          href="/"
-          className="mr-4 flex min-w-0 items-center gap-3 font-bold sm:mr-6"
-        >
-          {logo ? (
-            <Image
-              src={logo.url}
-              alt={logo.alt ?? siteName}
-              width={logo.width ?? 32}
-              height={logo.height ?? 32}
-              sizes="32px"
-              className="size-8 rounded-lg border object-cover"
-            />
-          ) : null}
-          <span className="truncate">{siteName}</span>
-        </Link>
-
-        {/* 桌面端导航 */}
-        <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
-                isActive(item.href) ? "text-foreground" : "text-foreground/60",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex flex-1 items-center justify-end gap-1">
-          <ThemeToggle />
-
-          {/* 移动端菜单 */}
-          <Sheet
-            open={navigationOpen}
-            onOpenChange={(open) => setOpenPathname(open ? pathname : null)}
+    <header
+      className={cn(
+        "public-header sticky top-0 z-50 h-14 w-full",
+        isScrolled && "public-header--scrolled",
+      )}
+    >
+      <div className="public-header__shell mx-auto h-full max-w-5xl px-4 sm:px-6">
+        <div className="public-header__inner mx-auto grid h-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6">
+          <Link
+            href="/"
+            className="public-brand min-w-0 justify-self-start"
+            aria-label={`回到 ${siteName} 首页`}
           >
-            <SheetTrigger
-              render={
-                <Button variant="ghost" size="icon" className="md:hidden" />
+            <span className="public-brand__mark" aria-hidden="true">
+              {logo ? (
+                <Image
+                  src={logo.url}
+                  alt=""
+                  width={logo.width ?? 32}
+                  height={logo.height ?? 32}
+                  sizes="32px"
+                  className="size-full rounded-[10px] object-cover"
+                />
+              ) : (
+                <span className="public-brand__spark" />
+              )}
+            </span>
+            <span className="public-brand__copy min-w-0">
+              <span className="truncate">{siteName}</span>
+              <span className="public-brand__meta">OPEN NOTES / BLOG</span>
+            </span>
+          </Link>
+
+          <nav
+            aria-label="主要导航"
+            className="hidden items-center justify-center gap-1 md:flex"
+          >
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "public-nav-link rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                  isActive(item.href)
+                    ? "text-foreground"
+                    : "text-muted-foreground",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex min-w-0 items-center justify-self-end gap-1">
+            <ThemeToggle />
+
+            <Sheet
+              open={navigationOpen}
+              onOpenChange={(open) =>
+                setOpenPathname(open ? pathname : null)
               }
             >
-              <Menu />
-              <span className="sr-only">菜单</span>
-            </SheetTrigger>
-            <SheetContent
-              side="right"
-              className="w-[min(20rem,calc(100vw-1rem))] gap-0 px-0"
-            >
-              <SheetHeader className="border-b px-4 py-3">
-                <SheetTitle>导航菜单</SheetTitle>
-                <SheetDescription>快速跳转到站点的主要页面。</SheetDescription>
-              </SheetHeader>
-              <nav className="flex flex-col gap-2 px-4 py-4">
-                {nav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpenPathname(null)}
-                    className={cn(
-                      "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
-                      isActive(item.href)
-                        ? "bg-accent text-foreground"
-                        : "text-foreground/60",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="public-menu-button md:hidden"
+                  />
+                }
+              >
+                <Menu />
+                <span className="sr-only">菜单</span>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-[min(20rem,calc(100vw-1rem))] gap-0 px-0"
+              >
+                <SheetHeader className="border-b px-4 py-3">
+                  <SheetTitle>导航菜单</SheetTitle>
+                  <SheetDescription>
+                    快速跳转到站点的主要页面。
+                  </SheetDescription>
+                </SheetHeader>
+                <nav className="flex flex-col gap-2 px-4 py-4">
+                  {nav.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpenPathname(null)}
+                      className={cn(
+                        "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
+                        isActive(item.href)
+                          ? "bg-accent text-foreground"
+                          : "text-foreground/60",
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>
