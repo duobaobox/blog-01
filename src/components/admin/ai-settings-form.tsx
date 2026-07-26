@@ -113,9 +113,9 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
     >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold">AI / BYOK 配置</h2>
+            <h2 className="text-base font-semibold">绑定 AI 服务</h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              配置你自己的模型服务商。API Key 会使用服务端密钥加密保存，浏览器不会读取或回显原始 Key。
+              选择服务商和模型，保存后 AI SEO 与正文 AI 即可按需使用。API Key 会使用服务端密钥加密保存，浏览器不会读取或回显原始 Key。
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
@@ -127,8 +127,8 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
               }
             />
             {settings?.aiConfigured && settings.aiApiKeyConfigured
-              ? "已配置 API Key"
-              : "尚未配置"}
+              ? "已绑定"
+              : "尚未绑定"}
           </div>
         </div>
 
@@ -227,7 +227,7 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={aiSaving}>
-            {aiSaving ? "保存中..." : "保存 AI 配置"}
+            {aiSaving ? "保存中..." : "保存并绑定"}
           </Button>
           {aiSaved ? (
             <span className="text-sm text-emerald-600">AI 配置已保存</span>
