@@ -624,3 +624,75 @@
       linear-gradient(135deg, #11131d 0%, #17192a 50%, #211713 100%);
   }
 }
+
+
+@layer components {
+  /* 首页交互统一使用克莱因蓝，避免影响其他公开页面与后台。 */
+  .public-shell[data-public-surface="home"] {
+    --home-klein-blue: #002fa7;
+    --home-klein-blue-hover: #001f78;
+    --home-klein-blue-soft: rgb(0 47 167 / 0.12);
+  }
+
+  .dark .public-shell[data-public-surface="home"] {
+    --home-klein-blue: #78a0ff;
+    --home-klein-blue-hover: #a7c0ff;
+    --home-klein-blue-soft: rgb(120 160 255 / 0.18);
+  }
+
+  .public-shell[data-public-surface="home"] .public-header nav a,
+  .public-shell[data-public-surface="home"] .public-footer a,
+  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand) {
+    color: var(--home-klein-blue) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-header nav a:hover,
+  .public-shell[data-public-surface="home"] .public-header nav a:focus-visible,
+  .public-shell[data-public-surface="home"] .public-footer a:hover,
+  .public-shell[data-public-surface="home"] .public-footer a:focus-visible,
+  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand):hover,
+  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand):focus-visible {
+    color: var(--home-klein-blue-hover) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-header button {
+    color: var(--home-klein-blue) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-header button:hover,
+  .public-shell[data-public-surface="home"] .public-header button:focus-visible {
+    color: var(--home-klein-blue-hover) !important;
+    background: var(--home-klein-blue-soft) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-main a h3 {
+    color: var(--home-klein-blue) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-main a h3:hover {
+    color: var(--home-klein-blue-hover) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-main a svg {
+    color: var(--home-klein-blue) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-main a[class*="bg-linear-to-r"] {
+    background: var(--home-klein-blue) !important;
+    color: white !important;
+    box-shadow: 0 14px 30px -14px rgb(0 47 167 / 0.58) !important;
+  }
+
+  .public-shell[data-public-surface="home"] .public-main a[class*="bg-linear-to-r"]:hover {
+    background: var(--home-klein-blue-hover) !important;
+    color: white !important;
+    box-shadow: 0 18px 34px -14px rgb(0 47 167 / 0.7) !important;
+  }
+
+  .public-shell[data-public-surface="home"]
+    .public-main
+    a[class*="bg-linear-to-r"]
+    svg {
+    color: white !important;
+  }
+}
