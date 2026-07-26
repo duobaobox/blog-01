@@ -12,6 +12,7 @@ export type SiteSettingsWriteInput = {
   siteDescription: string | null;
   siteUrl: string | null;
   logoUrl: string | null;
+  faviconUrl: string | null;
   email: string | null;
   footerText: string | null;
 };
@@ -21,6 +22,7 @@ export type SiteSettingsInput = {
   siteDescription: string | null;
   siteUrl: string;
   logoUrl: string | null;
+  faviconUrl: string | null;
   email: string | null;
   footerText: string | null;
 };
@@ -34,6 +36,7 @@ export function parseSiteSettingsFormData(
   );
   const siteUrl = normalizeOptionalString(formData.get("siteUrl"));
   const logoUrl = normalizeOptionalString(formData.get("logoUrl"));
+  const faviconUrl = normalizeOptionalString(formData.get("faviconUrl"));
 
   validateOptionalHttpUrl(
     siteUrl,
@@ -43,12 +46,17 @@ export function parseSiteSettingsFormData(
     logoUrl,
     "Logo 地址格式不正确，请填写以 / 开头的站内路径，或完整的 http/https 地址",
   );
+  validateOptionalSiteResourceUrl(
+    faviconUrl,
+    "标签图标地址格式不正确，请填写以 / 开头的站内路径，或完整的 http/https 地址",
+  );
 
   return {
     siteTitle,
     siteDescription: normalizeOptionalString(formData.get("siteDescription")),
     siteUrl: siteUrl ? normalizeSiteUrl(siteUrl) : null,
     logoUrl,
+    faviconUrl,
     email: normalizeOptionalString(formData.get("email")),
     footerText: normalizeOptionalString(formData.get("footerText")),
   };
