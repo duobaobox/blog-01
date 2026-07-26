@@ -27,13 +27,6 @@ export async function findSiteSettingsForAdmin() {
       xUrl: true,
       email: true,
       footerText: true,
-      aiConfigured: true,
-      aiEnabled: true,
-      aiProvider: true,
-      aiBaseUrl: true,
-      aiModel: true,
-      aiProtocol: true,
-      aiApiKeyEncrypted: true,
     },
   });
 
@@ -82,23 +75,6 @@ export async function upsertSiteSettings(data: {
   });
 }
 
-
-export async function updateAiSettings(data: {
-  aiConfigured: boolean;
-  aiEnabled: boolean;
-  aiProvider: string;
-  aiBaseUrl: string;
-  aiModel: string | null;
-  aiApiKeyEncrypted?: string | null;
-  aiProtocol: string;
-}) {
-  return db.siteSetting.update({
-    where: {
-      scopeKey: SITE_SETTINGS_SINGLETON_KEY,
-    },
-    data,
-  });
-}
 
 export async function updateAdminProfile(
   userId: string,
