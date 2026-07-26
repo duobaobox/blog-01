@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,6 +17,10 @@ import {
   SheetTitle,
 } from "@/shared/ui/sheet";
 import { cn } from "@/shared/lib/utils";
+import {
+  buildNavigationGlassMap,
+  resolveNavigationCondensedState,
+} from "@/shared/lib/navigation-liquid-glass";
 
 interface HeaderProps {
   siteName: string;
@@ -27,29 +31,79 @@ interface HeaderProps {
   }>;
 }
 
+const NAVIGATION_GLASS_RED_DISPLACEMENT = -16; // 不要超过导航高度一半，避免上下采样穿过中线
+const NAVIGATION_GLASS_GREEN_DISPLACEMENT = -16; // 与红蓝保持小差距，产生轻微色散
+const NAVIGATION_GLASS_BLUE_DISPLACEMENT = -16; // 绝对值越大，蓝色通道折射越强
+const NAVIGATION_GLASS_EDGE_BLUR = 0.2; // 越大边缘越柔和，也越容易产生重影
+
 export function Header({ siteName, logo, nav }: HeaderProps) {
   const pathname = usePathname();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const glassMapRef = useRef<SVGFEImageElement>(null);
   const [openPathname, setOpenPathname] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigationOpen = openPathname === pathname;
 
   useEffect(() => {
     let frame = 0;
+    let mapTimer: ReturnType<typeof setTimeout> | null = null;
+    let condensed = resolveNavigationCondensedState(false, window.scrollY);
+
+    function syncGlassMap() {
+      const shell = shellRef.current;
+      const glassMap = glassMapRef.current;
+      if (!shell || !glassMap) return;
+
+      const rect = shell.getBoundingClientRect();
+      const uri = buildNavigationGlassMap(rect.width, rect.height);
+      glassMap.setAttribute("href", uri);
+      glassMap.setAttributeNS("http://www.w3.org/1999/xlink", "href", uri);
+    }
+
+    function scheduleGlassMap() {
+      if (mapTimer) clearTimeout(mapTimer);
+      mapTimer = setTimeout(syncGlassMap, 140);
+    }
 
     function handleScroll() {
       if (frame) return;
 
       frame = window.requestAnimationFrame(() => {
-        setIsScrolled(window.scrollY > 16);
+        const nextCondensed = resolveNavigationCondensedState(
+          condensed,
+          window.scrollY,
+        );
+
+        if (nextCondensed !== condensed) {
+          condensed = nextCondensed;
+          setIsScrolled(condensed);
+          scheduleGlassMap();
+        }
+
         frame = 0;
       });
     }
 
-    handleScroll();
+    syncGlassMap();
+    frame = window.requestAnimationFrame(() => {
+      setIsScrolled(condensed);
+      frame = 0;
+    });
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(scheduleGlassMap);
+    if (shellRef.current) resizeObserver?.observe(shellRef.current);
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", scheduleGlassMap, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", scheduleGlassMap);
+      resizeObserver?.disconnect();
+      if (mapTimer) clearTimeout(mapTimer);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -66,7 +120,10 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
         isScrolled && "public-header--scrolled",
       )}
     >
-      <div className="public-header__shell mx-auto h-full max-w-5xl px-4 sm:px-6">
+      <div
+        ref={shellRef}
+        className="public-header__shell mx-auto h-full max-w-5xl px-4 sm:px-6"
+      >
         <div className="public-header__inner mx-auto grid h-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-6">
           <Link
             href="/"
@@ -117,9 +174,7 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
 
             <Sheet
               open={navigationOpen}
-              onOpenChange={(open) =>
-                setOpenPathname(open ? pathname : null)
-              }
+              onOpenChange={(open) => setOpenPathname(open ? pathname : null)}
             >
               <SheetTrigger
                 render={
@@ -165,6 +220,77 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      <svg
+        className="public-header__glass-defs"
+        aria-hidden="true"
+        focusable="false"
+        width="0"
+        height="0"
+      >
+        <defs>
+          <filter id="public-nav-liquid-glass" colorInterpolationFilters="sRGB">
+            <feImage
+              ref={glassMapRef}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="none"
+              result="map"
+              data-navigation-glass-map
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="map"
+              xChannelSelector="R"
+              yChannelSelector="B"
+              scale={NAVIGATION_GLASS_RED_DISPLACEMENT}
+              result="displacedRed"
+            />
+            <feColorMatrix
+              in="displacedRed"
+              type="matrix"
+              values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0"
+              result="red"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="map"
+              xChannelSelector="R"
+              yChannelSelector="B"
+              scale={NAVIGATION_GLASS_GREEN_DISPLACEMENT}
+              result="displacedGreen"
+            />
+            <feColorMatrix
+              in="displacedGreen"
+              type="matrix"
+              values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0"
+              result="green"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="map"
+              xChannelSelector="R"
+              yChannelSelector="B"
+              scale={NAVIGATION_GLASS_BLUE_DISPLACEMENT}
+              result="displacedBlue"
+            />
+            <feColorMatrix
+              in="displacedBlue"
+              type="matrix"
+              values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0"
+              result="blue"
+            />
+            <feBlend in="red" in2="green" mode="screen" result="redGreen" />
+            <feBlend in="redGreen" in2="blue" mode="screen" result="output" />
+            <feGaussianBlur
+              in="output"
+              stdDeviation={NAVIGATION_GLASS_EDGE_BLUR}
+            />
+          </filter>
+        </defs>
+      </svg>
     </header>
   );
 }
