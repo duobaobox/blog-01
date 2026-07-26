@@ -1,8 +1,8 @@
-import { getAdminSettingsPageData } from "@/features/settings/queries/settings.queries";
+import { getAdminAiSettingsPageData } from "@/features/ai/queries/ai-settings.queries";
 import { AiSettingsForm } from "@/components/admin/ai-settings-form";
 
 export default async function AdminAiPage() {
-  const pageData = await getAdminSettingsPageData();
+  const pageData = await getAdminAiSettingsPageData();
 
   return (
     <div className="flex-1 overflow-y-auto">
