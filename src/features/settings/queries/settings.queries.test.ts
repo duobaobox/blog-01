@@ -80,6 +80,7 @@ test("createAdminSettingsPageDataQuery aggregates the focused settings form data
         siteDescription: "Thoughts and notes",
         siteUrl: "https://example.com",
         logoUrl: null,
+        faviconUrl: null,
         email: null,
         footerText: null,
       };
