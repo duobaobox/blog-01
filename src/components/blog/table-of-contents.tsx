@@ -37,12 +37,9 @@ export function TableOfContents({
   toc,
   contentRootId,
 }: TableOfContentsProps) {
-  const [activeId, setActiveId] = useState<string>(() => {
-    if (typeof window === "undefined" || contentRootId) return "";
-
-    const hash = window.location.hash.slice(1);
-    return toc.some((item) => item.id === hash) ? hash : "";
-  });
+  // Keep the first render deterministic between server and client. The URL
+  // hash is applied after hydration so it cannot change the server markup.
+  const [activeId, setActiveId] = useState("");
   const observerRef = useRef<IntersectionObserver | null>(null);
   const headingElementsRef = useRef<Map<string, IntersectionObserverEntry>>(
     new Map(),
@@ -71,6 +68,13 @@ export function TableOfContents({
   useEffect(() => {
     observerRef.current?.disconnect();
     headingElementsRef.current.clear();
+
+    if (!contentRootId) {
+      const hash = window.location.hash.slice(1);
+      if (toc.some((item) => item.id === hash)) {
+        setActiveId(hash);
+      }
+    }
 
     const callback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
