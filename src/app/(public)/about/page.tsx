@@ -55,7 +55,7 @@ export default function AboutPage() {
 
       <StaticPageSection title="联系我">
         <p className="leading-relaxed text-muted-foreground">
-          如果你有任何问题或合作意向，欢迎通过 GitHub 或邮件联系我。
+          如果你有任何问题或合作意向，欢迎通过邮件联系我。
         </p>
       </StaticPageSection>
     </StaticPageShell>
