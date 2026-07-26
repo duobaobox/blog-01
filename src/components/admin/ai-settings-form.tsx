@@ -11,12 +11,10 @@ import { getErrorMessage } from "@/shared/lib/app-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { Switch } from "@/shared/ui/switch";
 
 interface AiSettingsFormProps {
   settings: {
     aiConfigured: boolean;
-    aiEnabled: boolean;
     aiProvider: string;
     aiBaseUrl: string | null;
     aiModel: string | null;
@@ -29,7 +27,6 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
   const router = useRouter();
   const initialAiProvider = settings?.aiProvider || "openai-compatible";
   const initialAiPreset = getAiProviderPreset(initialAiProvider);
-  const [aiEnabled, setAiEnabled] = useState(settings?.aiEnabled ?? false);
   const [aiProvider, setAiProvider] = useState(initialAiProvider);
   const [aiBaseUrl, setAiBaseUrl] = useState(
     settings?.aiBaseUrl ?? initialAiPreset.baseUrl,
@@ -42,6 +39,15 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
   const [aiSaving, setAiSaving] = useState(false);
   const [aiSaved, setAiSaved] = useState(false);
   const [aiSaveError, setAiSaveError] = useState<string | null>(null);
+  const currentPreset = settings?.aiProvider
+    ? getAiProviderPreset(settings.aiProvider)
+    : null;
+  const isConfigured = Boolean(
+    settings?.aiConfigured &&
+      settings.aiApiKeyConfigured &&
+      settings.aiBaseUrl &&
+      settings.aiModel,
+  );
 
   async function handleAiSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -72,6 +78,35 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
   }
 
   return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border/70 bg-card px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              当前绑定
+            </p>
+            <p className="mt-1 text-base font-semibold">
+              {isConfigured
+                ? `${currentPreset?.name ?? settings?.aiProvider} · ${settings?.aiModel}`
+                : "尚未绑定可用 AI"}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              AI SEO 和正文 AI 共用当前绑定；更换服务商或模型后重新保存即可。
+            </p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
+            <span
+              className={
+                isConfigured
+                  ? "size-2 rounded-full bg-emerald-500"
+                  : "size-2 rounded-full bg-muted-foreground/40"
+              }
+            />
+            {isConfigured ? "配置正常" : "等待配置"}
+          </div>
+        </div>
+      </div>
+
     <form
       onSubmit={handleAiSubmit}
       className="space-y-6 rounded-xl border border-border/70 bg-card p-5"
@@ -95,26 +130,6 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
               ? "已配置 API Key"
               : "尚未配置"}
           </div>
-        </div>
-
-        <input
-          type="hidden"
-          name="aiEnabled"
-          value={aiEnabled ? "true" : "false"}
-        />
-
-        <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-3">
-          <div>
-            <Label htmlFor="ai-enabled-switch">启用 AI 辅助</Label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              关闭后，文章编辑器不会调用 AI 服务。
-            </p>
-          </div>
-          <Switch
-            id="ai-enabled-switch"
-            checked={aiEnabled}
-            onCheckedChange={setAiEnabled}
-          />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -146,7 +161,7 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
               value={aiModel}
               onChange={(event) => setAiModel(event.target.value)}
               placeholder="例如：qwen-plus、deepseek-v4-flash"
-              required={aiEnabled}
+              required
             />
           </div>
         </div>
@@ -223,5 +238,6 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
         </div>
 
     </form>
+    </div>
   );
 }
