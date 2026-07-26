@@ -24,6 +24,7 @@ interface SettingsFormProps {
     siteDescription: string | null;
     siteUrl: string;
     logoUrl: string | null;
+    faviconUrl: string | null;
     email: string | null;
     footerText: string | null;
   } | null;
@@ -57,6 +58,8 @@ export function SettingsForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState(settings?.logoUrl ?? "");
   const [logoPickerOpen, setLogoPickerOpen] = useState(false);
+  const [faviconUrl, setFaviconUrl] = useState(settings?.faviconUrl ?? "");
+  const [faviconPickerOpen, setFaviconPickerOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -127,62 +130,122 @@ export function SettingsForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="logoUrl">站点 Logo</Label>
-              <div className="flex h-[calc(100%-1.75rem)] min-h-40 flex-col rounded-lg border border-border/70 bg-muted/20 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-background">
-                    {logoUrl ? (
-                      <Image
-                        src={logoUrl}
-                        alt="Logo 预览"
-                        fill
-                        sizes="56px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        未设置
-                      </span>
-                    )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="logoUrl">站点 Logo</Label>
+                <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-background">
+                      {logoUrl ? (
+                        <Image
+                          src={logoUrl}
+                          alt="Logo 预览"
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          未设置
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">导航栏标识</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        建议使用方形图片；可从媒体库选择，也可填写站内路径或完整图片地址。
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">导航栏标识</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      建议使用方形图片；可从媒体库选择，也可填写站内路径或完整图片地址。
-                    </p>
-                  </div>
-                </div>
 
-                <div className="mt-auto space-y-2 pt-4">
-                  <Input
-                    id="logoUrl"
-                    name="logoUrl"
-                    value={logoUrl}
-                    onChange={(event) => setLogoUrl(event.target.value)}
-                    placeholder="/media/logo.png"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setLogoPickerOpen(true)}
-                    >
-                      <ImagePlus />
-                      从媒体库选择
-                    </Button>
-                    {logoUrl ? (
+                  <div className="mt-4 space-y-2">
+                    <Input
+                      id="logoUrl"
+                      name="logoUrl"
+                      value={logoUrl}
+                      onChange={(event) => setLogoUrl(event.target.value)}
+                      placeholder="/media/logo.png"
+                    />
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        onClick={() => setLogoUrl("")}
+                        onClick={() => setLogoPickerOpen(true)}
                       >
-                        <Trash2 />
-                        清除
+                        <ImagePlus />
+                        从媒体库选择
                       </Button>
-                    ) : null}
+                      {logoUrl ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setLogoUrl("")}
+                        >
+                          <Trash2 />
+                          清除
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="faviconUrl">浏览器标签图标</Label>
+                <div className="rounded-lg border border-border/70 bg-muted/20 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background">
+                      {faviconUrl ? (
+                        <Image
+                          src={faviconUrl}
+                          alt="浏览器标签图标预览"
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">
+                          未设置
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      用于浏览器 Tab、收藏夹和分享入口。建议使用清晰的方形图标。
+                    </p>
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    <Input
+                      id="faviconUrl"
+                      name="faviconUrl"
+                      value={faviconUrl}
+                      onChange={(event) => setFaviconUrl(event.target.value)}
+                      placeholder="/media/favicon.png"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFaviconPickerOpen(true)}
+                      >
+                        <ImagePlus />
+                        从媒体库选择
+                      </Button>
+                      {faviconUrl ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFaviconUrl("")}
+                        >
+                          <Trash2 />
+                          清除
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -260,6 +323,14 @@ export function SettingsForm({
         onSelect={(media) => {
           setLogoUrl(media.url);
           setLogoPickerOpen(false);
+        }}
+      />
+      <MediaPickerDialog
+        open={faviconPickerOpen}
+        onOpenChange={setFaviconPickerOpen}
+        onSelect={(media) => {
+          setFaviconUrl(media.url);
+          setFaviconPickerOpen(false);
         }}
       />
     </TooltipProvider>
