@@ -13,6 +13,7 @@ test("resolved site config projects the configured logo metadata", async () => {
         siteDescription: "Example description",
         siteUrl: "https://example.com/",
         logoUrl: "/media/logo.png",
+        faviconUrl: "/media/favicon.png",
         avatarUrl: "https://cdn.example.com/legacy-avatar.png",
         githubUrl: "https://github.com/legacy",
         xUrl: "https://x.com/legacy",
@@ -34,6 +35,15 @@ test("resolved site config projects the configured logo metadata", async () => {
             alt: "Site logo",
           },
         ],
+        [
+          "/media/favicon.png",
+          {
+            url: "/media/favicon.png",
+            width: 64,
+            height: 64,
+            alt: "Favicon",
+          },
+        ],
       ]);
     },
   });
@@ -41,7 +51,7 @@ test("resolved site config projects the configured logo metadata", async () => {
   const result = await query();
 
   assert.equal(result.url, "https://example.com");
-  assert.deepEqual(calls, [["/media/logo.png"]]);
+  assert.deepEqual(calls, [["/media/logo.png", "/media/favicon.png"]]);
   assert.deepEqual(result.logo, {
     url: "/media/logo.png",
     width: 320,
@@ -49,6 +59,13 @@ test("resolved site config projects the configured logo metadata", async () => {
     alt: "Site logo",
   });
   assert.equal(result.logoUrl, "/media/logo.png");
+  assert.deepEqual(result.favicon, {
+    url: "/media/favicon.png",
+    width: 64,
+    height: 64,
+    alt: "Favicon",
+  });
+  assert.equal(result.faviconUrl, "/media/favicon.png");
   assert.equal(result.email, "hi@example.com");
   assert.equal("avatar" in result, false);
   assert.equal("social" in result, false);
@@ -73,4 +90,5 @@ test("resolved site config falls back to static config when settings are unavail
   assert.equal(typeof result.url, "string");
   assert.equal(resolverCalls, 0);
   assert.equal(result.logo, undefined);
+  assert.equal(result.favicon, undefined);
 });
