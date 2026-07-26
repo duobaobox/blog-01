@@ -1,7 +1,10 @@
+import { normalizeSiteUrl } from "@/shared/lib/url";
+
 export const siteConfig = {
   name: "My Blog",
   description: "个人博客",
-  url: process.env.SITE_URL || "http://localhost:3000",
+  url: normalizeSiteUrl(process.env.SITE_URL || "http://localhost:3000"),
+  email: "",
 
   nav: [
     { label: "首页", href: "/" },
@@ -9,10 +12,4 @@ export const siteConfig = {
     { label: "项目", href: "/projects" },
     { label: "关于", href: "/about" },
   ],
-
-  social: {
-    github: "https://github.com",
-    x: "",
-    email: "",
-  },
 } as const;
