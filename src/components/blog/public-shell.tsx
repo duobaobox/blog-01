@@ -45,7 +45,11 @@ export async function PublicShell({
         {children}
       </main>
 
-      <Footer siteName={site.name} footerText={site.footerText} />
+      <Footer
+        siteName={site.name}
+        footerText={site.footerText}
+        overlap={surface === "home"}
+      />
     </div>
   );
 }
