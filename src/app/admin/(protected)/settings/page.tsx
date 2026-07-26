@@ -9,7 +9,7 @@ export default async function AdminSettingsPage() {
         <div className="mb-6">
           <h1 className="text-lg font-semibold">站点设置</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            管理站点信息、社交链接与公开页面基础信息
+            管理站点身份、公开信息与媒体资源
           </p>
         </div>
         <SettingsForm
