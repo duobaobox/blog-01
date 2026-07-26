@@ -22,12 +22,12 @@ export async function updateAiSettings(input: AiSettingsWriteInput) {
     aiApiKeyEncrypted = encryptAiApiKey(input.apiKey);
   }
 
-  if (!aiApiKeyEncrypted) {
+  if (!aiApiKeyEncrypted && !input.clearApiKey) {
     throw new ValidationError("请配置 API Key。");
   }
 
   await aiSettingsRepo.upsertAiSettings({
-    aiConfigured: true,
+    aiConfigured: Boolean(aiApiKeyEncrypted),
     aiProvider: input.provider,
     aiBaseUrl: input.baseUrl,
     aiModel: input.model || null,
