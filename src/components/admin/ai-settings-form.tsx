@@ -102,7 +102,7 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
                   : "size-2 rounded-full bg-muted-foreground/40"
               }
             />
-            {isConfigured ? "配置正常" : "等待配置"}
+            {isConfigured ? "已绑定" : "未绑定"}
           </div>
         </div>
       </div>
