@@ -1,7 +1,7 @@
 import "server-only";
 
 import { decryptAiApiKey } from "@/features/ai/lib/ai-secrets";
-import { findSiteSettings } from "@/features/settings/repositories/settings.repository";
+import { findAiSettings } from "@/features/ai/repositories/ai-settings.repository";
 import { ConfigurationError } from "@/shared/lib/app-error";
 
 export type AiProtocol = "chat-completions";
@@ -34,7 +34,7 @@ function readEnvironmentConfig() {
 }
 
 export async function getAiConfig(): Promise<AiConfig> {
-  const settings = await findSiteSettings();
+  const settings = await findAiSettings();
   const environment = readEnvironmentConfig();
   const useStoredConfig = Boolean(settings?.aiConfigured);
 
