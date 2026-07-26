@@ -237,6 +237,7 @@ type AiEditTextResult = {
 
 - 后台配置页面只显示 API Key 是否已配置，不回显原始 Key。
 - AI 配置与站点基本设置分离，站点设置未完成时也可以独立保存 AI 配置。
+- 绑定有效服务商、模型和 API Key 后即视为可用，不提供额外的全局启用开关；AI SEO 和正文 AI 共用当前绑定。
 - API Key 使用服务端 `BETTER_AUTH_SECRET` 派生的 AES-256-GCM 密钥加密保存。
 - 浏览器请求只能访问站内 AI API，不直接访问供应商接口。
 - 服务商、Base URL 和模型可以修改，但协议首版固定为 Chat Completions。
