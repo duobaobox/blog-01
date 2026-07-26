@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Mail } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 interface FooterProps {
   siteName: string;
@@ -24,78 +24,61 @@ export function Footer({
     `© ${new Date().getFullYear()} ${siteName}. All rights reserved.`;
 
   return (
-    <footer className="public-footer border-t">
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-14">
-        <div className="public-footer__grid">
-          <div className="public-footer__brand">
+    <footer className="public-footer border-t border-border/60 bg-transparent">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-9">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <Link
               href="/"
-              className="public-brand inline-flex"
+              className="text-sm font-semibold text-foreground no-underline"
               aria-label={`回到 ${siteName} 首页`}
             >
-              <span className="public-brand__mark" aria-hidden="true">
-                <span className="public-brand__spark" />
-              </span>
-              <span className="public-brand__copy min-w-0">
-                <span className="truncate">{siteName}</span>
-                <span className="public-brand__meta">OPEN NOTES / BLOG</span>
-              </span>
+              {siteName}
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
               {description}
             </p>
           </div>
 
-          <div>
-            <p className="public-footer__kicker">Browse</p>
-            <nav aria-label="页脚导航" className="public-footer__links">
-              {nav.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          <div>
-            <p className="public-footer__kicker">Connect</p>
-            <div className="public-footer__links">
-              {email ? <Link href={`mailto:${email}`}>Email</Link> : null}
-              <Link href="/feed.xml">RSS</Link>
-            </div>
-          </div>
-
-          <div className="public-footer__note">
-            <span className="public-footer__note-dot" aria-hidden="true" />
-            <div>
-              <p className="font-medium text-foreground">Archive status</p>
-              <p className="mt-1 leading-5 text-muted-foreground">
-                Notes, experiments and practical lessons — kept open.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="public-footer__bottom">
-          <p className="text-xs text-muted-foreground">{copyrightText}</p>
-          <div className="flex items-center gap-3">
+          <nav
+            aria-label="页脚导航"
+            className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+          >
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-muted-foreground no-underline transition-colors hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              href="/feed.xml"
+              className="text-muted-foreground no-underline transition-colors hover:text-foreground"
+            >
+              RSS
+            </Link>
             {email ? (
               <Link
                 href={`mailto:${email}`}
-                className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Email"
+                className="text-muted-foreground no-underline transition-colors hover:text-foreground"
               >
-                <Mail className="h-4 w-4" />
+                Email
               </Link>
             ) : null}
-            <Link
-              href="#top"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              回到顶部
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+          </nav>
+        </div>
+
+        <div className="mt-7 flex flex-col gap-2 border-t border-border/50 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>{copyrightText}</p>
+          <Link
+            href="#top"
+            className="inline-flex items-center gap-1 no-underline transition-colors hover:text-foreground"
+          >
+            回到顶部
+            <ArrowUpRight className="size-3.5" />
+          </Link>
         </div>
       </div>
     </footer>
