@@ -6,7 +6,6 @@ import type { AiSettingsWriteInput } from "@/features/ai/lib/ai-settings-write";
 export async function updateAiSettings(input: AiSettingsWriteInput) {
   const existingSettings = await aiSettingsRepo.findAiSettings();
 
-
   if (
     input.enabled &&
     !input.apiKey &&
