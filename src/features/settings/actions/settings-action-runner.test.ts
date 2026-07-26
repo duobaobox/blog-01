@@ -23,6 +23,7 @@ test("settings action runner updates settings and refreshes admin/public surface
     siteDescription: null,
     siteUrl: "https://example.com",
     logoUrl: null,
+    faviconUrl: null,
     email: null,
     footerText: null,
   });
