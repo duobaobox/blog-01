@@ -17,17 +17,10 @@ export interface ResolvedSiteConfig {
   url: string;
   updatedAt?: Date;
   nav: ReadonlyArray<{ label: string; href: string }>;
-  social: {
-    github: string;
-    x: string;
-    email: string;
-  };
+  email?: string;
   footerText?: string;
-  subtitle?: string;
   logo?: MediaPresentation;
-  avatar?: MediaPresentation;
   logoUrl?: string;
-  avatarUrl?: string;
 }
 
 function buildMediaPresentation(
@@ -38,12 +31,14 @@ function buildMediaPresentation(
     return undefined;
   }
 
-  return mediaByUrl.get(url) ?? {
-    url,
-    width: null,
-    height: null,
-    alt: null,
-  };
+  return (
+    mediaByUrl.get(url) ?? {
+      url,
+      width: null,
+      height: null,
+      alt: null,
+    }
+  );
 }
 
 type ResolvedSiteConfigDependencies = {
@@ -58,7 +53,8 @@ export function createResolvedSiteConfigQuery(
   },
 ) {
   return async function getResolvedSiteConfigUncached(): Promise<ResolvedSiteConfig> {
-    let dbSettings: Awaited<ReturnType<typeof settingsRepo.findSiteSettings>> = null;
+    let dbSettings: Awaited<ReturnType<typeof settingsRepo.findSiteSettings>> =
+      null;
 
     try {
       dbSettings = await dependencies.findSiteSettings();
@@ -69,10 +65,8 @@ export function createResolvedSiteConfigQuery(
     if (dbSettings) {
       const mediaByUrl = await dependencies.resolveMediaPresentationMap([
         dbSettings.logoUrl,
-        dbSettings.avatarUrl,
       ]);
       const logo = buildMediaPresentation(dbSettings.logoUrl, mediaByUrl);
-      const avatar = buildMediaPresentation(dbSettings.avatarUrl, mediaByUrl);
 
       return {
         name: dbSettings.siteTitle,
@@ -80,17 +74,10 @@ export function createResolvedSiteConfigQuery(
         url: normalizeSiteUrl(dbSettings.siteUrl),
         updatedAt: dbSettings.updatedAt,
         nav: siteConfig.nav,
-        social: {
-          github: dbSettings.githubUrl ?? "",
-          x: dbSettings.xUrl ?? "",
-          email: dbSettings.email ?? "",
-        },
+        email: dbSettings.email ?? undefined,
         footerText: dbSettings.footerText ?? undefined,
-        subtitle: dbSettings.siteSubtitle ?? undefined,
         logo,
-        avatar,
         logoUrl: logo?.url,
-        avatarUrl: avatar?.url,
       };
     }
 
@@ -99,7 +86,7 @@ export function createResolvedSiteConfigQuery(
       description: siteConfig.description,
       url: siteConfig.url,
       nav: siteConfig.nav,
-      social: siteConfig.social,
+      email: siteConfig.email || undefined,
     };
   };
 }
