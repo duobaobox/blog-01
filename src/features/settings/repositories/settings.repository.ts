@@ -32,12 +32,7 @@ export async function findSiteSettingsForAdmin() {
 
   if (!settings) return null;
 
-  const { aiApiKeyEncrypted, ...safeSettings } = settings;
-
-  return {
-    ...safeSettings,
-    aiApiKeyConfigured: Boolean(aiApiKeyEncrypted),
-  };
+  return settings;
 }
 
 export async function findSiteSettingsSummary() {
