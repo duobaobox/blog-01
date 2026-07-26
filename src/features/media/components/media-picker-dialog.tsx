@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { fetchMediaPickerItems } from "@/features/media/lib/media-picker-client";
 import type { MediaItem } from "@/features/media/types/storage.types";
 import {
   Dialog,
@@ -33,23 +34,79 @@ export function MediaPickerDialog({
   const [items, setItems] = useState<MediaItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
   const [justUploaded, setJustUploaded] = useState<MediaItem | null>(null);
   const uploadResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
 
   const fetchMedia = useCallback(async () => {
+    requestControllerRef.current?.abort();
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
+
     setLoading(true);
+    setLoadError(null);
+
     try {
-      const params = mimeTypePrefix ? `?mimeTypePrefix=${mimeTypePrefix}` : "";
-      const res = await fetch(`/api/media${params}`);
-      const data = await res.json();
-      setItems(data.items ?? []);
-    } catch {
+      const nextItems = await fetchMediaPickerItems({
+        mimeTypePrefix,
+        signal: controller.signal,
+      });
+
+      if (!controller.signal.aborted) {
+        setItems(nextItems);
+      }
+    } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
       setItems([]);
+      setLoadError(
+        error instanceof Error && error.message
+          ? error.message
+          : "媒体库加载失败，请稍后重试。",
+      );
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [mimeTypePrefix]);
+
+  useEffect(() => {
+    if (!open) {
+      requestControllerRef.current?.abort();
+      requestControllerRef.current = null;
+
+      if (uploadResetTimerRef.current) {
+        clearTimeout(uploadResetTimerRef.current);
+        uploadResetTimerRef.current = null;
+      }
+
+      setSelectedItem(null);
+      setJustUploaded(null);
+      setActiveTab("library");
+      setLoadError(null);
+      return;
+    }
+
+    void fetchMedia();
+
+    return () => {
+      requestControllerRef.current?.abort();
+    };
+  }, [fetchMedia, open]);
+
+  useEffect(() => {
+    return () => {
+      requestControllerRef.current?.abort();
+      if (uploadResetTimerRef.current) {
+        clearTimeout(uploadResetTimerRef.current);
+      }
+    };
+  }, []);
 
   function handleConfirm() {
     if (selectedItem) {
@@ -64,13 +121,18 @@ export function MediaPickerDialog({
   }
 
   function handleUploadComplete(media: MediaItem) {
-    setItems((prev) => [media, ...prev]);
+    setItems((previousItems) => [
+      media,
+      ...previousItems.filter((item) => item.id !== media.id),
+    ]);
     setSelectedItem(media);
     setJustUploaded(media);
+    setLoadError(null);
+
     if (uploadResetTimerRef.current) {
       clearTimeout(uploadResetTimerRef.current);
     }
-    // 300ms 后自动切换到媒体库，让用户看到上传成功的状态
+
     uploadResetTimerRef.current = setTimeout(() => {
       setActiveTab("library");
       setJustUploaded(null);
@@ -80,25 +142,7 @@ export function MediaPickerDialog({
   const isImage = (item: MediaItem) => item.mimeType.startsWith("image/");
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          if (uploadResetTimerRef.current) {
-            clearTimeout(uploadResetTimerRef.current);
-            uploadResetTimerRef.current = null;
-          }
-          setSelectedItem(null);
-          setJustUploaded(null);
-          setActiveTab("library");
-          onOpenChange(false);
-          return;
-        }
-
-        void fetchMedia();
-        onOpenChange(true);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>选择媒体</DialogTitle>
@@ -106,7 +150,9 @@ export function MediaPickerDialog({
 
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "library" | "upload")}
+          onValueChange={(value) =>
+            setActiveTab(value as "library" | "upload")
+          }
         >
           <TabsList className="w-full">
             <TabsTrigger value="library">媒体库</TabsTrigger>
@@ -116,7 +162,26 @@ export function MediaPickerDialog({
           <TabsContent value="library" className="mt-4">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <p className="text-sm text-muted-foreground">加载中...</p>
+                <RefreshCw className="mr-2 size-4 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">加载媒体库...</p>
+              </div>
+            ) : loadError ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
+                <AlertCircle className="size-6 text-destructive" />
+                <p className="mt-3 text-sm font-medium">媒体库加载失败</p>
+                <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
+                  {loadError}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => void fetchMedia()}
+                >
+                  <RefreshCw />
+                  重新加载
+                </Button>
               </div>
             ) : (
               <div className="max-h-[400px] overflow-y-auto">
@@ -168,11 +233,11 @@ export function MediaPickerDialog({
         </Tabs>
 
         <DialogFooter className="items-center">
-          {selectedItem && (
+          {selectedItem ? (
             <p className="mr-auto text-xs text-muted-foreground">
               已选：{selectedItem.filename}
             </p>
-          )}
+          ) : null}
           <Button disabled={!selectedItem} onClick={handleConfirm}>
             确认选择
           </Button>
