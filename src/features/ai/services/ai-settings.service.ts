@@ -10,13 +10,13 @@ export async function updateAiSettings(input: AiSettingsWriteInput) {
   if (
     input.enabled &&
     !input.apiKey &&
-    !existingSettings.aiApiKeyEncrypted &&
+    !existingSettings?.aiApiKeyEncrypted &&
     !input.clearApiKey
   ) {
     throw new ValidationError("启用 AI 前请填写 API Key。");
   }
 
-  let aiApiKeyEncrypted = existingSettings.aiApiKeyEncrypted;
+  let aiApiKeyEncrypted = existingSettings?.aiApiKeyEncrypted ?? null;
 
   if (input.clearApiKey) {
     aiApiKeyEncrypted = null;
