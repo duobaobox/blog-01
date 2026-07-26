@@ -3,7 +3,6 @@ import { normalizeOptionalString, validateOptionalHttpUrl } from "@/shared/lib/v
 import { ValidationError } from "@/shared/lib/app-error";
 
 export type AiSettingsWriteInput = {
-  enabled: boolean;
   provider: string;
   baseUrl: string;
   model: string;
@@ -21,7 +20,6 @@ export function parseAiSettingsFormData(
     normalizeOptionalString(formData.get("aiBaseUrl")) || preset.baseUrl;
   const model = normalizeOptionalString(formData.get("aiModel")) || "";
   const apiKey = normalizeOptionalString(formData.get("aiApiKey")) || "";
-  const enabled = formData.get("aiEnabled") === "true";
   const clearApiKey = formData.get("aiClearApiKey") === "true";
 
   if (!baseUrl) {
@@ -33,8 +31,8 @@ export function parseAiSettingsFormData(
     "AI Base URL 格式不正确，请填写完整的 http/https 地址",
   );
 
-  if (enabled && !model) {
-    throw new ValidationError("启用 AI 前请填写模型名称");
+  if (!model) {
+    throw new ValidationError("请填写模型名称");
   }
 
   if (clearApiKey && apiKey) {
@@ -46,7 +44,6 @@ export function parseAiSettingsFormData(
   }
 
   return {
-    enabled,
     provider,
     baseUrl: baseUrl.replace(/\/+$/, ""),
     model,
