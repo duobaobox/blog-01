@@ -17,6 +17,7 @@ test("updateSiteSettings falls back to the persisted site url when the form omit
         siteDescription: null,
         siteUrl: "https://persisted.example.com/",
         logoUrl: null,
+        faviconUrl: null,
         avatarUrl: null,
         githubUrl: null,
         xUrl: null,
@@ -34,6 +35,7 @@ test("updateSiteSettings falls back to the persisted site url when the form omit
     siteDescription: null,
     siteUrl: null,
     logoUrl: null,
+    faviconUrl: null,
     email: null,
     footerText: null,
   });
@@ -47,6 +49,7 @@ test("updateSiteSettings falls back to the persisted site url when the form omit
         siteDescription: null,
         siteUrl: "https://persisted.example.com",
         logoUrl: null,
+        faviconUrl: null,
         email: null,
         footerText: null,
       },
@@ -70,6 +73,7 @@ test("updateSiteSettings preserves the submitted site url when present", async (
     siteDescription: null,
     siteUrl: "https://submitted.example.com/",
     logoUrl: null,
+    faviconUrl: null,
     email: null,
     footerText: null,
   });
@@ -79,6 +83,7 @@ test("updateSiteSettings preserves the submitted site url when present", async (
     siteDescription: null,
     siteUrl: "https://submitted.example.com",
     logoUrl: null,
+    faviconUrl: null,
     email: null,
     footerText: null,
   });
