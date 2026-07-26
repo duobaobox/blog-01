@@ -2,20 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createResolvedSiteConfigQuery } from "./site-config.query";
 
-test("resolved site config projects logo and avatar media metadata", async () => {
+test("resolved site config projects the configured logo metadata", async () => {
   const calls: Array<Array<string | null | undefined>> = [];
   const query = createResolvedSiteConfigQuery({
     async findSiteSettings() {
       return {
         scopeKey: "default",
         siteTitle: "Example Blog",
-        siteSubtitle: "Notes",
+        siteSubtitle: "Legacy subtitle",
         siteDescription: "Example description",
         siteUrl: "https://example.com/",
         logoUrl: "/media/logo.png",
-        avatarUrl: "https://cdn.example.com/avatar.png",
-        githubUrl: "https://github.com/example",
-        xUrl: "https://x.com/example",
+        avatarUrl: "https://cdn.example.com/legacy-avatar.png",
+        githubUrl: "https://github.com/legacy",
+        xUrl: "https://x.com/legacy",
         email: "hi@example.com",
         footerText: "Footer",
         createdAt: new Date("2026-06-01T00:00:00.000Z"),
@@ -25,12 +25,15 @@ test("resolved site config projects logo and avatar media metadata", async () =>
     async resolveMediaPresentationMap(urls) {
       calls.push(urls);
       return new Map([
-        ["/media/logo.png", {
-          url: "/media/logo.png",
-          width: 320,
-          height: 96,
-          alt: "Site logo",
-        }],
+        [
+          "/media/logo.png",
+          {
+            url: "/media/logo.png",
+            width: 320,
+            height: 96,
+            alt: "Site logo",
+          },
+        ],
       ]);
     },
   });
@@ -38,24 +41,17 @@ test("resolved site config projects logo and avatar media metadata", async () =>
   const result = await query();
 
   assert.equal(result.url, "https://example.com");
-  assert.deepEqual(calls, [[
-    "/media/logo.png",
-    "https://cdn.example.com/avatar.png",
-  ]]);
+  assert.deepEqual(calls, [["/media/logo.png"]]);
   assert.deepEqual(result.logo, {
     url: "/media/logo.png",
     width: 320,
     height: 96,
     alt: "Site logo",
   });
-  assert.deepEqual(result.avatar, {
-    url: "https://cdn.example.com/avatar.png",
-    width: null,
-    height: null,
-    alt: null,
-  });
   assert.equal(result.logoUrl, "/media/logo.png");
-  assert.equal(result.avatarUrl, "https://cdn.example.com/avatar.png");
+  assert.equal(result.email, "hi@example.com");
+  assert.equal("avatar" in result, false);
+  assert.equal("social" in result, false);
 });
 
 test("resolved site config falls back to static config when settings are unavailable", async () => {
@@ -77,5 +73,4 @@ test("resolved site config falls back to static config when settings are unavail
   assert.equal(typeof result.url, "string");
   assert.equal(resolverCalls, 0);
   assert.equal(result.logo, undefined);
-  assert.equal(result.avatar, undefined);
 });
