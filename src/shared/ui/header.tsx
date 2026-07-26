@@ -71,7 +71,7 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
           <Link
             href="/"
             className="public-brand min-w-0 justify-self-start"
-            aria-label={`回到 ${siteName} 首页`}
+            aria-label={"回到 " + siteName + " 首页"}
           >
             <span className="public-brand__mark" aria-hidden="true">
               {logo ? (
@@ -88,8 +88,7 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
               )}
             </span>
             <span className="public-brand__copy min-w-0">
-              <span className="truncate">{siteName}</span>
-              <span className="public-brand__meta">OPEN NOTES / BLOG</span>
+              <span className="public-brand__title">{siteName}</span>
             </span>
           </Link>
 
