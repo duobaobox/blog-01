@@ -11,6 +11,7 @@ test("parseSiteSettingsFormData normalizes optional fields and site url", () => 
   formData.set("siteTitle", "  My Blog  ");
   formData.set("siteUrl", "https://example.com/");
   formData.set("logoUrl", " /media/logo.png ");
+  formData.set("faviconUrl", " /media/favicon.png ");
   formData.set("footerText", "  Hello  ");
 
   assert.deepEqual(parseSiteSettingsFormData(formData), {
@@ -18,6 +19,7 @@ test("parseSiteSettingsFormData normalizes optional fields and site url", () => 
     siteDescription: null,
     siteUrl: "https://example.com",
     logoUrl: "/media/logo.png",
+    faviconUrl: "/media/favicon.png",
     email: null,
     footerText: "Hello",
   });
@@ -27,10 +29,15 @@ test("parseSiteSettingsFormData accepts absolute external logo urls", () => {
   const formData = new FormData();
   formData.set("siteTitle", "Blog");
   formData.set("logoUrl", "https://cdn.example.com/logo.png");
+  formData.set("faviconUrl", "https://cdn.example.com/favicon.png");
 
   assert.equal(
     parseSiteSettingsFormData(formData).logoUrl,
     "https://cdn.example.com/logo.png",
+  );
+  assert.equal(
+    parseSiteSettingsFormData(formData).faviconUrl,
+    "https://cdn.example.com/favicon.png",
   );
 });
 
@@ -49,6 +56,7 @@ test("resolveSiteSettingsInput falls back to the provided site url", () => {
         siteDescription: null,
         siteUrl: null,
         logoUrl: null,
+        faviconUrl: null,
         email: null,
         footerText: null,
       },
@@ -68,4 +76,9 @@ test("parseSiteSettingsFormData rejects unsafe or incomplete logo urls", () => {
 
     assert.throws(() => parseSiteSettingsFormData(formData), ValidationError);
   }
+
+  const formData = new FormData();
+  formData.set("siteTitle", "Blog");
+  formData.set("faviconUrl", "favicon.png");
+  assert.throws(() => parseSiteSettingsFormData(formData), ValidationError);
 });
