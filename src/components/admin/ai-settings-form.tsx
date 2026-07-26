@@ -100,7 +100,13 @@ export function AiSettingsForm({ settings }: AiSettingsFormProps) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs text-emerald-700 dark:text-emerald-400">
+          <div
+            className={
+              isConfigured
+                ? "flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs text-emerald-700 dark:text-emerald-400"
+                : "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs text-muted-foreground"
+            }
+          >
             <span
               className={
                 isConfigured
