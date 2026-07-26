@@ -24,6 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${site.name}`,
     },
     description: site.description,
+    icons: site.faviconUrl
+      ? {
+          icon: [{ url: site.faviconUrl }],
+          shortcut: [{ url: site.faviconUrl }],
+          apple: [{ url: site.faviconUrl }],
+        }
+      : undefined,
     openGraph: {
       siteName: site.name,
     },
