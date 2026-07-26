@@ -7,12 +7,11 @@ export async function updateAiSettings(input: AiSettingsWriteInput) {
   const existingSettings = await aiSettingsRepo.findAiSettings();
 
   if (
-    input.enabled &&
     !input.apiKey &&
     !existingSettings?.aiApiKeyEncrypted &&
     !input.clearApiKey
   ) {
-    throw new ValidationError("启用 AI 前请填写 API Key。");
+    throw new ValidationError("请填写 API Key。");
   }
 
   let aiApiKeyEncrypted = existingSettings?.aiApiKeyEncrypted ?? null;
@@ -23,13 +22,12 @@ export async function updateAiSettings(input: AiSettingsWriteInput) {
     aiApiKeyEncrypted = encryptAiApiKey(input.apiKey);
   }
 
-  if (input.enabled && !aiApiKeyEncrypted) {
-    throw new ValidationError("启用 AI 前请配置 API Key。");
+  if (!aiApiKeyEncrypted) {
+    throw new ValidationError("请配置 API Key。");
   }
 
   await aiSettingsRepo.upsertAiSettings({
     aiConfigured: true,
-    aiEnabled: input.enabled,
     aiProvider: input.provider,
     aiBaseUrl: input.baseUrl,
     aiModel: input.model || null,
