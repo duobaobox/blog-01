@@ -179,6 +179,7 @@ model siteSetting {
   siteDescription String?  @db.Text
   siteUrl         String
   logoUrl         String?  @db.Text
+  faviconUrl      String?  @db.Text
   avatarUrl       String?  @db.Text
   githubUrl       String?  @db.Text
   xUrl            String?  @db.Text
