@@ -20,13 +20,9 @@ test("settings action runner updates settings and refreshes admin/public surface
 
   await runner.updateSiteSettings({
     siteTitle: "Blog",
-    siteSubtitle: null,
     siteDescription: null,
     siteUrl: "https://example.com",
     logoUrl: null,
-    avatarUrl: null,
-    githubUrl: null,
-    xUrl: null,
     email: null,
     footerText: null,
   });
