@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import type { HomeScene } from "@/features/home/lib/home-scene";
@@ -16,8 +17,14 @@ export function HomeHeroVisual({
   sceneSeed,
 }: HomeHeroVisualProps) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const scenes: readonly HomeScene[] =
-    resolvedTheme === "dark" ? visual.dark : visual.light;
+    mounted && resolvedTheme === "dark" ? visual.dark : visual.light;
   const scene = pickHomeScene(scenes, sceneSeed);
 
   return (
