@@ -18,6 +18,7 @@ export default async function HomePage() {
       homeConfig.sections.featuredPosts.limit,
     ),
   ]);
+  const heroSceneSeed = Math.random();
 
   return (
     <div className="relative isolate min-h-full overflow-hidden">
@@ -27,6 +28,7 @@ export default async function HomePage() {
           config={homeConfig.sections.hero}
           highlightedPost={homepagePosts.posts[0]}
           postSource={homepagePosts.source}
+          sceneSeed={heroSceneSeed}
         />
       ) : null}
 
