@@ -8,7 +8,7 @@ import { Menu } from "lucide-react";
 import type { MediaPresentation } from "@/features/media/queries/media.queries";
 import { useNavigationGlass } from "@/shared/hooks/use-navigation-glass";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button";
 import { NavigationGlassDefs } from "@/shared/ui/navigation-glass-defs";
 import {
   Sheet,
@@ -19,6 +19,8 @@ import {
   SheetTrigger,
 } from "@/shared/ui/sheet";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
+
+const MOBILE_NAVIGATION_TRIGGER_ID = "public-mobile-navigation-trigger";
 
 type NavigationItem = {
   label: string;
@@ -84,15 +86,17 @@ function MobileNavigation({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      triggerId={open ? MOBILE_NAVIGATION_TRIGGER_ID : null}
+    >
       <SheetTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            className="public-menu-button md:hidden"
-          />
-        }
+        id={MOBILE_NAVIGATION_TRIGGER_ID}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon" }),
+          "public-menu-button md:hidden",
+        )}
       >
         <Menu aria-hidden="true" />
         <span className="sr-only">菜单</span>
