@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { pickHomeScene } from "./home-scene";
+import { createHomeSceneSeed, pickHomeScene } from "./home-scene";
 
 const scenes = [
   { imageUrl: "/first.png", imageAlt: "first" },
   { imageUrl: "/second.png", imageAlt: "second" },
   { imageUrl: "/third.png", imageAlt: "third" },
 ] as const;
+
+test("相同内容生成稳定的主页场景种子", () => {
+  const seed = createHomeSceneSeed("多宝:first-post");
+
+  assert.equal(seed, createHomeSceneSeed("多宝:first-post"));
+  assert.ok(seed >= 0 && seed < 1);
+  assert.notEqual(seed, createHomeSceneSeed("多宝:second-post"));
+});
 
 test("按稳定种子选择主页场景", () => {
   assert.equal(pickHomeScene(scenes, 0), scenes[0]);
