@@ -14,6 +14,7 @@ import { normalizeSiteUrl } from "@/shared/lib/url";
 export interface ResolvedSiteConfig {
   name: string;
   description: string;
+  subtitle?: string;
   url: string;
   updatedAt?: Date;
   nav: ReadonlyArray<{ label: string; href: string }>;
@@ -78,6 +79,7 @@ export function createResolvedSiteConfigQuery(
       return {
         name: dbSettings.siteTitle,
         description: dbSettings.siteDescription ?? siteConfig.description,
+        subtitle: dbSettings.siteSubtitle ?? undefined,
         url: normalizeSiteUrl(dbSettings.siteUrl),
         updatedAt: dbSettings.updatedAt,
         nav: siteConfig.nav,
