@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, BookOpenText, Calendar, Clock } from "lucide-react";
-import type { PublicPostCard } from "@/features/posts/queries/post.queries";
-import { getPostDisplayDate } from "@/features/posts/lib/post-status";
-import { TagBadge } from "@/features/taxonomy/components/tag-badge";
-import type { HomeFeaturedPostsConfig } from "@/features/home/config/home.config";
 import { HomeSectionShell } from "@/features/home/components/home-section-shell";
+import type { HomeFeaturedPostsConfig } from "@/features/home/config/home.config";
+import { getPostDisplayDate } from "@/features/posts/lib/post-status";
+import type { PublicPostCard } from "@/features/posts/queries/post.queries";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { formatDate } from "@/shared/lib/date";
 
 type HomeFeaturedPostsProps = {
@@ -53,10 +53,10 @@ function HomePostCard({
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[#ebe8f4] bg-white/[0.94] shadow-[0_14px_36px_-30px_rgba(82,75,155,0.34)] transition duration-300 hover:-translate-y-1 hover:border-site-accent/25 hover:shadow-[0_22px_44px_-29px_rgba(82,75,155,0.34)] dark:border-white/10 dark:bg-white/[0.055]"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[var(--home-card-border)] bg-[var(--home-card-surface)] shadow-[var(--home-card-shadow)] transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-site-accent/25 hover:shadow-[var(--home-card-shadow-hover)]"
     >
       <div
-        className={`relative aspect-[16/9] overflow-hidden border-b border-[#eeeaf7] bg-linear-to-br ${placeholder.surface} dark:border-white/10`}
+        className={`relative aspect-[16/9] overflow-hidden border-b border-[var(--home-card-border)] bg-linear-to-br ${placeholder.surface}`}
       >
         {coverImageUrl ? (
           <>
@@ -79,16 +79,16 @@ function HomePostCard({
             <div className="absolute -bottom-14 -left-8 size-36 rounded-full border border-white/75 bg-white/[0.48] dark:border-white/10 dark:bg-white/5" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className={`flex size-16 -rotate-6 items-center justify-center rounded-[1.05rem] bg-linear-to-br text-white shadow-xl transition duration-300 group-hover:rotate-0 group-hover:scale-105 ${placeholder.icon}`}
+                className={`flex size-16 -rotate-6 items-center justify-center rounded-[1.05rem] bg-linear-to-br text-white shadow-xl transition-transform duration-300 group-hover:rotate-0 group-hover:scale-105 ${placeholder.icon}`}
               >
-                <BookOpenText className="size-8" />
+                <BookOpenText className="size-8" aria-hidden="true" />
               </div>
             </div>
           </>
         )}
 
-        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/75 bg-white/[0.78] text-site-accent shadow-sm backdrop-blur transition duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55">
-          <ArrowUpRight className="size-4" />
+        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/75 bg-white/[0.78] text-site-accent shadow-sm backdrop-blur transition-[background-color,transform] duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55">
+          <ArrowUpRight className="size-4" aria-hidden="true" />
         </span>
       </div>
 
@@ -101,27 +101,29 @@ function HomePostCard({
               {post.category.name}
             </span>
           ) : (
-            <span className="rounded-full bg-[#f7f7fa] px-2.5 py-1 text-xs text-[#8b91a2] dark:bg-white/5 dark:text-slate-300/70">
+            <span className="rounded-full bg-[var(--home-card-chip)] px-2.5 py-1 text-xs text-[var(--home-card-muted)]">
               博客文章
             </span>
           )}
         </div>
 
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[#252a3e] transition-colors group-hover:text-site-accent sm:text-lg dark:text-white dark:group-hover:text-site-accent">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[var(--home-text-strong)] transition-colors group-hover:text-site-accent sm:text-lg">
           {post.title}
         </h3>
 
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-4 text-xs text-[#9aa0b0] dark:text-slate-400">
+        <div className="mt-auto flex flex-wrap items-center gap-2 pt-4 text-xs text-[var(--home-card-muted)]">
           {post.readingTimeMinutes ? (
             <span className="inline-flex items-center gap-1">
-              <Clock className="size-3.5" />
+              <Clock className="size-3.5" aria-hidden="true" />
               {post.readingTimeMinutes} 分钟阅读
             </span>
           ) : null}
-          {post.readingTimeMinutes && displayDate ? <span>·</span> : null}
+          {post.readingTimeMinutes && displayDate ? (
+            <span aria-hidden="true">·</span>
+          ) : null}
           {displayDate ? (
             <span className="inline-flex items-center gap-1">
-              <Calendar className="size-3.5" />
+              <Calendar className="size-3.5" aria-hidden="true" />
               {formatDate(displayDate)}
             </span>
           ) : null}
