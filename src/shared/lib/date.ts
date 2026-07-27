@@ -1,19 +1,28 @@
+const PUBLIC_DATE_TIME_ZONE = "Asia/Shanghai";
+
+const publicDateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: PUBLIC_DATE_TIME_ZONE,
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+});
+
 /**
- * 格式化日期对象为 YYYY年MM月DD日 格式
- * 这样可以确保在服务端 (Node.js) 和客户端 (浏览器) 渲染结果始终一致，
- * 避免因为 locale 环境不同导致的水合 (Hydration) 报错。
+ * 使用固定时区格式化公开页面日期，避免服务端与浏览器时区不同导致水合差异。
  */
 export function formatDate(date: Date | string | number): string {
-  const d = new Date(date);
-  
-  // 检查无效日期
-  if (isNaN(d.getTime())) {
+  const value = new Date(date);
+
+  if (Number.isNaN(value.getTime())) {
     return "";
   }
 
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
+  const parts = publicDateFormatter.formatToParts(value);
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
 
-  return `${year}年${month}月${day}日`;
+  return `${values.year}年${values.month}月${values.day}日`;
 }
