@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { AdminPage } from "@/components/admin/admin-page";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -30,68 +31,62 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-[1680px] p-4 md:p-6">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold">分类管理</h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              管理文章的分类，用于在博客中组织和筛选内容
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setCreating(true)}>
-            <Plus className="size-4" />
-            新建分类
-          </Button>
-        </div>
-
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">名称</th>
-                <th className="px-4 py-3 text-left font-medium">文章数</th>
-                <th className="px-4 py-3 text-right font-medium">操作</th>
+    <AdminPage
+      title="分类管理"
+      description="管理文章的分类，用于在博客中组织和筛选内容"
+      actions={
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-4" />
+          新建分类
+        </Button>
+      }
+    >
+      <div className="rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">名称</th>
+              <th className="px-4 py-3 text-left font-medium">文章数</th>
+              <th className="px-4 py-3 text-right font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 py-10 text-center text-muted-foreground"
+                >
+                  暂无分类，点击右上角新建一个
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {categories.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-4 py-10 text-center text-muted-foreground"
-                  >
-                    暂无分类，点击右上角新建一个
+            ) : (
+              categories.map((category) => (
+                <tr
+                  key={category.id}
+                  className="border-b last:border-0 hover:bg-muted/30"
+                >
+                  <td className="px-4 py-3 font-medium">{category.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {category._count.posts}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setCreating(false);
+                        setEditing(category);
+                      }}
+                    >
+                      编辑
+                    </Button>
                   </td>
                 </tr>
-              ) : (
-                categories.map((cat) => (
-                  <tr
-                    key={cat.id}
-                    className="border-b last:border-0 hover:bg-muted/30"
-                  >
-                    <td className="px-4 py-3 font-medium">{cat.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {cat._count.posts}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setCreating(false);
-                          setEditing(cat);
-                        }}
-                      >
-                        编辑
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       <Dialog
@@ -107,6 +102,6 @@ export function CategoriesList({ categories }: { categories: Category[] }) {
           <CategoryForm category={editing ?? undefined} onClose={handleClose} />
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminPage>
   );
 }
