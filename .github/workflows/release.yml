@@ -8,6 +8,8 @@ on:
 permissions:
   contents: write
   packages: write
+  attestations: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -57,6 +59,14 @@ jobs:
             exit 1
           fi
 
+      - name: 校验交付脚本
+        run: |
+          bash -n install.sh
+          bash -n delivery/release/install.sh
+          bash -n delivery/release/blogctl
+          bash -n scripts/release/build-release-bundle.sh
+          docker compose --env-file .env.release.example -f docker-compose.release.yml config >/dev/null
+
       - name: 配置 Node.js
         uses: actions/setup-node@v6
         with:
@@ -80,6 +90,14 @@ jobs:
 
       - name: 构建应用
         run: npm run build
+
+      - name: 验证服务器安装包
+        run: |
+          bash scripts/release/build-release-bundle.sh "${GITHUB_REF_NAME#v}"
+          (
+            cd dist
+            sha256sum -c blog-01-linux-amd64.tar.gz.sha256
+          )
 
   publish:
     name: 发布 AMD64 镜像与安装包
@@ -131,34 +149,22 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: 证明容器镜像来源
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+
       - name: 生成服务器安装包
-        run: |
-          set -euo pipefail
+        run: bash scripts/release/build-release-bundle.sh "${GITHUB_REF_NAME#v}"
 
-          VERSION="${GITHUB_REF_NAME#v}"
-          RELEASE_DIR="dist/blog-01-linux-amd64"
-          ASSET="dist/blog-01-linux-amd64.tar.gz"
-
-          rm -rf dist
-          mkdir -p "$RELEASE_DIR"
-
-          cp docker-compose.release.yml "$RELEASE_DIR/compose.yaml"
-          cp .env.release.example "$RELEASE_DIR/.env.example"
-          cp delivery/release/install.sh "$RELEASE_DIR/install.sh"
-          cp delivery/release/blogctl "$RELEASE_DIR/blogctl"
-          cp delivery/release/README.md "$RELEASE_DIR/README.md"
-          cp scripts/backup-docker.sh "$RELEASE_DIR/backup-docker.sh"
-          cp scripts/restore-docker.sh "$RELEASE_DIR/restore-docker.sh"
-          printf '%s\n' "$VERSION" > "$RELEASE_DIR/VERSION"
-
-          chmod +x \
-            "$RELEASE_DIR/install.sh" \
-            "$RELEASE_DIR/blogctl" \
-            "$RELEASE_DIR/backup-docker.sh" \
-            "$RELEASE_DIR/restore-docker.sh"
-
-          tar -C dist -czf "$ASSET" blog-01-linux-amd64
-          sha256sum "$ASSET" > "$ASSET.sha256"
+      - name: 证明安装包来源
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/blog-01-linux-amd64.tar.gz
+            dist/blog-01-linux-amd64.tar.gz.sha256
 
       - name: 创建 GitHub Release
         env:
@@ -173,7 +179,7 @@ jobs:
           )
 
           if printf '%s' "${GITHUB_REF_NAME}" | grep -q '-'; then
-            RELEASE_FLAGS+=(--prerelease)
+            RELEASE_FLAGS+=(--prerelease --latest=false)
           else
             RELEASE_FLAGS+=(--latest)
           fi
