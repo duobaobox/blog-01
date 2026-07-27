@@ -1,11 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { cardMotifs } from "@/features/posts/components/card-motifs";
 import {
   assignMotifIndices,
   CARD_MOTIF_COUNT,
   getMotifIndex,
   resolveMotifIndex,
 } from "./card-motif-assignment";
+
+test("motif assignment count matches the visual registry", () => {
+  assert.equal(CARD_MOTIF_COUNT, cardMotifs.length);
+});
 
 test("getMotifIndex is deterministic and stays in range", () => {
   const first = getMotifIndex("stable-post-slug");
