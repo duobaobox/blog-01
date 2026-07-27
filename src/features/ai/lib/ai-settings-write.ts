@@ -1,5 +1,8 @@
 import { getAiProviderPreset } from "@/features/ai/lib/ai-provider-presets";
-import { normalizeOptionalString, validateOptionalHttpUrl } from "@/shared/lib/validation";
+import {
+  normalizeOptionalString,
+  validateOptionalHttpUrl,
+} from "@/shared/lib/validation";
 import { ValidationError } from "@/shared/lib/app-error";
 
 export type AiSettingsWriteInput = {
@@ -14,7 +17,8 @@ export type AiSettingsWriteInput = {
 export function parseAiSettingsFormData(
   formData: FormData,
 ): AiSettingsWriteInput {
-  const provider = normalizeOptionalString(formData.get("aiProvider")) || "custom";
+  const provider =
+    normalizeOptionalString(formData.get("aiProvider")) || "custom";
   const preset = getAiProviderPreset(provider);
   const baseUrl =
     normalizeOptionalString(formData.get("aiBaseUrl")) || preset.baseUrl;

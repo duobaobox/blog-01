@@ -61,14 +61,14 @@ async function assertReferenceTableExists() {
 async function main() {
   await assertReferenceTableExists();
 
-  const posts = await prisma.post.findMany({
+  const posts = (await prisma.post.findMany({
     select: {
       id: true,
       coverImageUrl: true,
       contentJson: true,
     },
     orderBy: { createdAt: "asc" },
-  }) as PostRow[];
+  })) as PostRow[];
 
   const allCandidateUrls = new Set<string>();
   for (const post of posts) {
@@ -110,7 +110,9 @@ async function main() {
   console.log(`  reference rows to write: ${uniqueRows.length}`);
 
   if (!apply) {
-    console.log("  apply: skipped (pass --apply to replace postMediaReference rows)");
+    console.log(
+      "  apply: skipped (pass --apply to replace postMediaReference rows)",
+    );
     return;
   }
 

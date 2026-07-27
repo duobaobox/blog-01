@@ -215,25 +215,25 @@ function buildPostWhere(filters?: PostFilters): Prisma.postWhereInput {
   if (query) {
     andConditions.push({
       OR: [
-      { title: { contains: query, mode: "insensitive" } },
-      { excerpt: { contains: query, mode: "insensitive" } },
-      { contentText: { contains: query, mode: "insensitive" } },
-      {
-        category: {
-          is: {
-            name: { contains: query, mode: "insensitive" },
-          },
-        },
-      },
-      {
-        tags: {
-          some: {
-            tag: {
+        { title: { contains: query, mode: "insensitive" } },
+        { excerpt: { contains: query, mode: "insensitive" } },
+        { contentText: { contains: query, mode: "insensitive" } },
+        {
+          category: {
+            is: {
               name: { contains: query, mode: "insensitive" },
             },
           },
         },
-      },
+        {
+          tags: {
+            some: {
+              tag: {
+                name: { contains: query, mode: "insensitive" },
+              },
+            },
+          },
+        },
       ],
     });
   }
@@ -389,7 +389,8 @@ export async function createPost(data: {
     usage: "cover" | "content";
   }>;
 }) {
-  const { tagIds, mediaReferences, contentJson, contentToc, ...postData } = data;
+  const { tagIds, mediaReferences, contentJson, contentToc, ...postData } =
+    data;
 
   return db.$transaction(async (tx) => {
     const post = await tx.post.create({
@@ -451,7 +452,8 @@ export async function updatePost(
     }>;
   },
 ) {
-  const { tagIds, mediaReferences, contentJson, contentToc, ...postData } = data;
+  const { tagIds, mediaReferences, contentJson, contentToc, ...postData } =
+    data;
 
   return db.$transaction(async (tx) => {
     await tx.postTag.deleteMany({ where: { postId: id } });
@@ -594,7 +596,10 @@ export async function updatePostsStatus(
   });
 }
 
-export async function updatePostsCategory(ids: string[], categoryId: string | null) {
+export async function updatePostsCategory(
+  ids: string[],
+  categoryId: string | null,
+) {
   if (ids.length === 0) {
     return [];
   }
@@ -648,10 +653,12 @@ export async function replacePostsTags(ids: string[], tagIds: string[]) {
 
     if (tagIds.length > 0) {
       await tx.postTag.createMany({
-        data: ids.flatMap((postId) => tagIds.map((tagId) => ({
-          postId,
-          tagId,
-        }))),
+        data: ids.flatMap((postId) =>
+          tagIds.map((tagId) => ({
+            postId,
+            tagId,
+          })),
+        ),
       });
     }
 
@@ -673,10 +680,12 @@ export async function appendPostsTags(ids: string[], tagIds: string[]) {
 
   return db.$transaction(async (tx) => {
     await tx.postTag.createMany({
-      data: ids.flatMap((postId) => tagIds.map((tagId) => ({
-        postId,
-        tagId,
-      }))),
+      data: ids.flatMap((postId) =>
+        tagIds.map((tagId) => ({
+          postId,
+          tagId,
+        })),
+      ),
       skipDuplicates: true,
     });
 

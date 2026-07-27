@@ -46,11 +46,7 @@ export default async function AdminDashboard() {
           const Icon = DASHBOARD_STAT_ICONS[stat.iconKey];
 
           return (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="group h-full"
-            >
+            <Link key={stat.label} href={stat.href} className="group h-full">
               <Card className="h-full transition-all hover:shadow-md group-hover:border-primary/50">
                 <CardHeader className="pb-2">
                   <CardDescription className="text-sm font-medium">
@@ -94,8 +90,7 @@ export default async function AdminDashboard() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   {dashboard.continueWriting.folder?.name ?? "未归属文件夹"}
                   {" · "}
-                  {dashboard.continueWriting.wordCount ?? 0} 字
-                  {" · "}
+                  {dashboard.continueWriting.wordCount ?? 0} 字{" · "}
                   {dateTimeFormatter.format(
                     new Date(dashboard.continueWriting.updatedAt),
                   )}

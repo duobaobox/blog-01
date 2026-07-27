@@ -1,6 +1,11 @@
 import "server-only";
 
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from "node:crypto";
 import { ConfigurationError } from "@/shared/lib/app-error";
 
 const ALGORITHM = "aes-256-gcm";
@@ -42,12 +47,7 @@ export function decryptAiApiKey(value: string | null | undefined) {
   if (!value) return "";
 
   const [version, ivValue, authTagValue, encryptedValue] = value.split(".");
-  if (
-    version !== VERSION ||
-    !ivValue ||
-    !authTagValue ||
-    !encryptedValue
-  ) {
+  if (version !== VERSION || !ivValue || !authTagValue || !encryptedValue) {
     throw new ConfigurationError("已保存的 AI API Key 格式无效，请重新配置。");
   }
 

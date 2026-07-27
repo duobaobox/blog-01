@@ -73,7 +73,9 @@ async function main() {
     cursorId = posts.at(-1)?.id;
   }
 
-  console.log(`Post content backfill ${apply ? "applied" : "planned"}: scanned=${scanned}, changed=${changed}`);
+  console.log(
+    `Post content backfill ${apply ? "applied" : "planned"}: scanned=${scanned}, changed=${changed}`,
+  );
   if (!apply && changed > 0) {
     console.log("Run again with --apply after reviewing the plan.");
   }

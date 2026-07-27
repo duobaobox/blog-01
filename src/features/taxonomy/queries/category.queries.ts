@@ -17,8 +17,8 @@ export async function getCategories(
   return categoryRepo.findCategories(scope);
 }
 
-let getAdminCategoriesCachedQuery: (() => ReturnType<typeof categoryRepo.findCategories>) | null =
-  null;
+let getAdminCategoriesCachedQuery:
+  (() => ReturnType<typeof categoryRepo.findCategories>) | null = null;
 
 function getAdminCategoriesCached() {
   getAdminCategoriesCachedQuery ??= unstable_cache(
@@ -43,10 +43,7 @@ export function createPublicCategoryQueries(
 ) {
   return {
     async getCategories() {
-      return withPublicQueryFallback(
-        () => repo.findCategories("public"),
-        [],
-      );
+      return withPublicQueryFallback(() => repo.findCategories("public"), []);
     },
     async getCategoryBySlug(slug: string) {
       return withPublicQueryFallback(

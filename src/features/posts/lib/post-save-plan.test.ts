@@ -36,7 +36,9 @@ test("content comparison ignores server-managed heading ids", () => {
 test("content comparison detects text and formatting changes", () => {
   const previous = {
     type: "doc",
-    content: [{ type: "paragraph", content: [{ type: "text", text: "旧正文" }] }],
+    content: [
+      { type: "paragraph", content: [{ type: "text", text: "旧正文" }] },
+    ],
   };
   const next = {
     type: "doc",
@@ -53,7 +55,10 @@ test("content comparison detects text and formatting changes", () => {
 });
 
 test("tag and media comparisons are order independent", () => {
-  assert.equal(areStringSetsEqual(["tag-1", "tag-2"], ["tag-2", "tag-1"]), true);
+  assert.equal(
+    areStringSetsEqual(["tag-1", "tag-2"], ["tag-2", "tag-1"]),
+    true,
+  );
   assert.equal(
     areMediaReferenceSetsEqual(
       [

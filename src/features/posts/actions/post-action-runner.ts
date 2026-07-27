@@ -1,6 +1,9 @@
 import type { PostBulkActionInput } from "@/features/posts/lib/post-bulk-action";
 import { shouldRevalidateAdminAfterSave } from "@/features/posts/lib/post-save-plan";
-import type { PostStatus, PostWriteInput } from "@/features/posts/lib/post-write";
+import type {
+  PostStatus,
+  PostWriteInput,
+} from "@/features/posts/lib/post-write";
 import type * as postServiceModule from "@/features/posts/services/post.service";
 import {
   buildBulkUpdatePostsWorkflow,
@@ -12,7 +15,11 @@ import {
 
 type PostService = Pick<
   typeof postServiceModule,
-  "createPost" | "createEmptyPost" | "updatePost" | "deletePost" | "applyBulkAction"
+  | "createPost"
+  | "createEmptyPost"
+  | "updatePost"
+  | "deletePost"
+  | "applyBulkAction"
 >;
 
 type PostActionRunnerDeps = {
@@ -98,10 +105,7 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
       return result.post;
     },
 
-    async deletePost(input: {
-      id: string;
-      deletedBy: string;
-    }) {
+    async deletePost(input: { id: string; deletedBy: string }) {
       const result = await deps.postService.deletePost(input);
       const workflow = buildDeletePostWorkflow({
         previousStatus: result.previousStatus,
@@ -116,9 +120,11 @@ export function createPostActionRunner(deps: PostActionRunnerDeps) {
       }
     },
 
-    async applyBulkAction(input: PostBulkActionInput & {
-      updatedBy: string;
-    }) {
+    async applyBulkAction(
+      input: PostBulkActionInput & {
+        updatedBy: string;
+      },
+    ) {
       const result = await deps.postService.applyBulkAction(input);
       const workflow = buildBulkUpdatePostsWorkflow({
         previousPosts: result.previousPosts,

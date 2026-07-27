@@ -9,7 +9,9 @@ type AccountActionRunnerDeps = {
 
 export function createAccountActionRunner(deps: AccountActionRunnerDeps) {
   return {
-    async updateAdminProfile(input: Parameters<SettingsService["updateAdminProfile"]>[0]) {
+    async updateAdminProfile(
+      input: Parameters<SettingsService["updateAdminProfile"]>[0],
+    ) {
       const result = await deps.settingsService.updateAdminProfile(input);
       deps.revalidateAdminAccount();
       return result;

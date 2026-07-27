@@ -28,9 +28,5 @@ test("settings action runner updates settings and refreshes admin/public surface
     footerText: null,
   });
 
-  assert.deepEqual(calls, [
-    "service:update",
-    "cache:admin",
-    "cache:public",
-  ]);
+  assert.deepEqual(calls, ["service:update", "cache:admin", "cache:public"]);
 });

@@ -11,7 +11,9 @@ export type PostActionWorkflowResult = {
   publicPostsToRevalidate: RevalidationPost[];
 };
 
-export function buildCreatePostWorkflow(post: RevalidationPost): PostActionWorkflowResult {
+export function buildCreatePostWorkflow(
+  post: RevalidationPost,
+): PostActionWorkflowResult {
   return {
     revalidateAdminPosts: true,
     publicPostsToRevalidate: getPostCreatePublicRevalidationPosts(post),

@@ -79,7 +79,9 @@ async function main() {
     console.log("Checking Prisma migration state...");
     console.log(`  target schema: ${targetSchema}`);
     console.log(`  schema tables: ${tableCount}`);
-    console.log(`  _prisma_migrations present: ${hasMigrationsTable ? "yes" : "no"}`);
+    console.log(
+      `  _prisma_migrations present: ${hasMigrationsTable ? "yes" : "no"}`,
+    );
 
     if (!hasMigrationsTable) {
       const baselinePlan = buildMigrationBaselinePlan({
@@ -102,21 +104,33 @@ async function main() {
       });
 
       if (tableCount === 0) {
-        console.log("  status: empty database, ready for prisma migrate deploy.");
+        console.log(
+          "  status: empty database, ready for prisma migrate deploy.",
+        );
         console.log(`  baseline migration: ${PRISMA_BASELINE_MIGRATION}`);
         console.log(`  baseline plan: ${baselinePlan.status}`);
-        console.log(`  environment kind: ${schemaSyncRecommendation.environmentKind}`);
-        console.log(`  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`);
+        console.log(
+          `  environment kind: ${schemaSyncRecommendation.environmentKind}`,
+        );
+        console.log(
+          `  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`,
+        );
         console.log(`  rationale: ${schemaSyncRecommendation.rationale}`);
         return;
       }
 
       console.log("  status: schema exists but migration history is missing.");
-      console.log("  next step: baseline this database with `prisma migrate resolve --applied <baseline-migration>` before switching to migrate deploy.");
+      console.log(
+        "  next step: baseline this database with `prisma migrate resolve --applied <baseline-migration>` before switching to migrate deploy.",
+      );
       console.log(`  baseline migration: ${PRISMA_BASELINE_MIGRATION}`);
       console.log(`  baseline plan: ${baselinePlan.status}`);
-      console.log(`  environment kind: ${schemaSyncRecommendation.environmentKind}`);
-      console.log(`  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`);
+      console.log(
+        `  environment kind: ${schemaSyncRecommendation.environmentKind}`,
+      );
+      console.log(
+        `  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`,
+      );
       console.log(`  rationale: ${schemaSyncRecommendation.rationale}`);
       return;
     }
@@ -137,7 +151,9 @@ async function main() {
 
     if (migrationRows.length === 0) {
       console.log("  status: migration table exists but has no rows.");
-      console.log("  next step: inspect the environment before trusting migrate deploy.");
+      console.log(
+        "  next step: inspect the environment before trusting migrate deploy.",
+      );
       return;
     }
 
@@ -175,7 +191,9 @@ async function main() {
       pendingMigrationNames: migrationRows
         .filter((row) => !row.finished_at && !row.rolled_back_at)
         .map((row) => row.migration_name),
-      unfinishedMigrationNames: failedMigrations.map((row) => row.migration_name),
+      unfinishedMigrationNames: failedMigrations.map(
+        (row) => row.migration_name,
+      ),
     });
     const appliedMigrationNames = migrationRows
       .filter((row) => Boolean(row.finished_at) && !row.rolled_back_at)
@@ -183,7 +201,9 @@ async function main() {
     const pendingMigrationNames = migrationRows
       .filter((row) => !row.finished_at && !row.rolled_back_at)
       .map((row) => row.migration_name);
-    const unfinishedMigrationNames = failedMigrations.map((row) => row.migration_name);
+    const unfinishedMigrationNames = failedMigrations.map(
+      (row) => row.migration_name,
+    );
     const schemaSyncRecommendation = deriveSchemaSyncRecommendation({
       snapshot: {
         hasMigrationsTable,
@@ -200,14 +220,24 @@ async function main() {
       appliedMigrationNames,
     });
 
-    console.log("  status: migration history exists and contains no unfinished rows.");
+    console.log(
+      "  status: migration history exists and contains no unfinished rows.",
+    );
     console.log(`  filesystem migrations: ${filesystemMigrationNames.length}`);
-    console.log(`  applied filesystem migrations: ${migrationCoverage.appliedMigrationNames.length}`);
-    console.log(`  fully migration-ready: ${migrationCoverage.fullyApplied ? "yes" : "no"}`);
+    console.log(
+      `  applied filesystem migrations: ${migrationCoverage.appliedMigrationNames.length}`,
+    );
+    console.log(
+      `  fully migration-ready: ${migrationCoverage.fullyApplied ? "yes" : "no"}`,
+    );
     console.log(`  baseline migration: ${PRISMA_BASELINE_MIGRATION}`);
     console.log(`  baseline plan: ${baselinePlan.status}`);
-    console.log(`  environment kind: ${schemaSyncRecommendation.environmentKind}`);
-    console.log(`  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`);
+    console.log(
+      `  environment kind: ${schemaSyncRecommendation.environmentKind}`,
+    );
+    console.log(
+      `  recommended DB_SCHEMA_SYNC_MODE: ${schemaSyncRecommendation.recommendedMode}`,
+    );
     console.log(`  rationale: ${schemaSyncRecommendation.rationale}`);
 
     if (migrationCoverage.missingMigrationNames.length > 0) {

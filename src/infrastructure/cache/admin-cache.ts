@@ -79,12 +79,10 @@ function applyAdminRevalidationPlan(plan: AdminRevalidationPlan) {
   }
 }
 
-export function buildAdminRevalidationPlan(
-  input: {
-    paths?: Array<string | null | undefined>;
-    tags?: Array<string | null | undefined>;
-  },
-): AdminRevalidationPlan {
+export function buildAdminRevalidationPlan(input: {
+  paths?: Array<string | null | undefined>;
+  tags?: Array<string | null | undefined>;
+}): AdminRevalidationPlan {
   const normalizedPaths = uniqueAdminPaths(input.paths ?? []);
   const normalizedTags = uniqueAdminTags([
     ...(input.tags ?? []),

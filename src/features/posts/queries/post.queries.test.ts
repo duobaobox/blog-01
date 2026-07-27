@@ -150,9 +150,10 @@ test("createAdminDashboardPageDataQuery aggregates cards and writing summaries i
   });
   assert.equal(result.continueWriting?.id, "post-internal");
   assert.equal(result.continueWriting?.wordCount, 1280);
-  assert.deepEqual(result.recentPublished.map((post) => post.id), [
-    "post-published",
-  ]);
+  assert.deepEqual(
+    result.recentPublished.map((post) => post.id),
+    ["post-published"],
+  );
 });
 
 test("createAdminDashboardPageDataQuery short-circuits during production build", async () => {
@@ -213,14 +214,18 @@ test("getHomepageFeaturedOrLatestPosts returns featured source when featured pos
         ] as never;
       },
     },
-    async () => new Map([
-      ["/media/featured.png", {
-        url: "/media/featured.png",
-        width: 1600,
-        height: 900,
-        alt: "Featured alt",
-      }],
-    ]),
+    async () =>
+      new Map([
+        [
+          "/media/featured.png",
+          {
+            url: "/media/featured.png",
+            width: 1600,
+            height: 900,
+            alt: "Featured alt",
+          },
+        ],
+      ]),
   );
 
   const result = await query(3);
@@ -233,12 +238,14 @@ test("getHomepageFeaturedOrLatestPosts returns featured source when featured pos
     height: 900,
     alt: "Featured alt",
   });
-  assert.deepEqual(calls, [{
-    status: "published",
-    isFeatured: true,
-    order: "published",
-    take: 3,
-  }]);
+  assert.deepEqual(calls, [
+    {
+      status: "published",
+      isFeatured: true,
+      order: "published",
+      take: 3,
+    },
+  ]);
 });
 
 test("getHomepageFeaturedOrLatestPosts falls back to latest posts when no featured posts exist", async () => {
@@ -299,14 +306,18 @@ test("public post queries only use published-content repository methods", async 
         return [] as never;
       },
     },
-    async () => new Map([
-      ["/media/post.png", {
-        url: "/media/post.png",
-        width: 1200,
-        height: 630,
-        alt: "SEO cover",
-      }],
-    ]),
+    async () =>
+      new Map([
+        [
+          "/media/post.png",
+          {
+            url: "/media/post.png",
+            width: 1200,
+            height: 630,
+            alt: "SEO cover",
+          },
+        ],
+      ]),
   );
 
   const post = await queries.getPostBySlug("hello-world");
@@ -365,12 +376,15 @@ test("public posts page query resolves cover media metadata for card lists", asy
     async resolveMediaPresentationMap(urls) {
       assert.deepEqual(urls, ["/media/cover.png"]);
       return new Map([
-        ["/media/cover.png", {
-          url: "/media/cover.png",
-          width: 1280,
-          height: 720,
-          alt: "Cover alt",
-        }],
+        [
+          "/media/cover.png",
+          {
+            url: "/media/cover.png",
+            width: 1280,
+            height: 720,
+            alt: "Cover alt",
+          },
+        ],
       ]);
     },
   });

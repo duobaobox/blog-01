@@ -4,7 +4,7 @@ import { buildPostPreviewPayload } from "./post-preview.service";
 
 const materialized = {
   contentJson: { type: "doc", content: [{ type: "paragraph" }] },
-  contentHtml: "<h2 id=\"preview\">预览正文</h2>",
+  contentHtml: '<h2 id="preview">预览正文</h2>',
   contentText: "预览正文",
   contentToc: [{ id: "preview", title: "预览正文", level: 2 as const }],
   readingTimeMinutes: 2,
@@ -48,7 +48,10 @@ test("preview payload uses the current saved article metadata and materialized b
   assert.equal(payload.authorName, "Duobao");
   assert.equal(payload.contentHtml, materialized.contentHtml);
   assert.deepEqual(payload.contentToc, materialized.contentToc);
-  assert.deepEqual(payload.tags.map((tag) => tag.id), ["tag-1"]);
+  assert.deepEqual(
+    payload.tags.map((tag) => tag.id),
+    ["tag-1"],
+  );
 });
 
 test("draft preview falls back to the saved update time and untitled display name", async () => {

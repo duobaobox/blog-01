@@ -11,9 +11,9 @@ type AiSettingsSummaryProps = {
 function isAiConfigured(settings: AiSettings) {
   return Boolean(
     settings?.aiConfigured &&
-      settings.aiApiKeyConfigured &&
-      settings.aiBaseUrl &&
-      settings.aiModel,
+    settings.aiApiKeyConfigured &&
+    settings.aiBaseUrl &&
+    settings.aiModel,
   );
 }
 
@@ -36,7 +36,7 @@ export function AiSettingsSummary({ settings }: AiSettingsSummaryProps) {
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {configured
-                ? currentPreset?.name ?? settings?.aiProvider
+                ? (currentPreset?.name ?? settings?.aiProvider)
                 : "尚未选择服务商"}
             </p>
             <p className="mt-0.5 truncate text-xl font-semibold tracking-tight">

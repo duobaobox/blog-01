@@ -9,18 +9,8 @@ import {
 test("buildAdminRevalidationPlan deduplicates admin paths and drops empty entries", () => {
   assert.deepEqual(
     buildAdminRevalidationPlan({
-      paths: [
-        "/admin/posts",
-        "/admin/media",
-        "/admin/posts",
-        null,
-        undefined,
-      ],
-      tags: [
-        ADMIN_CACHE_TAGS.media,
-        ADMIN_CACHE_TAGS.media,
-        null,
-      ],
+      paths: ["/admin/posts", "/admin/media", "/admin/posts", null, undefined],
+      tags: [ADMIN_CACHE_TAGS.media, ADMIN_CACHE_TAGS.media, null],
     }),
     {
       tags: [
@@ -28,10 +18,7 @@ test("buildAdminRevalidationPlan deduplicates admin paths and drops empty entrie
         { tag: ADMIN_CACHE_TAGS.posts, profile: "max" },
         { tag: ADMIN_CACHE_TAGS.dashboard, profile: "max" },
       ],
-      paths: [
-        { path: "/admin/posts" },
-        { path: "/admin/media" },
-      ],
+      paths: [{ path: "/admin/posts" }, { path: "/admin/media" }],
     },
   );
 });
@@ -70,18 +57,10 @@ test("buildAdminRevalidationPlan infers admin tags from known admin read surface
 test("revalidateAdminPaths reuses the same normalized plan as buildAdminRevalidationPlan", () => {
   assert.deepEqual(
     buildAdminRevalidationPlan({
-      paths: [
-        "/admin/posts",
-        "/admin/media",
-        "/admin/posts",
-      ],
+      paths: ["/admin/posts", "/admin/media", "/admin/posts"],
     }),
     buildAdminRevalidationPlan({
-      paths: [
-        "/admin/posts",
-        "/admin/media",
-        "/admin/posts",
-      ],
+      paths: ["/admin/posts", "/admin/media", "/admin/posts"],
     }),
   );
 

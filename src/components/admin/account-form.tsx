@@ -131,8 +131,12 @@ export function AccountForm({
                 required
               />
             </div>
-            {nameError && <p className="text-sm text-destructive">{nameError}</p>}
-            {nameMsg && <p className="text-sm text-muted-foreground">{nameMsg}</p>}
+            {nameError && (
+              <p className="text-sm text-destructive">{nameError}</p>
+            )}
+            {nameMsg && (
+              <p className="text-sm text-muted-foreground">{nameMsg}</p>
+            )}
             <Button type="submit" disabled={nameLoading}>
               {nameLoading ? "保存中..." : "保存"}
             </Button>

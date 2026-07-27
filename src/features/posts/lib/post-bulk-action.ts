@@ -74,7 +74,9 @@ function normalizeOptionalEntityId(value: unknown) {
   return normalized;
 }
 
-export function parsePostBulkActionFormData(formData: FormData): PostBulkActionInput {
+export function parsePostBulkActionFormData(
+  formData: FormData,
+): PostBulkActionInput {
   const type = requireOneOf(
     formData.get("type"),
     POST_BULK_ACTION_TYPES,

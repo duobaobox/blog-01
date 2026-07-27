@@ -113,9 +113,7 @@ export function PostArticleView({
 
           <div className="mt-3 flex flex-wrap gap-2">
             {tags.map((tag) => {
-              const badge = (
-                <TagBadge name={tag.name} color={tag.color} />
-              );
+              const badge = <TagBadge name={tag.name} color={tag.color} />;
 
               return tag.slug ? (
                 <Link key={tag.id} href={`/blog/tags/${tag.slug}`}>

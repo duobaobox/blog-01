@@ -270,10 +270,7 @@ export async function updatePost(
   };
 }
 
-export async function deletePost(input: {
-  id: string;
-  deletedBy: string;
-}) {
+export async function deletePost(input: { id: string; deletedBy: string }) {
   const existingPost = await postRepo.findPostById(input.id);
   if (!existingPost) {
     throw new NotFoundError("文章不存在");
@@ -314,7 +311,9 @@ function getNextPublishedAt(input: {
   }
 
   if (isPublishedPost({ status: input.previousStatus })) {
-    return input.currentPublishedAt ? new Date(input.currentPublishedAt) : new Date();
+    return input.currentPublishedAt
+      ? new Date(input.currentPublishedAt)
+      : new Date();
   }
 
   return new Date();
@@ -325,15 +324,19 @@ async function requireExistingTags(tagIds: string[]) {
     return;
   }
 
-  const tags = await Promise.all(tagIds.map((tagId) => tagRepo.findTagById(tagId)));
+  const tags = await Promise.all(
+    tagIds.map((tagId) => tagRepo.findTagById(tagId)),
+  );
   if (tags.some((tag) => !tag)) {
     throw new NotFoundError("部分标签不存在");
   }
 }
 
-export async function applyBulkAction(input: PostBulkActionInput & {
-  updatedBy: string;
-}) {
+export async function applyBulkAction(
+  input: PostBulkActionInput & {
+    updatedBy: string;
+  },
+) {
   const posts = await postRepo.findPostsByIds(input.postIds);
 
   if (posts.length !== input.postIds.length) {

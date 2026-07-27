@@ -8,8 +8,8 @@
  * - 实时更新手柄位置（表格尺寸变化时）
  */
 
-import { Extension } from '@tiptap/core';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 // 菜单项
 interface MenuItem {
@@ -20,21 +20,24 @@ interface MenuItem {
 }
 
 const getTableWrapper = (table: HTMLElement) =>
-  table.closest('.tableWrapper') as HTMLElement | null;
+  table.closest(".tableWrapper") as HTMLElement | null;
 
 /**
  * 创建手柄元素 - 官方 Grip 风格（三个点）
  */
-function createHandleElement(type: 'row' | 'column', index: number): HTMLDivElement {
-  const handle = document.createElement('div');
+function createHandleElement(
+  type: "row" | "column",
+  index: number,
+): HTMLDivElement {
+  const handle = document.createElement("div");
   handle.className = `table-handle table-handle-${type}`;
-  handle.setAttribute('data-handle-type', type);
-  handle.setAttribute('data-handle-index', String(index));
+  handle.setAttribute("data-handle-type", type);
+  handle.setAttribute("data-handle-index", String(index));
 
   // 添加三个点作为 grip 手柄样式
   for (let i = 0; i < 3; i++) {
-    const dot = document.createElement('span');
-    dot.className = 'table-handle-dot';
+    const dot = document.createElement("span");
+    dot.className = "table-handle-dot";
     handle.appendChild(dot);
   }
 
@@ -44,24 +47,21 @@ function createHandleElement(type: 'row' | 'column', index: number): HTMLDivElem
 /**
  * 创建操作菜单
  */
-function createMenu(
-  items: MenuItem[],
-  onClose: () => void,
-): HTMLDivElement {
-  const menu = document.createElement('div');
-  menu.className = 'table-handle-menu';
-  menu.setAttribute('role', 'menu');
-  menu.setAttribute('aria-label', '表格操作');
+function createMenu(items: MenuItem[], onClose: () => void): HTMLDivElement {
+  const menu = document.createElement("div");
+  menu.className = "table-handle-menu";
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-label", "表格操作");
 
   items.forEach((item) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `table-handle-menu-item${item.danger ? ' danger' : ''}`;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `table-handle-menu-item${item.danger ? " danger" : ""}`;
     button.textContent = item.label;
     button.disabled = Boolean(item.disabled);
-    button.setAttribute('role', 'menuitem');
-    button.setAttribute('aria-disabled', String(Boolean(item.disabled)));
-    button.addEventListener('click', (e) => {
+    button.setAttribute("role", "menuitem");
+    button.setAttribute("aria-disabled", String(Boolean(item.disabled)));
+    button.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       item.action();
@@ -77,7 +77,7 @@ function createMenu(
  * TableHandles 扩展
  */
 export const TableHandles = Extension.create({
-  name: 'tableHandles',
+  name: "tableHandles",
 
   addProseMirrorPlugins() {
     const editor = this.editor;
@@ -124,7 +124,7 @@ export const TableHandles = Extension.create({
       }
 
       if (currentWrapper && wrapperScrollHandler) {
-        currentWrapper.removeEventListener('scroll', wrapperScrollHandler);
+        currentWrapper.removeEventListener("scroll", wrapperScrollHandler);
         wrapperScrollHandler = null;
       }
 
@@ -141,7 +141,7 @@ export const TableHandles = Extension.create({
      */
     const removeMenu = () => {
       if (menuCloseHandler) {
-        document.removeEventListener('click', menuCloseHandler);
+        document.removeEventListener("click", menuCloseHandler);
         menuCloseHandler = null;
       }
 
@@ -153,7 +153,7 @@ export const TableHandles = Extension.create({
 
     const bindMenuCloseHandler = () => {
       if (menuCloseHandler) {
-        document.removeEventListener('click', menuCloseHandler);
+        document.removeEventListener("click", menuCloseHandler);
       }
 
       menuCloseHandler = (event: MouseEvent) => {
@@ -161,7 +161,7 @@ export const TableHandles = Extension.create({
           removeMenu();
         }
       };
-      document.addEventListener('click', menuCloseHandler);
+      document.addEventListener("click", menuCloseHandler);
     };
 
     /**
@@ -182,12 +182,15 @@ export const TableHandles = Extension.create({
     };
 
     const positionMenu = (menu: HTMLDivElement, x: number, y: number) => {
-      menu.style.position = 'fixed';
+      menu.style.position = "fixed";
       document.body.appendChild(menu);
 
       const rect = menu.getBoundingClientRect();
       const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
-      const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+      const top = Math.max(
+        8,
+        Math.min(y, window.innerHeight - rect.height - 8),
+      );
       menu.style.left = `${left}px`;
       menu.style.top = `${top}px`;
     };
@@ -207,25 +210,25 @@ export const TableHandles = Extension.create({
 
       const items: MenuItem[] = [
         {
-          label: '在上方插入行',
+          label: "在上方插入行",
           action: () => editor.chain().focus().addRowBefore().run(),
         },
         {
-          label: '在下方插入行',
+          label: "在下方插入行",
           action: () => editor.chain().focus().addRowAfter().run(),
         },
         {
-          label: '切换表头行',
+          label: "切换表头行",
           action: () => editor.chain().focus().toggleHeaderRow().run(),
           disabled: !editor.can().toggleHeaderRow(),
         },
         {
-          label: '删除行',
+          label: "删除行",
           action: () => editor.chain().focus().deleteRow().run(),
           danger: true,
         },
         {
-          label: '删除表格',
+          label: "删除表格",
           action: () => editor.chain().focus().deleteTable().run(),
           danger: true,
         },
@@ -251,25 +254,25 @@ export const TableHandles = Extension.create({
 
       const items: MenuItem[] = [
         {
-          label: '在左侧插入列',
+          label: "在左侧插入列",
           action: () => editor.chain().focus().addColumnBefore().run(),
         },
         {
-          label: '在右侧插入列',
+          label: "在右侧插入列",
           action: () => editor.chain().focus().addColumnAfter().run(),
         },
         {
-          label: '切换表头列',
+          label: "切换表头列",
           action: () => editor.chain().focus().toggleHeaderColumn().run(),
           disabled: !editor.can().toggleHeaderColumn(),
         },
         {
-          label: '删除列',
+          label: "删除列",
           action: () => editor.chain().focus().deleteColumn().run(),
           danger: true,
         },
         {
-          label: '删除表格',
+          label: "删除表格",
           action: () => editor.chain().focus().deleteTable().run(),
           danger: true,
         },
@@ -304,7 +307,8 @@ export const TableHandles = Extension.create({
 
         const rows = table.rows;
 
-        const rowHandles = handlesContainer.querySelectorAll('.table-handle-row');
+        const rowHandles =
+          handlesContainer.querySelectorAll(".table-handle-row");
         rowHandles.forEach((handle, i) => {
           if (i < rows.length) {
             const row = rows[i];
@@ -312,7 +316,10 @@ export const TableHandles = Extension.create({
             const element = handle as HTMLElement;
             // 贴在表格左边线上，居中定位到行的中间
             // 注意：translate 使用的是本地坐标系，需要将屏幕像素差除以缩放比例
-            const left = (tableRect.left - wrapperRect.left) / scale + wrapper.scrollLeft - 5;
+            const left =
+              (tableRect.left - wrapperRect.left) / scale +
+              wrapper.scrollLeft -
+              5;
             const top =
               (rowRect.top - wrapperRect.top) / scale +
               wrapper.scrollTop +
@@ -321,7 +328,9 @@ export const TableHandles = Extension.create({
           }
         });
 
-        const colHandles = handlesContainer.querySelectorAll('.table-handle-column');
+        const colHandles = handlesContainer.querySelectorAll(
+          ".table-handle-column",
+        );
         const firstRow = rows[0];
         if (firstRow) {
           colHandles.forEach((handle, i) => {
@@ -334,7 +343,10 @@ export const TableHandles = Extension.create({
                 (cellRect.left - wrapperRect.left) / scale +
                 wrapper.scrollLeft +
                 (cellRect.width / scale - 22) / 2;
-              const top = (tableRect.top - wrapperRect.top) / scale + wrapper.scrollTop - 5;
+              const top =
+                (tableRect.top - wrapperRect.top) / scale +
+                wrapper.scrollTop -
+                5;
               element.style.transform = `translate(${left}px, ${top}px)`;
             }
           });
@@ -368,19 +380,19 @@ export const TableHandles = Extension.create({
 
       const rows = table.rows;
 
-      handlesContainer = document.createElement('div');
-      handlesContainer.className = 'table-handles-container';
-      handlesContainer.style.position = 'absolute';
-      handlesContainer.style.inset = '0';
-      handlesContainer.style.pointerEvents = 'none';
-      handlesContainer.style.zIndex = '150';
+      handlesContainer = document.createElement("div");
+      handlesContainer.className = "table-handles-container";
+      handlesContainer.style.position = "absolute";
+      handlesContainer.style.inset = "0";
+      handlesContainer.style.pointerEvents = "none";
+      handlesContainer.style.zIndex = "150";
 
-      handlesContainer.addEventListener('mouseenter', () => {
+      handlesContainer.addEventListener("mouseenter", () => {
         isMouseOverHandles = true;
         clearHideTimeout();
       });
 
-      handlesContainer.addEventListener('mouseleave', () => {
+      handlesContainer.addEventListener("mouseleave", () => {
         isMouseOverHandles = false;
         scheduleHide();
       });
@@ -390,18 +402,19 @@ export const TableHandles = Extension.create({
         const row = rows[i];
         const rowRect = row.getBoundingClientRect();
 
-        const handle = createHandleElement('row', i);
-        handle.style.position = 'absolute';
-        handle.style.pointerEvents = 'auto';
+        const handle = createHandleElement("row", i);
+        handle.style.position = "absolute";
+        handle.style.pointerEvents = "auto";
         // 贴在表格左边线上，居中定位到行的中间
-        const left = (tableRect.left - wrapperRect.left) / scale + wrapper.scrollLeft - 5;
+        const left =
+          (tableRect.left - wrapperRect.left) / scale + wrapper.scrollLeft - 5;
         const top =
           (rowRect.top - wrapperRect.top) / scale +
           wrapper.scrollTop +
           (rowRect.height / scale - 22) / 2;
         handle.style.transform = `translate(${left}px, ${top}px)`;
 
-        handle.addEventListener('click', (e) => {
+        handle.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
           showRowMenu(i, e.clientX, e.clientY);
@@ -417,18 +430,19 @@ export const TableHandles = Extension.create({
           const cell = firstRow.cells[i];
           const cellRect = cell.getBoundingClientRect();
 
-          const handle = createHandleElement('column', i);
-          handle.style.position = 'absolute';
-          handle.style.pointerEvents = 'auto';
+          const handle = createHandleElement("column", i);
+          handle.style.position = "absolute";
+          handle.style.pointerEvents = "auto";
           // 贴在每列顶部边线上，居中定位到列的中间
           const left =
             (cellRect.left - wrapperRect.left) / scale +
             wrapper.scrollLeft +
             (cellRect.width / scale - 22) / 2;
-          const top = (tableRect.top - wrapperRect.top) / scale + wrapper.scrollTop - 5;
+          const top =
+            (tableRect.top - wrapperRect.top) / scale + wrapper.scrollTop - 5;
           handle.style.transform = `translate(${left}px, ${top}px)`;
 
-          handle.addEventListener('click', (e) => {
+          handle.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
             showColumnMenu(i, e.clientX, e.clientY);
@@ -457,11 +471,14 @@ export const TableHandles = Extension.create({
         let needsUpdate = false;
 
         for (const mutation of mutations) {
-          if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+          if (
+            mutation.addedNodes.length > 0 ||
+            mutation.removedNodes.length > 0
+          ) {
             needsUpdate = true;
             break;
           }
-          if (mutation.type === 'attributes') {
+          if (mutation.type === "attributes") {
             needsUpdate = true;
             break;
           }
@@ -480,21 +497,23 @@ export const TableHandles = Extension.create({
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['colspan', 'rowspan'],
+        attributeFilter: ["colspan", "rowspan"],
       });
 
       wrapperScrollHandler = () => updateHandlesPosition();
-      wrapper.addEventListener('scroll', wrapperScrollHandler, { passive: true });
+      wrapper.addEventListener("scroll", wrapperScrollHandler, {
+        passive: true,
+      });
     };
 
     return [
       new Plugin({
-        key: new PluginKey('tableHandles'),
+        key: new PluginKey("tableHandles"),
         props: {
           handleDOMEvents: {
             mouseover: (_view, event) => {
               const target = event.target as HTMLElement;
-              const table = target.closest('table') as HTMLTableElement | null;
+              const table = target.closest("table") as HTMLTableElement | null;
 
               if (table) {
                 clearHideTimeout();
@@ -508,12 +527,12 @@ export const TableHandles = Extension.create({
               const target = event.target as HTMLElement;
               const relatedTarget = event.relatedTarget as HTMLElement | null;
 
-              const table = target.closest('table');
-              const toTable = relatedTarget?.closest('table');
+              const table = target.closest("table");
+              const toTable = relatedTarget?.closest("table");
 
               if (
-                relatedTarget?.closest('.table-handles-container') ||
-                relatedTarget?.closest('.table-handle')
+                relatedTarget?.closest(".table-handles-container") ||
+                relatedTarget?.closest(".table-handle")
               ) {
                 return false;
               }
@@ -540,20 +559,19 @@ export const TableHandles = Extension.create({
             }
           };
 
-          window.addEventListener('scroll', handleScroll, { passive: true });
-          window.addEventListener('resize', handleResize, { passive: true });
+          window.addEventListener("scroll", handleScroll, { passive: true });
+          window.addEventListener("resize", handleResize, { passive: true });
 
           return {
             destroy() {
-              window.removeEventListener('scroll', handleScroll);
-              window.removeEventListener('resize', handleResize);
+              window.removeEventListener("scroll", handleScroll);
+              window.removeEventListener("resize", handleResize);
               clearHideTimeout();
               removeHandles();
               removeMenu();
             },
           };
         },
-
       }),
     ];
   },

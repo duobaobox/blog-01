@@ -33,5 +33,13 @@ test("getTotalPages rounds up and keeps at least one page", () => {
 });
 
 test("getPaginationPages inserts ellipses for long page ranges", () => {
-  assert.deepEqual(getPaginationPages(5, 10), [1, "ellipsis", 4, 5, 6, "ellipsis", 10]);
+  assert.deepEqual(getPaginationPages(5, 10), [
+    1,
+    "ellipsis",
+    4,
+    5,
+    6,
+    "ellipsis",
+    10,
+  ]);
 });

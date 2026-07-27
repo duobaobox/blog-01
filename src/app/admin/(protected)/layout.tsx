@@ -37,12 +37,17 @@ export default async function AdminLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen} className="h-dvh overflow-hidden">
+    <SidebarProvider
+      defaultOpen={defaultOpen}
+      className="h-dvh overflow-hidden"
+    >
       <AdminSidebar />
       <SidebarInset>
         <AdminHeader />
         <AdminOnboardingBanner
-          needsPasswordChange={pageData.shellStatus.security.needsPasswordChange}
+          needsPasswordChange={
+            pageData.shellStatus.security.needsPasswordChange
+          }
           needsSiteSetup={pageData.shellStatus.onboarding.needsSiteSetup}
         />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

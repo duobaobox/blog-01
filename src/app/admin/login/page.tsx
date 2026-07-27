@@ -17,9 +17,11 @@ export default async function AdminLoginPage() {
     bootstrapAllowed: await isBootstrapAllowed(),
   });
 
-  if (shouldRedirectLoginToSetup({
-    bootstrapMode,
-  })) {
+  if (
+    shouldRedirectLoginToSetup({
+      bootstrapMode,
+    })
+  ) {
     redirect("/admin/setup");
   }
 

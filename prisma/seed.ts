@@ -15,8 +15,7 @@ async function main() {
   console.log(`   Password: ${admin.password}`);
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

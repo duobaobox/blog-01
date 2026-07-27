@@ -30,7 +30,8 @@ export const AI_PROVIDER_PRESETS: AiProviderPreset[] = [
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     defaultModel: "qwen-plus",
     description: "适合中文写作；也可以替换为百炼业务空间专属 Base URL。",
-    docsUrl: "https://help.aliyun.com/zh/model-studio/qwen-api-via-openai-chat-completions",
+    docsUrl:
+      "https://help.aliyun.com/zh/model-studio/qwen-api-via-openai-chat-completions",
   },
   {
     id: "zhipu",
@@ -46,7 +47,8 @@ export const AI_PROVIDER_PRESETS: AiProviderPreset[] = [
     baseUrl: "https://api.moonshot.cn/v1",
     defaultModel: "kimi-k3",
     description: "Kimi 官方 OpenAI 兼容接口，适合长文本和中文内容处理。",
-    docsUrl: "https://platform.moonshot.cn/docs/guide/migrating-from-openai-to-kimi",
+    docsUrl:
+      "https://platform.moonshot.cn/docs/guide/migrating-from-openai-to-kimi",
   },
   {
     id: "volcengine",

@@ -12,7 +12,8 @@
     height: auto;
   }
 
-  .tiptap.ProseMirror :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption, th, td, a) {
+  .tiptap.ProseMirror
+    :where(h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption, th, td, a) {
     overflow-wrap: anywhere;
   }
 

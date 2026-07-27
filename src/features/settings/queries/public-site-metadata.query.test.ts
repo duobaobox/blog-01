@@ -54,12 +54,18 @@ test("public site metadata queries compose stable sitemap timestamps", async () 
     result.blogLastModified?.toISOString(),
     "2026-03-05T00:00:00.000Z",
   );
-  assert.deepEqual(result.posts.map((post) => post.slug), ["first-post"]);
+  assert.deepEqual(
+    result.posts.map((post) => post.slug),
+    ["first-post"],
+  );
   assert.deepEqual(
     result.categories.map((category) => category.slug),
     ["engineering"],
   );
-  assert.deepEqual(result.tags.map((tag) => tag.slug), ["react"]);
+  assert.deepEqual(
+    result.tags.map((tag) => tag.slug),
+    ["react"],
+  );
 });
 
 test("public site metadata feed query only uses published feed inputs", async () => {

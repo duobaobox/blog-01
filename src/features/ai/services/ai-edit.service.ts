@@ -92,16 +92,15 @@ async function requestEdit(input: AiGenerateInput, useJsonMode: boolean) {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: buildUserPrompt(input) },
         ],
-        ...(useJsonMode
-          ? { response_format: { type: "json_object" } }
-          : {}),
+        ...(useJsonMode ? { response_format: { type: "json_object" } } : {}),
       }),
       signal: controller.signal,
     });
 
-    const payload = (await response.json().catch(() => null)) as
-      | Record<string, unknown>
-      | null;
+    const payload = (await response.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
 
     if (!response.ok) {
       const errorText =
@@ -166,14 +165,19 @@ export async function generateTextEdit(
     }
 
     if (error instanceof Error && /401|403/i.test(error.message)) {
-      throw new ConfigurationError("AI API Key 或模型权限无效，请检查服务端配置。");
+      throw new ConfigurationError(
+        "AI API Key 或模型权限无效，请检查服务端配置。",
+      );
     }
 
     if (error instanceof Error && /429/i.test(error.message)) {
       throw new ConfigurationError("AI 服务当前请求过于频繁，请稍后重试。");
     }
 
-    if (error instanceof ConfigurationError || error instanceof ValidationError) {
+    if (
+      error instanceof ConfigurationError ||
+      error instanceof ValidationError
+    ) {
       throw error;
     }
 

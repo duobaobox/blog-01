@@ -1,4 +1,7 @@
-import type { MigrationBaselinePlan, MigrationStateSnapshot } from "@/features/settings/lib/migration-baseline";
+import type {
+  MigrationBaselinePlan,
+  MigrationStateSnapshot,
+} from "@/features/settings/lib/migration-baseline";
 import { deriveSchemaSyncRecommendationCore } from "@/shared/lib/db-schema-sync-mode-core.mjs";
 import { summarizeMigrationCoverage } from "@/shared/lib/migration-coverage";
 
@@ -37,8 +40,10 @@ export function deriveSchemaSyncRecommendation(input: {
   });
 
   return {
-    environmentKind: recommendation.environmentKind as SchemaSyncRecommendation["environmentKind"],
-    recommendedMode: recommendation.recommendedMode as SchemaSyncRecommendation["recommendedMode"],
+    environmentKind:
+      recommendation.environmentKind as SchemaSyncRecommendation["environmentKind"],
+    recommendedMode:
+      recommendation.recommendedMode as SchemaSyncRecommendation["recommendedMode"],
     rationale: recommendation.rationale,
   };
 }

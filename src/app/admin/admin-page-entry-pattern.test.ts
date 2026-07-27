@@ -50,7 +50,9 @@ async function listFiles(root: string): Promise<string[]> {
 async function listProtectedAdminEntries() {
   const files = await listFiles("src/app/admin/(protected)");
   return files
-    .filter((file) => file.endsWith("/page.tsx") || file.endsWith("/layout.tsx"))
+    .filter(
+      (file) => file.endsWith("/page.tsx") || file.endsWith("/layout.tsx"),
+    )
     .sort();
 }
 
@@ -61,7 +63,11 @@ test("protected admin entries do not assemble session or database read models di
     const source = await readWorkspaceFile(entry);
 
     for (const pattern of forbiddenReadModelPatterns) {
-      assert.doesNotMatch(source, pattern, `${entry} should keep ${pattern} out of page/layout`);
+      assert.doesNotMatch(
+        source,
+        pattern,
+        `${entry} should keep ${pattern} out of page/layout`,
+      );
     }
   }
 });

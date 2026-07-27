@@ -16,8 +16,8 @@ export async function getTags(scope: TaxonomyScope = "admin") {
   return tagRepo.findTags(scope);
 }
 
-let getAdminTagsCachedQuery: (() => ReturnType<typeof tagRepo.findTags>) | null =
-  null;
+let getAdminTagsCachedQuery:
+  (() => ReturnType<typeof tagRepo.findTags>) | null = null;
 
 function getAdminTagsCached() {
   getAdminTagsCachedQuery ??= unstable_cache(
@@ -37,15 +37,10 @@ type PublicTagRepository = Pick<
   "findTags" | "findPublicTagBySlug"
 >;
 
-export function createPublicTagQueries(
-  repo: PublicTagRepository = tagRepo,
-) {
+export function createPublicTagQueries(repo: PublicTagRepository = tagRepo) {
   return {
     async getTags() {
-      return withPublicQueryFallback(
-        () => repo.findTags("public"),
-        [],
-      );
+      return withPublicQueryFallback(() => repo.findTags("public"), []);
     },
     async getTagBySlug(slug: string) {
       return withPublicQueryFallback(

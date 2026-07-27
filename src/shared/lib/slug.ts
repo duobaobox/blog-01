@@ -53,7 +53,11 @@ export async function generateSemanticSlug(
 
   // Internal callers may pass a preferred slug, but it still goes through
   // the same normalization path as title-derived slugs.
-  const raw = userSlug ? slugifyText(userSlug) : title ? slugifyText(title) : "";
+  const raw = userSlug
+    ? slugifyText(userSlug)
+    : title
+      ? slugifyText(title)
+      : "";
 
   if (!raw) {
     return generateUniqueShortSlug(exists, prefix);

@@ -88,11 +88,7 @@ export function parsePostWriteFormData(formData: FormData): PostWriteInput {
     coverImageUrl: normalizeOptionalString(formData.get("coverImageUrl")),
     categoryId: normalizeOptionalString(formData.get("categoryId")),
     folderId: requirePostFolderId(formData.get("folderId")),
-    status: requireOneOf(
-      formData.get("status"),
-      POST_STATUSES,
-      "文章状态无效",
-    ),
+    status: requireOneOf(formData.get("status"), POST_STATUSES, "文章状态无效"),
     seoTitle: normalizeOptionalString(formData.get("seoTitle")),
     seoDescription: normalizeOptionalString(formData.get("seoDescription")),
     canonicalUrl,

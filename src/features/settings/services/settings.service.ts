@@ -27,9 +27,11 @@ export function createUpdateSiteSettingsService(
 
 export const updateSiteSettings = createUpdateSiteSettingsService();
 
-export async function updateAdminProfile(input: AccountProfileInput & {
-  userId: string;
-}) {
+export async function updateAdminProfile(
+  input: AccountProfileInput & {
+    userId: string;
+  },
+) {
   await settingsRepo.updateAdminProfile(input.userId, {
     name: input.name,
   });

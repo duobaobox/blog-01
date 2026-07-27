@@ -44,14 +44,11 @@ test("批量状态只接受内部和已发布", () => {
     return formData;
   };
 
-  assert.deepEqual(
-    parsePostBulkActionFormData(createStatusAction("draft")),
-    {
-      type: "setStatus",
-      postIds: ["post-1"],
-      status: "draft",
-    },
-  );
+  assert.deepEqual(parsePostBulkActionFormData(createStatusAction("draft")), {
+    type: "setStatus",
+    postIds: ["post-1"],
+    status: "draft",
+  });
   assert.deepEqual(
     parsePostBulkActionFormData(createStatusAction("published")),
     {

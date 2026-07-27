@@ -44,6 +44,8 @@ export function resolveMotifIndex(
     return getMotifIndex(slug);
   }
 
-  return ((motifIndex as number) % CARD_MOTIF_COUNT + CARD_MOTIF_COUNT) %
-    CARD_MOTIF_COUNT;
+  return (
+    (((motifIndex as number) % CARD_MOTIF_COUNT) + CARD_MOTIF_COUNT) %
+    CARD_MOTIF_COUNT
+  );
 }

@@ -13,7 +13,11 @@ export class ContentJsonParseError extends Error {
   }
 }
 
-const MEANINGFUL_VOID_NODE_TYPES = new Set(["image", "horizontalRule", "table"]);
+const MEANINGFUL_VOID_NODE_TYPES = new Set([
+  "image",
+  "horizontalRule",
+  "table",
+]);
 
 function createEmptyDoc(): JSONContent {
   return {
@@ -114,7 +118,9 @@ export function parseStoredContentJsonStrict(
   }
 }
 
-export function stringifyContentJson(value: unknown | null | undefined): string {
+export function stringifyContentJson(
+  value: unknown | null | undefined,
+): string {
   return JSON.stringify(normalizeContentJson(value));
 }
 

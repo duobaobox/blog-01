@@ -85,7 +85,9 @@ function createDependencies(options?: {
       },
       async getPosts(filters?: FindPostsOptions) {
         calls.push(`folder:${filters?.folderId}:${filters?.order}`);
-        return posts.filter((post) => post.folder.id === filters?.folderId) as never;
+        return posts.filter(
+          (post) => post.folder.id === filters?.folderId,
+        ) as never;
       },
     },
   };
@@ -108,7 +110,10 @@ test("文章工作台默认进入第一个文件夹并统计当前文件夹状�
     ["internal-1", "published-1"],
   );
   assert.ok(calls.includes("folder:folder-1:created"));
-  assert.equal(calls.some((call) => call.includes("folder-2")), false);
+  assert.equal(
+    calls.some((call) => call.includes("folder-2")),
+    false,
+  );
 });
 
 test("状态和搜索只筛选当前文件夹文章", async () => {
@@ -122,7 +127,10 @@ test("状态和搜索只筛选当前文件夹文章", async () => {
   });
 
   assert.equal(result.statusFilter, "internal");
-  assert.deepEqual(result.contextPosts.map((post) => post.id), ["internal-1"]);
+  assert.deepEqual(
+    result.contextPosts.map((post) => post.id),
+    ["internal-1"],
+  );
   assert.equal(result.selectedPostId, "internal-1");
   assert.ok(calls.includes("folder:folder-1:created"));
 });
@@ -158,5 +166,8 @@ test("旧草稿链接统一显示为内部内容", async () => {
   });
 
   assert.equal(result.statusFilter, "internal");
-  assert.deepEqual(result.contextPosts.map((post) => post.id), ["internal-1"]);
+  assert.deepEqual(
+    result.contextPosts.map((post) => post.id),
+    ["internal-1"],
+  );
 });

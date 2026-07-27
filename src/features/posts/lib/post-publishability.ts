@@ -1,4 +1,7 @@
-import { hasMeaningfulContent, normalizeContentJson } from "@/features/editor/content-types";
+import {
+  hasMeaningfulContent,
+  normalizeContentJson,
+} from "@/features/editor/content-types";
 import { UNTITLED_POST_TITLE } from "@/features/posts/lib/post-title";
 import { ValidationError } from "@/shared/lib/app-error";
 
@@ -22,7 +25,9 @@ function hasMeaningfulTitle(title?: string | null) {
   return Boolean(normalized) && normalized !== UNTITLED_POST_TITLE;
 }
 
-function hasMeaningfulBody(input: Pick<PostPublishabilityInput, "contentJson" | "contentText">) {
+function hasMeaningfulBody(
+  input: Pick<PostPublishabilityInput, "contentJson" | "contentText">,
+) {
   if (typeof input.contentText === "string") {
     return Boolean(input.contentText.trim());
   }
@@ -56,4 +61,3 @@ export function requirePublishablePost(input: PostPublishabilityInput) {
     throw new ValidationError(publishability.reasons[0] ?? "文章暂时无法发布");
   }
 }
-

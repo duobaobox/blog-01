@@ -86,7 +86,8 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--site-accent-500) 24%, transparent);
+    border: 1px solid
+      color-mix(in srgb, var(--site-accent-500) 24%, transparent);
     border-radius: 11px;
     background: linear-gradient(
       145deg,

@@ -29,9 +29,7 @@ export function buildMigrationBaselinePlan(
       reasons: [
         `存在未完成 migration：${snapshot.unfinishedMigrationNames.join(", ")}`,
       ],
-      recommendedCommands: [
-        "npx prisma migrate status",
-      ],
+      recommendedCommands: ["npx prisma migrate status"],
     };
   }
 
@@ -40,21 +38,15 @@ export function buildMigrationBaselinePlan(
       return {
         status: "empty",
         baselineMigration,
-        reasons: [
-          "当前数据库为空，可以直接通过 Prisma Migrate 建立结构。",
-        ],
-        recommendedCommands: [
-          "npx prisma migrate deploy",
-        ],
+        reasons: ["当前数据库为空，可以直接通过 Prisma Migrate 建立结构。"],
+        recommendedCommands: ["npx prisma migrate deploy"],
       };
     }
 
     return {
       status: "baseline-required",
       baselineMigration,
-      reasons: [
-        "数据库已有业务表，但缺少 Prisma migration 历史。",
-      ],
+      reasons: ["数据库已有业务表，但缺少 Prisma migration 历史。"],
       recommendedCommands: [
         "npm run db:check:migrations",
         "npm run db:baseline",
@@ -67,9 +59,7 @@ export function buildMigrationBaselinePlan(
     return {
       status: "ready",
       baselineMigration,
-      reasons: [
-        "baseline migration 已记录，可以继续沿用 Prisma Migrate。",
-      ],
+      reasons: ["baseline migration 已记录，可以继续沿用 Prisma Migrate。"],
       recommendedCommands: [
         "npx prisma migrate status",
         "DB_SCHEMA_SYNC_MODE=migrate docker compose run --rm --profile tools migrate",
@@ -94,7 +84,9 @@ export function buildMigrationBaselinePlan(
 export function parseBaselineCliArgs(argv: readonly string[]) {
   const apply = argv.includes("--apply");
   const printJson = argv.includes("--json");
-  const unknownArgs = argv.filter((arg) => !["--apply", "--json"].includes(arg));
+  const unknownArgs = argv.filter(
+    (arg) => !["--apply", "--json"].includes(arg),
+  );
 
   if (unknownArgs.length > 0) {
     throw new ValidationError(`Unsupported args: ${unknownArgs.join(", ")}`);

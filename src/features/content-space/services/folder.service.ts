@@ -19,10 +19,7 @@ export async function createFolder(input: FolderWriteInput) {
 }
 
 export async function renameFolder(id: string, input: FolderWriteInput) {
-  requireEntity(
-    await folderRepo.findFolderById(id),
-    "文件夹不存在",
-  );
+  requireEntity(await folderRepo.findFolderById(id), "文件夹不存在");
 
   return folderRepo.updateFolder(id, {
     name: input.name,

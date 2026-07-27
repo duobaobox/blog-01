@@ -108,23 +108,21 @@ test("post action runner refreshes admin and public content for published update
     updatedBy: "user-1",
   });
 
-  assert.deepEqual(calls, [
-    "service:update",
-    "cache:admin",
-    "cache:public",
+  assert.deepEqual(calls, ["service:update", "cache:admin", "cache:public"]);
+  assert.deepEqual(publicPayloads, [
+    [
+      {
+        status: "draft",
+        slug: "growth-loop",
+        category: { slug: "drafts" },
+      },
+      {
+        status: "published",
+        slug: "growth-loop",
+        category: { slug: "marketing" },
+      },
+    ],
   ]);
-  assert.deepEqual(publicPayloads, [[
-    {
-      status: "draft",
-      slug: "growth-loop",
-      category: { slug: "drafts" },
-    },
-    {
-      status: "published",
-      slug: "growth-loop",
-      category: { slug: "marketing" },
-    },
-  ]]);
 });
 
 test("post action runner skips public refresh for internal deletions", async () => {
@@ -211,13 +209,15 @@ test("post action runner refreshes public content for published deletions", asyn
   });
 
   assert.deepEqual(calls, ["service:delete", "cache:admin", "cache:public"]);
-  assert.deepEqual(publicPayloads, [[
-    {
-      status: "published",
-      slug: "published-post",
-      category: { slug: "notes" },
-    },
-  ]]);
+  assert.deepEqual(publicPayloads, [
+    [
+      {
+        status: "published",
+        slug: "published-post",
+        category: { slug: "notes" },
+      },
+    ],
+  ]);
 });
 
 test("post action runner refreshes admin and published content for bulk updates", async () => {
@@ -267,15 +267,13 @@ test("post action runner refreshes admin and published content for bulk updates"
     updatedBy: "user-1",
   });
 
-  assert.deepEqual(calls, [
-    "service:bulk",
-    "cache:admin",
-    "cache:public",
+  assert.deepEqual(calls, ["service:bulk", "cache:admin", "cache:public"]);
+  assert.deepEqual(publicPayloads, [
+    [
+      { status: "published", slug: "published-before" },
+      { status: "published", slug: "published-after" },
+    ],
   ]);
-  assert.deepEqual(publicPayloads, [[
-    { status: "published", slug: "published-before" },
-    { status: "published", slug: "published-after" },
-  ]]);
 });
 
 test("post action runner accepts tag replacement bulk actions", async () => {

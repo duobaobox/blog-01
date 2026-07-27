@@ -60,5 +60,7 @@ test("expandDemoPostSeeds creates deterministic unique performance samples", () 
   );
   assert.equal(expanded[2]?.title, "First · 样本 2");
   assert.equal(expanded[3]?.publishedDaysAgo, null);
-  assert.ok(new Set(expanded.map((seed) => seed.slug)).size === expanded.length);
+  assert.ok(
+    new Set(expanded.map((seed) => seed.slug)).size === expanded.length,
+  );
 });

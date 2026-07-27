@@ -14,10 +14,7 @@ test("getPostPublishability rejects empty titles and empty content", () => {
     }),
     {
       canPublish: false,
-      reasons: [
-        "请先填写一个明确的文章标题",
-        "请先补充正文内容后再发布",
-      ],
+      reasons: ["请先填写一个明确的文章标题", "请先补充正文内容后再发布"],
     },
   );
 });

@@ -55,7 +55,9 @@ test("folder action runner deletes internal posts with their folder", async () =
       async deleteFolder() {
         calls.push("service:delete");
         return {
-          deletedPosts: [{ status: "draft", slug: "private-note", category: null, tags: [] }],
+          deletedPosts: [
+            { status: "draft", slug: "private-note", category: null, tags: [] },
+          ],
         };
       },
     },

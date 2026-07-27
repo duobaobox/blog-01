@@ -17,7 +17,11 @@ function parseScaleValue(value: string | undefined) {
   }
 
   const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_DEMO_POST_SEED_SCALE) {
+  if (
+    !Number.isInteger(parsed) ||
+    parsed < 1 ||
+    parsed > MAX_DEMO_POST_SEED_SCALE
+  ) {
     throw new ValidationError(
       `Demo post seed scale must be an integer between 1 and ${MAX_DEMO_POST_SEED_SCALE}.`,
     );
@@ -37,7 +41,9 @@ export function parseDemoPostSeedScale(input: {
     throw new ValidationError(`Unsupported args: ${unknownArgs.join(", ")}`);
   }
 
-  return parseScaleValue(scaleArg?.slice("--scale=".length) ?? input.env?.DEMO_POST_SEED_SCALE);
+  return parseScaleValue(
+    scaleArg?.slice("--scale=".length) ?? input.env?.DEMO_POST_SEED_SCALE,
+  );
 }
 
 export function expandDemoPostSeeds<TSeed extends ScalableDemoPostSeed>(

@@ -105,7 +105,10 @@ function MobileNavigation({
           <SheetTitle>导航菜单</SheetTitle>
           <SheetDescription>快速跳转到站点的主要页面。</SheetDescription>
         </SheetHeader>
-        <nav aria-label="移动端主要导航" className="flex flex-col gap-2 px-4 py-4">
+        <nav
+          aria-label="移动端主要导航"
+          className="flex flex-col gap-2 px-4 py-4"
+        >
           {nav.map((item) => {
             const isActive = isNavigationItemActive(pathname, item.href);
 
@@ -117,9 +120,7 @@ function MobileNavigation({
                 onClick={() => onOpenChange(false)}
                 className={cn(
                   "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
-                  isActive
-                    ? "bg-accent text-foreground"
-                    : "text-foreground/60",
+                  isActive ? "bg-accent text-foreground" : "text-foreground/60",
                 )}
               >
                 {item.label}
@@ -182,9 +183,7 @@ export function Header({ siteName, logo, nav }: HeaderProps) {
               pathname={pathname}
               nav={nav}
               open={navigationOpen}
-              onOpenChange={(open) =>
-                setOpenPathname(open ? pathname : null)
-              }
+              onOpenChange={(open) => setOpenPathname(open ? pathname : null)}
             />
           </div>
         </div>

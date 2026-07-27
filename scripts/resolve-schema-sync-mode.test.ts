@@ -143,18 +143,20 @@ test("assertRequestedModeMatchesDecision accepts matching fixed mode and skips a
     {
       checked: false,
       matches: true,
-      reason: "requested mode auto does not enforce a fixed effective schema sync mode",
+      reason:
+        "requested mode auto does not enforce a fixed effective schema sync mode",
     },
   );
 });
 
 test("assertRequestedModeMatchesDecision rejects mismatched fixed modes", () => {
   assert.throws(
-    () => assertRequestedModeMatchesDecision({
-      requestedMode: "migrate",
-      requestedModeSource: "DB_SCHEMA_SYNC_MODE",
-      resolvedMode: "push",
-    }),
+    () =>
+      assertRequestedModeMatchesDecision({
+        requestedMode: "migrate",
+        requestedModeSource: "DB_SCHEMA_SYNC_MODE",
+        resolvedMode: "push",
+      }),
     /does not match recommended mode push/,
   );
 });

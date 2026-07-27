@@ -1,8 +1,5 @@
 import * as folderRepo from "@/features/content-space/repositories/folder.repository";
-import {
-  getPostById,
-  getPosts,
-} from "@/features/posts/queries/post.queries";
+import { getPostById, getPosts } from "@/features/posts/queries/post.queries";
 import { unstable_cache } from "next/cache";
 import {
   ADMIN_CACHE_REVALIDATE_SECONDS,
@@ -23,10 +20,7 @@ export type AdminPostsPageQueryParams = {
   q?: string | string[];
 };
 
-export type FolderPostStatusFilter =
-  | "all"
-  | "internal"
-  | "published";
+export type FolderPostStatusFilter = "all" | "internal" | "published";
 
 export type FolderPostStatusCounts = {
   all: number;
@@ -72,7 +66,9 @@ function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function normalizeStatusFilter(value: string | undefined): FolderPostStatusFilter {
+function normalizeStatusFilter(
+  value: string | undefined,
+): FolderPostStatusFilter {
   if (value === "published") return "published";
   if (value === "internal" || value === "draft") {
     return "internal";
@@ -193,13 +189,14 @@ export function createAdminPostsPageDataQuery(
           slug: activeFolderNode.slug,
         }
       : undefined;
-    const mode: "new" | "edit" = activeFolder && requestedMode === "new" ? "new" : "edit";
+    const mode: "new" | "edit" =
+      activeFolder && requestedMode === "new" ? "new" : "edit";
 
     const folderPosts = activeFolder
       ? await dependencies.getPosts({
-        folderId: activeFolder.id,
-        order: "created",
-      })
+          folderId: activeFolder.id,
+          order: "created",
+        })
       : [];
     const folderStatusCounts = countFolderStatuses(folderPosts);
     const visiblePosts = folderPosts.filter((post) => {
@@ -214,7 +211,8 @@ export function createAdminPostsPageDataQuery(
     const selectedPostId =
       mode === "new"
         ? undefined
-        : requestedPostId && contextPosts.some((post) => post.id === requestedPostId)
+        : requestedPostId &&
+            contextPosts.some((post) => post.id === requestedPostId)
           ? requestedPostId
           : contextPosts[0]?.id;
     const selectedPost = selectedPostId
@@ -241,8 +239,6 @@ export function createAdminPostsPageDataQuery(
 
 const getAdminPostsPageDataQuery = createAdminPostsPageDataQuery();
 
-export async function getAdminPostsPageData(
-  params: AdminPostsPageQueryParams,
-) {
+export async function getAdminPostsPageData(params: AdminPostsPageQueryParams) {
   return getAdminPostsPageDataQuery(params);
 }

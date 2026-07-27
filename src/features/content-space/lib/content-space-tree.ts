@@ -44,9 +44,7 @@ function compareBySortOrderThenName<
 }
 
 function comparePostsByUpdatedAtDesc(a: ContentTreePost, b: ContentTreePost) {
-  return (
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
+  return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
 }
 
 export function buildContentTree(input: ContentTreeInput): ContentTreeFolder[] {
@@ -62,15 +60,13 @@ export function buildContentTree(input: ContentTreeInput): ContentTreeFolder[] {
     postsByFolderId.set(post.folderId, current);
   }
 
-  return [...input.folders]
-    .sort(compareBySortOrderThenName)
-    .map((folder) => ({
-      id: folder.id,
-      name: folder.name,
-      slug: folder.slug,
-      postCount: folder.postCount,
-      posts: [...(postsByFolderId.get(folder.id) ?? [])].sort(
-        comparePostsByUpdatedAtDesc,
-      ),
-    }));
+  return [...input.folders].sort(compareBySortOrderThenName).map((folder) => ({
+    id: folder.id,
+    name: folder.name,
+    slug: folder.slug,
+    postCount: folder.postCount,
+    posts: [...(postsByFolderId.get(folder.id) ?? [])].sort(
+      comparePostsByUpdatedAtDesc,
+    ),
+  }));
 }

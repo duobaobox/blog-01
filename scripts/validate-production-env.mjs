@@ -55,19 +55,35 @@ export function validateProductionEnvironment(env = process.env) {
   const authUrl = parseRequiredUrl(env, "BETTER_AUTH_URL", issues, warnings);
   const siteUrl = parseRequiredUrl(env, "SITE_URL", issues, warnings);
 
-  if (authSecret && (authSecret.length < 32 || WEAK_VALUES.has(authSecret.toLowerCase()))) {
-    issues.push("BETTER_AUTH_SECRET must be at least 32 characters and not a placeholder");
+  if (
+    authSecret &&
+    (authSecret.length < 32 || WEAK_VALUES.has(authSecret.toLowerCase()))
+  ) {
+    issues.push(
+      "BETTER_AUTH_SECRET must be at least 32 characters and not a placeholder",
+    );
   }
-  if (setupToken && (setupToken.length < 16 || WEAK_VALUES.has(setupToken.toLowerCase()))) {
-    issues.push("ADMIN_SETUP_TOKEN must be at least 16 characters and not a placeholder");
+  if (
+    setupToken &&
+    (setupToken.length < 16 || WEAK_VALUES.has(setupToken.toLowerCase()))
+  ) {
+    issues.push(
+      "ADMIN_SETUP_TOKEN must be at least 16 characters and not a placeholder",
+    );
   }
 
   if (databaseUrl) {
     try {
       const url = new URL(databaseUrl);
       const password = decodeURIComponent(url.password);
-      if (!password || password.length < 16 || WEAK_VALUES.has(password.toLowerCase())) {
-        issues.push("DATABASE_URL must contain a database password of at least 16 characters");
+      if (
+        !password ||
+        password.length < 16 ||
+        WEAK_VALUES.has(password.toLowerCase())
+      ) {
+        issues.push(
+          "DATABASE_URL must contain a database password of at least 16 characters",
+        );
       }
     } catch {
       issues.push("DATABASE_URL must be a valid URL");
@@ -79,7 +95,9 @@ export function validateProductionEnvironment(env = process.env) {
   }
 
   if (issues.length > 0) {
-    throw new Error("Production environment validation failed:\n- " + issues.join("\n- "));
+    throw new Error(
+      "Production environment validation failed:\n- " + issues.join("\n- "),
+    );
   }
 
   return { warnings };

@@ -18,7 +18,9 @@ import type { AdminPostMetricsSnapshot } from "@/features/posts/repositories/pos
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 
-type PublicPostCardRecord = Awaited<ReturnType<typeof postRepo.findPublicPostCards>>[number];
+type PublicPostCardRecord = Awaited<
+  ReturnType<typeof postRepo.findPublicPostCards>
+>[number];
 type PublishedPostRecord = NonNullable<
   Awaited<ReturnType<typeof postRepo.findPublishedPostBySlug>>
 >;
@@ -66,11 +68,7 @@ export type AdminDashboardStatCard = {
   label: string;
   value: number;
   description: string;
-  iconKey:
-    | "post"
-    | "folder"
-    | "tag"
-    | "trend";
+  iconKey: "post" | "folder" | "tag" | "trend";
   href: string;
 };
 
@@ -82,19 +80,24 @@ function buildCoverImagePresentation(
     return undefined;
   }
 
-  return mediaByUrl.get(coverImageUrl) ?? {
-    url: coverImageUrl,
-    width: null,
-    height: null,
-    alt: null,
-  };
+  return (
+    mediaByUrl.get(coverImageUrl) ?? {
+      url: coverImageUrl,
+      width: null,
+      height: null,
+      alt: null,
+    }
+  );
 }
 
 function attachCoverImageToPost<T extends { coverImageUrl: string | null }>(
   post: T,
   mediaByUrl: Map<string, MediaPresentation>,
 ) {
-  const coverImage = buildCoverImagePresentation(post.coverImageUrl, mediaByUrl);
+  const coverImage = buildCoverImagePresentation(
+    post.coverImageUrl,
+    mediaByUrl,
+  );
 
   if (!coverImage) {
     return post as T & { coverImage?: MediaPresentation };
@@ -106,10 +109,9 @@ function attachCoverImageToPost<T extends { coverImageUrl: string | null }>(
   };
 }
 
-async function attachCoverImagesToPosts<T extends { coverImageUrl: string | null }>(
-  posts: T[],
-  resolveCoverMediaPresentationMap: ResolveMediaPresentationMap,
-) {
+async function attachCoverImagesToPosts<
+  T extends { coverImageUrl: string | null },
+>(posts: T[], resolveCoverMediaPresentationMap: ResolveMediaPresentationMap) {
   const mediaByUrl = await resolveCoverMediaPresentationMap(
     posts.map((post) => post.coverImageUrl),
   );
@@ -125,7 +127,9 @@ async function attachCoverImageToPublishedPost(
     return null;
   }
 
-  const mediaByUrl = await resolveCoverMediaPresentationMap([post.coverImageUrl]);
+  const mediaByUrl = await resolveCoverMediaPresentationMap([
+    post.coverImageUrl,
+  ]);
   return attachCoverImageToPost(post, mediaByUrl) as PublicPublishedPost;
 }
 
@@ -140,30 +144,24 @@ type PublicPostRepository = Pick<
 
 export function createPublicPostQueries(
   repo: PublicPostRepository = postRepo,
-  resolveCoverMediaPresentationMap: ResolveMediaPresentationMap =
-    resolveMediaPresentationMap,
+  resolveCoverMediaPresentationMap: ResolveMediaPresentationMap = resolveMediaPresentationMap,
 ) {
   return {
     async getPostBySlug(slug: string) {
       return withPublicQueryFallback(
-        async () => attachCoverImageToPublishedPost(
-          await repo.findPublishedPostBySlug(slug),
-          resolveCoverMediaPresentationMap,
-        ),
+        async () =>
+          attachCoverImageToPublishedPost(
+            await repo.findPublishedPostBySlug(slug),
+            resolveCoverMediaPresentationMap,
+          ),
         null,
       );
     },
     async getPublishedForFeed(take?: number) {
-      return withPublicQueryFallback(
-        () => repo.findPublishedForFeed(take),
-        [],
-      );
+      return withPublicQueryFallback(() => repo.findPublishedForFeed(take), []);
     },
     async getPublishedSlugs() {
-      return withPublicQueryFallback(
-        () => repo.findPublishedSlugs(),
-        [],
-      );
+      return withPublicQueryFallback(() => repo.findPublishedSlugs(), []);
     },
   };
 }
@@ -188,8 +186,7 @@ type HomepagePostsRepository = Pick<typeof postRepo, "findPublicPostCards">;
 
 export function createHomepageFeaturedOrLatestPostsQuery(
   repo: HomepagePostsRepository = postRepo,
-  resolveCoverMediaPresentationMap: ResolveMediaPresentationMap =
-    resolveMediaPresentationMap,
+  resolveCoverMediaPresentationMap: ResolveMediaPresentationMap = resolveMediaPresentationMap,
 ) {
   return async function getHomepageFeaturedOrLatestPosts(take = 3) {
     return withPublicQueryFallback(
@@ -363,19 +360,14 @@ export function createAdminDashboardPageDataQuery(
       };
     }
 
-    const [
-      overview,
-      categories,
-      tags,
-      continueWriting,
-      recentPublished,
-    ] = await Promise.all([
-      resolvedDependencies.getOverviewStats(),
-      resolvedDependencies.getCategories(),
-      resolvedDependencies.getTags(),
-      resolvedDependencies.getContinueWriting(),
-      resolvedDependencies.getRecentPublished(recentPublishedTake),
-    ]);
+    const [overview, categories, tags, continueWriting, recentPublished] =
+      await Promise.all([
+        resolvedDependencies.getOverviewStats(),
+        resolvedDependencies.getCategories(),
+        resolvedDependencies.getTags(),
+        resolvedDependencies.getContinueWriting(),
+        resolvedDependencies.getRecentPublished(recentPublishedTake),
+      ]);
 
     const taxonomy = projectAdminDashboardTaxonomyStats({
       categories: categories.length,

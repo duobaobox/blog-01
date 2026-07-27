@@ -1,6 +1,9 @@
 import { requireAdminSession, type AuthSession } from "@/infrastructure/auth";
 
-export type AdminSessionIdentity = Pick<AuthSession["user"], "id" | "name" | "role">;
+export type AdminSessionIdentity = Pick<
+  AuthSession["user"],
+  "id" | "name" | "role"
+>;
 
 export function toAdminSessionIdentity(
   session: Pick<AuthSession, "user">,
@@ -27,7 +30,9 @@ export function createAdminSessionIdentityQuery(
   };
 
   return async function getAdminSessionIdentity(): Promise<AdminSessionIdentity> {
-    return toAdminSessionIdentity(await resolvedDependencies.requireAdminSession());
+    return toAdminSessionIdentity(
+      await resolvedDependencies.requireAdminSession(),
+    );
   };
 }
 

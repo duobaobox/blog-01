@@ -48,7 +48,9 @@ export function createTaxonomyActionRunner(deps: TaxonomyActionRunnerDeps) {
 
     async updateCategory(id: string, input: CategoryWriteInput) {
       const result = await deps.taxonomyService.updateCategory(id, input);
-      const workflow = buildUpdateCategoryWorkflow(result.previousCategory.slug);
+      const workflow = buildUpdateCategoryWorkflow(
+        result.previousCategory.slug,
+      );
 
       if (workflow.shouldRevalidateAdmin) {
         deps.revalidateAdminCategories?.();

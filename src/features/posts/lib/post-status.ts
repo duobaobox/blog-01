@@ -53,6 +53,8 @@ export function summarizePostStatuses(
   );
 }
 
-export function getPostDisplayDate(post: Pick<PostStatusLike, "publishedAt" | "createdAt">) {
+export function getPostDisplayDate(
+  post: Pick<PostStatusLike, "publishedAt" | "createdAt">,
+) {
   return post.publishedAt ?? post.createdAt ?? null;
 }

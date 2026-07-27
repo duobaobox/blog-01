@@ -36,5 +36,8 @@ test("assignMotifIndices is deterministic and avoids adjacent duplicates", () =>
 test("resolveMotifIndex normalizes external indices", () => {
   assert.equal(resolveMotifIndex(-1, "fallback"), CARD_MOTIF_COUNT - 1);
   assert.equal(resolveMotifIndex(CARD_MOTIF_COUNT + 2, "fallback"), 2);
-  assert.equal(resolveMotifIndex(undefined, "fallback"), getMotifIndex("fallback"));
+  assert.equal(
+    resolveMotifIndex(undefined, "fallback"),
+    getMotifIndex("fallback"),
+  );
 });

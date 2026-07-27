@@ -21,10 +21,9 @@ export type UserInitiatedPostOperationType = Exclude<
   "update"
 >;
 
-export const USER_INITIATED_POST_OPERATION_TYPES =
-  POST_OPERATION_TYPES.filter(
-    (type): type is UserInitiatedPostOperationType => type !== "update",
-  );
+export const USER_INITIATED_POST_OPERATION_TYPES = POST_OPERATION_TYPES.filter(
+  (type): type is UserInitiatedPostOperationType => type !== "update",
+);
 
 export type PostOperationLogDetail = {
   postIds: string[];
@@ -58,7 +57,12 @@ export function getPostBulkOperationType(
   input: PostBulkActionInput,
 ): Extract<
   PostOperationType,
-  "bulkStatus" | "bulkCategory" | "bulkFolder" | "bulkReplaceTags" | "bulkAppendTags" | "bulkRemoveTags"
+  | "bulkStatus"
+  | "bulkCategory"
+  | "bulkFolder"
+  | "bulkReplaceTags"
+  | "bulkAppendTags"
+  | "bulkRemoveTags"
 > {
   switch (input.type) {
     case "setStatus":
@@ -76,15 +80,17 @@ export function getPostBulkOperationType(
   }
 }
 
-export function buildPostOperationSummary(input:
-  | {
-      type: "create" | "save" | "publish" | "unpublish" | "delete" | "update";
-      title: string;
-    }
-  | {
-      type: ReturnType<typeof getPostBulkOperationType>;
-      count: number;
-    }) {
+export function buildPostOperationSummary(
+  input:
+    | {
+        type: "create" | "save" | "publish" | "unpublish" | "delete" | "update";
+        title: string;
+      }
+    | {
+        type: ReturnType<typeof getPostBulkOperationType>;
+        count: number;
+      },
+) {
   switch (input.type) {
     case "create":
       return `创建文章《${input.title}》`;
@@ -118,10 +124,7 @@ export function getPostSaveOperationType(input: {
   previousStatus?: string | null;
   nextStatus: string;
   isNew?: boolean;
-}): Extract<
-  PostOperationType,
-  "create" | "save" | "publish" | "unpublish"
-> {
+}): Extract<PostOperationType, "create" | "save" | "publish" | "unpublish"> {
   if (input.saveIntent === "publish") {
     if (
       input.previousStatus === "published" &&

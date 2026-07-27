@@ -36,12 +36,12 @@ npm run db:preflight:release -- --schema
 
 `--schema`、`--posts`、`--media` 属于按变更触发的加严检查：schema 变更跑 schema diff，posts 查询或索引变更跑 explain，媒体引用回填变更跑 backfill plan。
 
-| 环境类型 | 标准发布模式 | 必做门禁 | 标准动作 |
-| --- | --- | --- | --- |
-| `empty` 新环境 | `DB_SCHEMA_SYNC_MODE=migrate` | `db:preflight:release -- --schema` 通过 | 通过共享 `schema-sync.sh` 入口执行 `migrate deploy` |
-| `legacy-without-history` 历史 `db push` 环境 | 继续 `auto` 或显式 `push`，暂不直接切 `migrate` | `db:preflight:release -- --schema`，必要时先跑 `db:rehearse:baseline` | 执行 `npm run db:baseline -- --apply`，再重新预检，确认进入 baseline-ready 后再切 migrate |
-| `baseline-ready` / `migration-ready` 已纳入 migration 管理环境 | `DB_SCHEMA_SYNC_MODE=migrate` | `db:check:migration-coverage` 必须完整，才能宣称 fully migration-ready | 执行 `migrate deploy`；如 coverage 缺失，先应用缺失 migration，不把 baseline-ready 误判为完全就绪 |
-| `migration-blocked` 异常环境 | 暂停发布 | `db:check:migrations` 与 `npx prisma migrate status` 排查清楚 | 先修复失败或未完成 migration，再重新跑发布预检 |
+| 环境类型                                                       | 标准发布模式                                    | 必做门禁                                                               | 标准动作                                                                                          |
+| -------------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `empty` 新环境                                                 | `DB_SCHEMA_SYNC_MODE=migrate`                   | `db:preflight:release -- --schema` 通过                                | 通过共享 `schema-sync.sh` 入口执行 `migrate deploy`                                               |
+| `legacy-without-history` 历史 `db push` 环境                   | 继续 `auto` 或显式 `push`，暂不直接切 `migrate` | `db:preflight:release -- --schema`，必要时先跑 `db:rehearse:baseline`  | 执行 `npm run db:baseline -- --apply`，再重新预检，确认进入 baseline-ready 后再切 migrate         |
+| `baseline-ready` / `migration-ready` 已纳入 migration 管理环境 | `DB_SCHEMA_SYNC_MODE=migrate`                   | `db:check:migration-coverage` 必须完整，才能宣称 fully migration-ready | 执行 `migrate deploy`；如 coverage 缺失，先应用缺失 migration，不把 baseline-ready 误判为完全就绪 |
+| `migration-blocked` 异常环境                                   | 暂停发布                                        | `db:check:migrations` 与 `npx prisma migrate status` 排查清楚          | 先修复失败或未完成 migration，再重新跑发布预检                                                    |
 
 `baseline-ready` 与 `migration-ready` 的运维差异：
 

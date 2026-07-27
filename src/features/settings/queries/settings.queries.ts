@@ -1,5 +1,8 @@
 import { unstable_cache } from "next/cache";
-import { getAdminSessionIdentity, type AdminSessionIdentity } from "@/infrastructure/auth/admin-session";
+import {
+  getAdminSessionIdentity,
+  type AdminSessionIdentity,
+} from "@/infrastructure/auth/admin-session";
 import {
   ADMIN_CACHE_REVALIDATE_SECONDS,
   ADMIN_CACHE_TAGS,

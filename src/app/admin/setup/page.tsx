@@ -20,9 +20,11 @@ export default async function AdminSetupPage() {
     bootstrapAllowed: await isBootstrapAllowed(),
   });
 
-  if (!shouldRunAdminSetup({
-    bootstrapMode,
-  })) {
+  if (
+    !shouldRunAdminSetup({
+      bootstrapMode,
+    })
+  ) {
     redirect("/admin/login");
   }
 
@@ -33,9 +35,7 @@ export default async function AdminSetupPage() {
 
   if (shouldRenderManualAdminSetup({ bootstrapMode })) {
     return (
-      <AdminSetupForm
-        requireSetupToken={bootstrapMode.requiresSetupToken}
-      />
+      <AdminSetupForm requireSetupToken={bootstrapMode.requiresSetupToken} />
     );
   }
 

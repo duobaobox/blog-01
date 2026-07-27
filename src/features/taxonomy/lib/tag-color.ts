@@ -32,7 +32,9 @@ export function normalizeTagColor(color?: string | null) {
   return expandHexColor(value);
 }
 
-export function getTagBadgeStyle(color?: string | null): CSSProperties | undefined {
+export function getTagBadgeStyle(
+  color?: string | null,
+): CSSProperties | undefined {
   const normalized = normalizeTagColor(color);
 
   if (!normalized) {
@@ -47,7 +49,9 @@ export function getTagBadgeStyle(color?: string | null): CSSProperties | undefin
   };
 }
 
-export function getTagDotStyle(color?: string | null): CSSProperties | undefined {
+export function getTagDotStyle(
+  color?: string | null,
+): CSSProperties | undefined {
   const normalized = normalizeTagColor(color);
 
   if (!normalized) {

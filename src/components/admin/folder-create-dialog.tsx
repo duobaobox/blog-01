@@ -20,7 +20,11 @@ import { Label } from "@/shared/ui/label";
 type FolderCreateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated?: (folder: { id: string; name: string; slug: string }) => void | Promise<void>;
+  onCreated?: (folder: {
+    id: string;
+    name: string;
+    slug: string;
+  }) => void | Promise<void>;
   folder?: {
     id: string;
     name: string;
@@ -57,7 +61,9 @@ export function FolderCreateDialog({
       onOpenChange(false);
       router.refresh();
     } catch (submissionError) {
-      setError(getErrorMessage(submissionError, "创建文件夹失败，请稍后重试。"));
+      setError(
+        getErrorMessage(submissionError, "创建文件夹失败，请稍后重试。"),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -88,9 +94,7 @@ export function FolderCreateDialog({
               : "创建后会立即出现在内容库里，并作为该组文章的唯一容器。"}
           </p>
 
-          {error ? (
-            <p className="text-xs text-destructive">{error}</p>
-          ) : null}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
           <div className="flex items-center gap-2">
             <Button type="submit" disabled={submitting}>

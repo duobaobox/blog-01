@@ -6,9 +6,7 @@ export type PublicContentRevalidationPost = {
   tags?: Array<{ tag?: { slug?: string | null } | null }> | null;
 };
 
-export function revalidatePostsContent(
-  posts: PublicContentRevalidationPost[],
-) {
+export function revalidatePostsContent(posts: PublicContentRevalidationPost[]) {
   revalidatePublicContent({
     postSlugs: posts.map((post) => post.slug),
     categorySlugs: posts.map((post) => post.category?.slug),
@@ -18,7 +16,9 @@ export function revalidatePostsContent(
   });
 }
 
-export function revalidateCategoryContent(slugs: Array<string | null | undefined>) {
+export function revalidateCategoryContent(
+  slugs: Array<string | null | undefined>,
+) {
   revalidatePublicContent({ categorySlugs: slugs });
 }
 

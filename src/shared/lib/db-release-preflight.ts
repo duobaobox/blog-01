@@ -50,63 +50,72 @@ export type DbMigrationReadinessMode = {
   operationalMeaning: string;
 };
 
-export const DB_MIGRATION_READINESS_MATRIX: readonly DbMigrationReadinessMode[] = [
-  {
-    environmentKind: "baseline-ready",
-    releaseClaim: "migrate deploy can be attempted after baseline resolve",
-    releaseAllowed: true,
-    requiredEvidence: [
-      "baseline migration is applied",
-      "db:check:migration-coverage has been reviewed",
-      "missing repository migrations are understood before claiming full readiness",
-    ],
-    operationalMeaning:
-      "The environment has entered Prisma Migrate semantics, but may still need later repository migrations applied before it is fully current.",
-  },
-  {
-    environmentKind: "migration-ready",
-    releaseClaim: "environment is fully current with repository migrations",
-    releaseAllowed: true,
-    requiredEvidence: [
-      "baseline migration is applied",
-      "db:check:migration-coverage reports fully applied",
-      "db:check:migrations reports no unfinished rows",
-    ],
-    operationalMeaning:
-      "The environment can be released with DB_SCHEMA_SYNC_MODE=migrate without additional baseline or coverage interpretation.",
-  },
-];
+export const DB_MIGRATION_READINESS_MATRIX: readonly DbMigrationReadinessMode[] =
+  [
+    {
+      environmentKind: "baseline-ready",
+      releaseClaim: "migrate deploy can be attempted after baseline resolve",
+      releaseAllowed: true,
+      requiredEvidence: [
+        "baseline migration is applied",
+        "db:check:migration-coverage has been reviewed",
+        "missing repository migrations are understood before claiming full readiness",
+      ],
+      operationalMeaning:
+        "The environment has entered Prisma Migrate semantics, but may still need later repository migrations applied before it is fully current.",
+    },
+    {
+      environmentKind: "migration-ready",
+      releaseClaim: "environment is fully current with repository migrations",
+      releaseAllowed: true,
+      requiredEvidence: [
+        "baseline migration is applied",
+        "db:check:migration-coverage reports fully applied",
+        "db:check:migrations reports no unfinished rows",
+      ],
+      operationalMeaning:
+        "The environment can be released with DB_SCHEMA_SYNC_MODE=migrate without additional baseline or coverage interpretation.",
+    },
+  ];
 
-export const DB_RELEASE_ENVIRONMENT_PATHS: readonly DbReleaseEnvironmentPath[] = [
-  {
-    id: "new-environment",
-    environmentKinds: ["empty"],
-    releaseMode: "DB_SCHEMA_SYNC_MODE=migrate",
-    requiredGate: "db:preflight:release -- --schema",
-    standardAction: "Run migrate deploy through the shared schema-sync entrypoint.",
-  },
-  {
-    id: "legacy-baseline-transition",
-    environmentKinds: ["legacy-without-history"],
-    releaseMode: "DB_SCHEMA_SYNC_MODE=auto or push until baseline resolve is applied",
-    requiredGate: "db:preflight:release -- --schema plus db:rehearse:baseline when possible",
-    standardAction: "Apply db:baseline -- --apply, then re-run preflight before switching to migrate.",
-  },
-  {
-    id: "migration-managed",
-    environmentKinds: ["baseline-ready", "migration-ready"],
-    releaseMode: "DB_SCHEMA_SYNC_MODE=migrate",
-    requiredGate: "db:preflight:release -- --schema with complete migration coverage",
-    standardAction: "Run migrate deploy; treat missing coverage as a release blocker for fully migration-ready claims.",
-  },
-  {
-    id: "blocked-environment",
-    environmentKinds: ["migration-blocked"],
-    releaseMode: "no release",
-    requiredGate: "db:check:migrations and prisma migrate status",
-    standardAction: "Inspect or repair the failed migration state before deploying.",
-  },
-];
+export const DB_RELEASE_ENVIRONMENT_PATHS: readonly DbReleaseEnvironmentPath[] =
+  [
+    {
+      id: "new-environment",
+      environmentKinds: ["empty"],
+      releaseMode: "DB_SCHEMA_SYNC_MODE=migrate",
+      requiredGate: "db:preflight:release -- --schema",
+      standardAction:
+        "Run migrate deploy through the shared schema-sync entrypoint.",
+    },
+    {
+      id: "legacy-baseline-transition",
+      environmentKinds: ["legacy-without-history"],
+      releaseMode:
+        "DB_SCHEMA_SYNC_MODE=auto or push until baseline resolve is applied",
+      requiredGate:
+        "db:preflight:release -- --schema plus db:rehearse:baseline when possible",
+      standardAction:
+        "Apply db:baseline -- --apply, then re-run preflight before switching to migrate.",
+    },
+    {
+      id: "migration-managed",
+      environmentKinds: ["baseline-ready", "migration-ready"],
+      releaseMode: "DB_SCHEMA_SYNC_MODE=migrate",
+      requiredGate:
+        "db:preflight:release -- --schema with complete migration coverage",
+      standardAction:
+        "Run migrate deploy; treat missing coverage as a release blocker for fully migration-ready claims.",
+    },
+    {
+      id: "blocked-environment",
+      environmentKinds: ["migration-blocked"],
+      releaseMode: "no release",
+      requiredGate: "db:check:migrations and prisma migrate status",
+      standardAction:
+        "Inspect or repair the failed migration state before deploying.",
+    },
+  ];
 
 export function parseDbReleasePreflightArgs(
   argv: readonly string[],

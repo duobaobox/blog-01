@@ -31,11 +31,7 @@ type TagMultiSelectProps = {
   onChange: (value: string[]) => void;
 };
 
-export function TagMultiSelect({
-  tags,
-  value,
-  onChange,
-}: TagMultiSelectProps) {
+export function TagMultiSelect({ tags, value, onChange }: TagMultiSelectProps) {
   if (tags.length === 0) {
     return (
       <div className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
@@ -55,9 +51,7 @@ export function TagMultiSelect({
       items={tags}
       value={selectedTags}
       onValueChange={(nextValue) =>
-        onChange(
-          Array.isArray(nextValue) ? nextValue.map((tag) => tag.id) : [],
-        )
+        onChange(Array.isArray(nextValue) ? nextValue.map((tag) => tag.id) : [])
       }
       itemToStringLabel={(tag) => tag.name}
       itemToStringValue={(tag) => tag.id}

@@ -7,12 +7,7 @@ import { getPostDisplayDate } from "@/features/posts/lib/post-status";
 import { resolveMotifIndex } from "@/features/posts/lib/card-motif-assignment";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { formatDate } from "@/shared/lib/date";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 
 type PostListCardProps = {
   post: {
@@ -47,7 +42,9 @@ function getPostPreview(excerpt: string | null, contentText: string) {
   }
 
   const preview = contentText.trim().slice(0, 120);
-  return preview ? `${preview}${contentText.trim().length > 120 ? "..." : ""}` : "";
+  return preview
+    ? `${preview}${contentText.trim().length > 120 ? "..." : ""}`
+    : "";
 }
 
 export function PostListCard({

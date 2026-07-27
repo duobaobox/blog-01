@@ -32,7 +32,7 @@ export function deriveAutoSchemaSyncDecision(snapshot) {
       snapshot.hasMigrationsTable &&
       snapshot.filesystemMigrationNames.length > 0 &&
       snapshot.filesystemMigrationNames.every((migrationName) =>
-        snapshot.appliedMigrationNames.includes(migrationName)
+        snapshot.appliedMigrationNames.includes(migrationName),
       ),
     ),
     hasUnfinishedMigrations: snapshot.unfinishedMigrationNames.length > 0,
@@ -54,24 +54,30 @@ export async function loadSchemaSyncSnapshotFromDatabase(databaseUrl) {
   await client.connect();
 
   try {
-    const hasMigrationsTableResult = await client.query(`
+    const hasMigrationsTableResult = await client.query(
+      `
       SELECT EXISTS (
         SELECT 1
         FROM information_schema.tables
         WHERE table_schema = $1
           AND table_name = '_prisma_migrations'
       ) AS "exists"
-    `, [targetSchema]);
+    `,
+      [targetSchema],
+    );
     const hasMigrationsTable = Boolean(
       hasMigrationsTableResult.rows[0]?.exists,
     );
 
-    const tableCountResult = await client.query(`
+    const tableCountResult = await client.query(
+      `
       SELECT COUNT(*) AS count
       FROM information_schema.tables
       WHERE table_schema = $1
         AND table_type = 'BASE TABLE'
-    `, [targetSchema]);
+    `,
+      [targetSchema],
+    );
     const tableCount = Number(tableCountResult.rows[0]?.count ?? 0);
 
     if (!hasMigrationsTable) {
@@ -138,8 +144,12 @@ export function parseSchemaSyncSnapshotOverride(rawValue) {
     hasMigrationsTable: Boolean(parsed?.hasMigrationsTable),
     tableCount: Number(parsed?.tableCount ?? 0),
     appliedMigrationNames: normalizeStringArray(parsed?.appliedMigrationNames),
-    filesystemMigrationNames: normalizeStringArray(parsed?.filesystemMigrationNames),
-    unfinishedMigrationNames: normalizeStringArray(parsed?.unfinishedMigrationNames),
+    filesystemMigrationNames: normalizeStringArray(
+      parsed?.filesystemMigrationNames,
+    ),
+    unfinishedMigrationNames: normalizeStringArray(
+      parsed?.unfinishedMigrationNames,
+    ),
   };
 }
 
@@ -153,7 +163,9 @@ export async function resolveSchemaSyncDecisionFromEnvironment(
   return deriveAutoSchemaSyncDecision(snapshot);
 }
 
-export function resolveRequestedSchemaSyncModeFromEnvironment(env = process.env) {
+export function resolveRequestedSchemaSyncModeFromEnvironment(
+  env = process.env,
+) {
   if (env.DB_SCHEMA_SYNC_MODE && env.DB_SCHEMA_SYNC_MODE !== "auto") {
     return {
       mode: env.DB_SCHEMA_SYNC_MODE,
@@ -265,8 +277,7 @@ export async function main() {
 }
 
 const isDirectExecution =
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(process.argv[1]).href;
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isDirectExecution) {
   main().catch((error) => {

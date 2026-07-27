@@ -20,17 +20,22 @@ function normalizeDetail(value: unknown): PostOperationLogDetail {
   const detail = value as Record<string, unknown>;
   return {
     postIds: Array.isArray(detail.postIds)
-      ? detail.postIds.filter((item): item is string => typeof item === "string")
+      ? detail.postIds.filter(
+          (item): item is string => typeof item === "string",
+        )
       : [],
-    status: typeof detail.status === "string" || detail.status === null
-      ? (detail.status as string | null)
-      : undefined,
-    categoryId: typeof detail.categoryId === "string" || detail.categoryId === null
-      ? (detail.categoryId as string | null)
-      : undefined,
-    folderId: typeof detail.folderId === "string" || detail.folderId === null
-      ? (detail.folderId as string | null)
-      : undefined,
+    status:
+      typeof detail.status === "string" || detail.status === null
+        ? (detail.status as string | null)
+        : undefined,
+    categoryId:
+      typeof detail.categoryId === "string" || detail.categoryId === null
+        ? (detail.categoryId as string | null)
+        : undefined,
+    folderId:
+      typeof detail.folderId === "string" || detail.folderId === null
+        ? (detail.folderId as string | null)
+        : undefined,
     tagIds: Array.isArray(detail.tagIds)
       ? detail.tagIds.filter((item): item is string => typeof item === "string")
       : undefined,
@@ -50,7 +55,9 @@ export async function getRecentPostOperationLogs(
 }
 
 function mapRecentPostOperationLogs(
-  logs: Awaited<ReturnType<typeof postOperationLogRepo.findRecentPostOperationLogs>>,
+  logs: Awaited<
+    ReturnType<typeof postOperationLogRepo.findRecentPostOperationLogs>
+  >,
 ) {
   return logs.map((log) => ({
     id: log.id,
@@ -77,13 +84,13 @@ function mapRecentPostOperationLogs(
 }
 
 let getRecentPostOperationLogsCachedQuery:
-  | ((take: number) => Promise<PostOperationLogEntry[]>)
-  | null = null;
+  ((take: number) => Promise<PostOperationLogEntry[]>) | null = null;
 
 function getRecentPostOperationLogsCached(take: number) {
   getRecentPostOperationLogsCachedQuery ??= unstable_cache(
     async (cachedTake: number) => {
-      const logs = await postOperationLogRepo.findRecentPostOperationLogs(cachedTake);
+      const logs =
+        await postOperationLogRepo.findRecentPostOperationLogs(cachedTake);
       return mapRecentPostOperationLogs(logs);
     },
     ["recent-post-operation-logs"],

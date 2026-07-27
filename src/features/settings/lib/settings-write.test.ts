@@ -69,7 +69,11 @@ test("resolveSiteSettingsInput falls back to the provided site url", () => {
 });
 
 test("parseSiteSettingsFormData rejects unsafe or incomplete logo urls", () => {
-  for (const logoUrl of ["media/logo.png", "//cdn.example.com/logo.png", "ftp://example.com/logo.png"]) {
+  for (const logoUrl of [
+    "media/logo.png",
+    "//cdn.example.com/logo.png",
+    "ftp://example.com/logo.png",
+  ]) {
     const formData = new FormData();
     formData.set("siteTitle", "Blog");
     formData.set("logoUrl", logoUrl);

@@ -119,7 +119,9 @@ async function main() {
   }
 
   console.log("Prisma baseline migration plan");
-  console.log(`  target schema: ${getDatabaseSchemaFromUrl(process.env.DATABASE_URL!)}`);
+  console.log(
+    `  target schema: ${getDatabaseSchemaFromUrl(process.env.DATABASE_URL!)}`,
+  );
   console.log(`  baseline migration: ${plan.baselineMigration}`);
   console.log(`  status: ${plan.status}`);
 

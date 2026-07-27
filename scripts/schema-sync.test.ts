@@ -7,28 +7,41 @@ const execFileAsync = promisify(execFile);
 const workdir = process.cwd();
 
 async function runSchemaSyncPrintMode(snapshot: object) {
-  const { stdout } = await execFileAsync("sh", ["scripts/schema-sync.sh", "--print-mode"], {
-    cwd: workdir,
-    env: {
-      ...process.env,
-      DB_SCHEMA_SYNC_MODE: "auto",
-      DATABASE_URL: "postgresql://user:pass@localhost:5432/blog?schema=public",
-      SCHEMA_SYNC_PROBE_SNAPSHOT_JSON: JSON.stringify(snapshot),
+  const { stdout } = await execFileAsync(
+    "sh",
+    ["scripts/schema-sync.sh", "--print-mode"],
+    {
+      cwd: workdir,
+      env: {
+        ...process.env,
+        DB_SCHEMA_SYNC_MODE: "auto",
+        DATABASE_URL:
+          "postgresql://user:pass@localhost:5432/blog?schema=public",
+        SCHEMA_SYNC_PROBE_SNAPSHOT_JSON: JSON.stringify(snapshot),
+      },
     },
-  });
+  );
 
   return stdout;
 }
 
-async function runResolveSchemaSyncMode(args: string[], env: Record<string, string>) {
-  return execFileAsync("node", ["scripts/resolve-schema-sync-mode.mjs", ...args], {
-    cwd: workdir,
-    env: {
-      ...process.env,
-      DATABASE_URL: "postgresql://user:pass@localhost:5432/blog?schema=public",
-      ...env,
+async function runResolveSchemaSyncMode(
+  args: string[],
+  env: Record<string, string>,
+) {
+  return execFileAsync(
+    "node",
+    ["scripts/resolve-schema-sync-mode.mjs", ...args],
+    {
+      cwd: workdir,
+      env: {
+        ...process.env,
+        DATABASE_URL:
+          "postgresql://user:pass@localhost:5432/blog?schema=public",
+        ...env,
+      },
     },
-  });
+  );
 }
 
 test("schema-sync.sh auto mode resolves migrate for empty databases", async () => {
@@ -107,9 +120,8 @@ test("resolve-schema-sync-mode assertion passes when explicit mode matches recom
 
 test("resolve-schema-sync-mode assertion fails when explicit mode conflicts with recommendation", async () => {
   await assert.rejects(
-    () => runResolveSchemaSyncMode(
-      ["--assert-env-mode"],
-      {
+    () =>
+      runResolveSchemaSyncMode(["--assert-env-mode"], {
         DB_SCHEMA_SYNC_MODE: "migrate",
         SCHEMA_SYNC_PROBE_SNAPSHOT_JSON: JSON.stringify({
           hasMigrationsTable: false,
@@ -118,8 +130,7 @@ test("resolve-schema-sync-mode assertion fails when explicit mode conflicts with
           filesystemMigrationNames: [],
           unfinishedMigrationNames: [],
         }),
-      },
-    ),
+      }),
     /does not match recommended mode push/,
   );
 });

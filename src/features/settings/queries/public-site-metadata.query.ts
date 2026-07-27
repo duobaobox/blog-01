@@ -2,12 +2,17 @@ import {
   getResolvedSiteConfig,
   type ResolvedSiteConfig,
 } from "@/features/settings/queries/site-config.query";
-import { getPublishedForFeed, getPublishedSlugs } from "@/features/posts/queries/post.queries";
+import {
+  getPublishedForFeed,
+  getPublishedSlugs,
+} from "@/features/posts/queries/post.queries";
 import { getPublicCategories } from "@/features/taxonomy/queries/category.queries";
 import { getPublicTags } from "@/features/taxonomy/queries/tag.queries";
 
 type PublicSitemapPost = Awaited<ReturnType<typeof getPublishedSlugs>>[number];
-type PublicSitemapCategory = Awaited<ReturnType<typeof getPublicCategories>>[number];
+type PublicSitemapCategory = Awaited<
+  ReturnType<typeof getPublicCategories>
+>[number];
 type PublicSitemapTag = Awaited<ReturnType<typeof getPublicTags>>[number];
 type PublicFeedPost = Awaited<ReturnType<typeof getPublishedForFeed>>[number];
 

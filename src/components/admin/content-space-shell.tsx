@@ -290,11 +290,17 @@ export function ContentSpaceShell({
 
   return (
     <div className="flex flex-1 overflow-hidden bg-background">
-      <div className="hidden w-[168px] shrink-0 border-r lg:block">{sidebar}</div>
+      <div className="hidden w-[168px] shrink-0 border-r lg:block">
+        {sidebar}
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between border-b px-3 py-2 lg:hidden">
-          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu className="size-4" />
             文件夹
           </Button>

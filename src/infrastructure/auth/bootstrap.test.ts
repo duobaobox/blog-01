@@ -1,9 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  getDefaultAdminCredentials,
-} from "@/infrastructure/auth/bootstrap";
+import { getDefaultAdminCredentials } from "@/infrastructure/auth/bootstrap";
 
 test("getDefaultAdminCredentials falls back to built-in defaults", () => {
   const previousName = process.env.SEED_ADMIN_NAME;

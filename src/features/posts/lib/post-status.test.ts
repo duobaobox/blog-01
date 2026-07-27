@@ -38,9 +38,6 @@ test("getPostDisplayDate prefers publishedAt and falls back to createdAt", () =>
   const createdAt = new Date("2026-06-15T09:00:00.000Z");
   const publishedAt = new Date("2026-06-16T09:00:00.000Z");
 
-  assert.equal(
-    getPostDisplayDate({ createdAt, publishedAt }),
-    publishedAt,
-  );
+  assert.equal(getPostDisplayDate({ createdAt, publishedAt }), publishedAt);
   assert.equal(getPostDisplayDate({ createdAt, publishedAt: null }), createdAt);
 });

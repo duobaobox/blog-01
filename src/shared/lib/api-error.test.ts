@@ -8,10 +8,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/shared/lib/app-error";
-import {
-  getErrorStatus,
-  getPublicErrorMessage,
-} from "@/shared/lib/api-error";
+import { getErrorStatus, getPublicErrorMessage } from "@/shared/lib/api-error";
 
 test("getErrorStatus maps known app errors to HTTP status codes", () => {
   assert.equal(getErrorStatus(new UnauthorizedError()), 401);
@@ -32,7 +29,10 @@ test("getPublicErrorMessage hides internal and configuration errors", () => {
     "Still referenced",
   );
   assert.equal(
-    getPublicErrorMessage(new ConfigurationError("secret config detail"), "Fallback"),
+    getPublicErrorMessage(
+      new ConfigurationError("secret config detail"),
+      "Fallback",
+    ),
     "Fallback",
   );
   assert.equal(

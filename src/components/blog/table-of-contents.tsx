@@ -33,10 +33,7 @@ function getTocIndentClass(level: number) {
   return "pl-9";
 }
 
-export function TableOfContents({
-  toc,
-  contentRootId,
-}: TableOfContentsProps) {
+export function TableOfContents({ toc, contentRootId }: TableOfContentsProps) {
   // Keep the first render deterministic between server and client. The URL
   // hash is applied after hydration so it cannot change the server markup.
   const [activeId, setActiveId] = useState("");

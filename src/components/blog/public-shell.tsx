@@ -5,9 +5,7 @@ import { Footer } from "@/shared/ui/footer";
 import { Header } from "@/shared/ui/header";
 
 export type PublicSurface =
-  | "default"
-  | "home"
-  | (string & Record<never, never>);
+  "default" | "home" | (string & Record<never, never>);
 
 type PublicShellProps = {
   children: ReactNode;

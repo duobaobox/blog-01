@@ -71,8 +71,14 @@ test("resolveAdminBootstrapMode uses manual signup in production or when a token
 });
 
 test("shouldAllowDefaultAdminLoginHint only allows local convenience mode", () => {
-  assert.equal(shouldAllowDefaultAdminLoginHint({ nodeEnv: "development" }), true);
-  assert.equal(shouldAllowDefaultAdminLoginHint({ nodeEnv: "production" }), false);
+  assert.equal(
+    shouldAllowDefaultAdminLoginHint({ nodeEnv: "development" }),
+    true,
+  );
+  assert.equal(
+    shouldAllowDefaultAdminLoginHint({ nodeEnv: "production" }),
+    false,
+  );
   assert.equal(
     shouldAllowDefaultAdminLoginHint({
       nodeEnv: "development",

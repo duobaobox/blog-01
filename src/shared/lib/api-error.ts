@@ -9,10 +9,7 @@ import {
   ValidationError,
 } from "@/shared/lib/app-error";
 
-export function getErrorStatus(
-  error: unknown,
-  fallbackStatus = 500,
-): number {
+export function getErrorStatus(error: unknown, fallbackStatus = 500): number {
   if (error instanceof UnauthorizedError) {
     return 401;
   }

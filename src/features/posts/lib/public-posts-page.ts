@@ -7,7 +7,9 @@ export type PublicPostsPageRequest = {
   tagId?: string;
 };
 
-export type ResolvedPublicPostsPage = Awaited<ReturnType<typeof getPublicPostsPageData>> & {
+export type ResolvedPublicPostsPage = Awaited<
+  ReturnType<typeof getPublicPostsPageData>
+> & {
   currentPage: number;
   isValidPage: boolean;
   isOutOfRange: boolean;

@@ -39,14 +39,17 @@ async function loadAppliedMigrationNames() {
   await client.connect();
 
   try {
-    const hasMigrationsTableResult = await client.query(`
+    const hasMigrationsTableResult = await client.query(
+      `
       SELECT EXISTS (
         SELECT 1
         FROM information_schema.tables
         WHERE table_schema = $1
           AND table_name = '_prisma_migrations'
       ) AS "exists"
-    `, [targetSchema]);
+    `,
+      [targetSchema],
+    );
 
     if (!hasMigrationsTableResult.rows[0]?.exists) {
       return [];
@@ -80,7 +83,9 @@ async function main() {
   });
 
   console.log("Checking migration coverage...");
-  console.log(`  filesystem migrations: ${coverage.filesystemMigrationNames.length}`);
+  console.log(
+    `  filesystem migrations: ${coverage.filesystemMigrationNames.length}`,
+  );
   console.log(`  applied migrations: ${coverage.appliedMigrationNames.length}`);
   console.log(`  fully applied: ${coverage.fullyApplied ? "yes" : "no"}`);
 

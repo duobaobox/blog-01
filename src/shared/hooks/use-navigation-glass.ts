@@ -27,7 +27,10 @@ export function useNavigationGlass() {
       }
 
       const rect = shell.getBoundingClientRect();
-      glassMap.setAttribute("href", buildNavigationGlassMap(rect.width, rect.height));
+      glassMap.setAttribute(
+        "href",
+        buildNavigationGlassMap(rect.width, rect.height),
+      );
     }
 
     function scheduleGlassMap() {

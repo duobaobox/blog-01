@@ -85,8 +85,6 @@ export function shouldLogPostUpdate(input: {
   return isUserInitiatedPostSave(input.saveIntent);
 }
 
-export function shouldRevalidateAdminAfterSave(
-  saveIntent?: PostSaveIntent,
-) {
+export function shouldRevalidateAdminAfterSave(saveIntent?: PostSaveIntent) {
   return saveIntent !== "autosave";
 }

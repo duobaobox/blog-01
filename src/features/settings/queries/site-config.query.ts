@@ -71,10 +71,7 @@ export function createResolvedSiteConfigQuery(
         dbSettings.faviconUrl,
       ]);
       const logo = buildMediaPresentation(dbSettings.logoUrl, mediaByUrl);
-      const favicon = buildMediaPresentation(
-        dbSettings.faviconUrl,
-        mediaByUrl,
-      );
+      const favicon = buildMediaPresentation(dbSettings.faviconUrl, mediaByUrl);
 
       return {
         name: dbSettings.siteTitle,

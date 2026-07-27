@@ -65,7 +65,7 @@ export async function buildPostPreviewPayload(
   const materialized = await materialize(input.post.contentJson);
   const displayDate =
     input.post.status === "published"
-      ? input.post.publishedAt ?? input.post.updatedAt
+      ? (input.post.publishedAt ?? input.post.updatedAt)
       : input.post.updatedAt;
 
   return {

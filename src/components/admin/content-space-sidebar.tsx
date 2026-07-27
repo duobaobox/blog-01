@@ -1,11 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Ellipsis,
-  FolderKanban,
-  Plus,
-} from "lucide-react";
+import { Ellipsis, FolderKanban, Plus } from "lucide-react";
 import type { ContentTreeFolder } from "@/features/content-space/lib/content-space-tree";
 import { buildContentSpaceFolderView } from "@/features/content-space/lib/content-space-folder-view";
 import { cn } from "@/shared/lib/utils";
@@ -204,7 +200,9 @@ export function ContentSpaceSidebar({
       />
 
       <FolderCreateDialog
-        key={editingFolder?.id ?? (folderDialogOpen ? "new-open" : "new-closed")}
+        key={
+          editingFolder?.id ?? (folderDialogOpen ? "new-open" : "new-closed")
+        }
         open={folderDialogOpen}
         onOpenChange={(open) => {
           setFolderDialogOpen(open);

@@ -46,7 +46,9 @@ export function resolveAdminBootstrapMode(input: {
 
   if (
     isProduction(input.nodeEnv ?? process.env.NODE_ENV) ||
-    hasConfiguredSetupToken(input.configuredToken ?? process.env.ADMIN_SETUP_TOKEN)
+    hasConfiguredSetupToken(
+      input.configuredToken ?? process.env.ADMIN_SETUP_TOKEN,
+    )
   ) {
     return {
       kind: "manual-admin-signup",
@@ -74,6 +76,8 @@ export function shouldAllowDefaultAdminLoginHint(input: {
 }) {
   return (
     !isProduction(input.nodeEnv ?? process.env.NODE_ENV) &&
-    !hasConfiguredSetupToken(input.configuredToken ?? process.env.ADMIN_SETUP_TOKEN)
+    !hasConfiguredSetupToken(
+      input.configuredToken ?? process.env.ADMIN_SETUP_TOKEN,
+    )
   );
 }

@@ -100,7 +100,6 @@ export default function ProjectsLayout({
 - 背景、主题和页面外壳属于布局；具体 Hero、文章列表和静态内容属于页面或 feature 组件。
 - 新增路由组后检查 URL 未变化，并执行 `npm run lint`、`npm test` 和 `npm run build`。
 
-
 ## 首页 Hero 场景
 
 首页主视觉使用按明暗主题分组的透明 PNG 场景，并在客户端完成随机选择。素材路径、替换方式和扩展约定见 [`home-hero-scenes.md`](./home-hero-scenes.md)。

@@ -84,9 +84,7 @@ export default async function PostPage({
         siteName={site.name}
         title={post.title}
         description={
-          post.seoDescription ||
-          post.excerpt ||
-          post.contentText.slice(0, 160)
+          post.seoDescription || post.excerpt || post.contentText.slice(0, 160)
         }
         image={articleImageUrl}
         authorName={post.author.name}
@@ -94,29 +92,29 @@ export default async function PostPage({
         modifiedAt={post.updatedAt?.toISOString()}
       />
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
-      <Link
-        href="/blog"
-        className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        返回博客
-      </Link>
+        <Link
+          href="/blog"
+          className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          返回博客
+        </Link>
 
-      <PostArticleView
-        title={post.title}
-        coverImageUrl={coverImageUrl}
-        coverImageAlt={coverImage?.alt}
-        coverImageWidth={originalCoverImage?.width}
-        coverImageHeight={originalCoverImage?.height}
-        category={post.category}
-        authorName={post.author.name}
-        displayDate={displayDate}
-        readingTimeMinutes={post.readingTimeMinutes}
-        wordCount={post.wordCount}
-        tags={post.tags.map((item) => item.tag)}
-        contentHtml={post.contentHtml}
-        toc={parseToc(post.contentToc)}
-      />
+        <PostArticleView
+          title={post.title}
+          coverImageUrl={coverImageUrl}
+          coverImageAlt={coverImage?.alt}
+          coverImageWidth={originalCoverImage?.width}
+          coverImageHeight={originalCoverImage?.height}
+          category={post.category}
+          authorName={post.author.name}
+          displayDate={displayDate}
+          readingTimeMinutes={post.readingTimeMinutes}
+          wordCount={post.wordCount}
+          tags={post.tags.map((item) => item.tag)}
+          contentHtml={post.contentHtml}
+          toc={parseToc(post.contentToc)}
+        />
       </div>
     </>
   );

@@ -20,10 +20,7 @@ export function buildContentSpaceFolderView(
   });
 }
 
-export function getFolderById(
-  tree: ContentTreeFolder[],
-  folderId?: string,
-) {
+export function getFolderById(tree: ContentTreeFolder[], folderId?: string) {
   if (!folderId) return undefined;
   return tree.find((folder) => folder.id === folderId);
 }

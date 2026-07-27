@@ -14,9 +14,7 @@ export async function generateMetadata() {
 export default async function HomePage() {
   const [site, homepagePosts] = await Promise.all([
     getResolvedSiteConfig(),
-    getHomepageFeaturedOrLatestPosts(
-      homeConfig.sections.featuredPosts.limit,
-    ),
+    getHomepageFeaturedOrLatestPosts(homeConfig.sections.featuredPosts.limit),
   ]);
   const heroSceneSeed = Math.random();
 

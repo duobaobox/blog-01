@@ -27,7 +27,9 @@ async function main() {
 
   try {
     const [{ total }] = (
-      await client.query<CountRow>('SELECT COUNT(*) AS total FROM "siteSetting"')
+      await client.query<CountRow>(
+        'SELECT COUNT(*) AS total FROM "siteSetting"',
+      )
     ).rows;
     const totalRows = Number(total);
 
@@ -47,21 +49,21 @@ async function main() {
     console.log(`  total rows: ${totalRows}`);
 
     if (!hasScopeKey) {
-      console.log('  scopeKey column: missing');
+      console.log("  scopeKey column: missing");
 
       if (totalRows > 1) {
         throw new Error(
-          'siteSetting has multiple rows before singleton key rollout. Deduplicate rows before applying the new schema.',
+          "siteSetting has multiple rows before singleton key rollout. Deduplicate rows before applying the new schema.",
         );
       }
 
       console.log(
-        '  status: pre-singleton-key schema is still compatible because row count is <= 1.',
+        "  status: pre-singleton-key schema is still compatible because row count is <= 1.",
       );
       return;
     }
 
-    console.log('  scopeKey column: present');
+    console.log("  scopeKey column: present");
 
     const scopeRows = (
       await client.query<ScopeRow>(`
@@ -76,7 +78,9 @@ async function main() {
     }));
 
     const defaultRow = scopeRows.find((row) => row.scopeKey === "default");
-    const nonDefaultRows = scopeRows.filter((row) => row.scopeKey !== "default");
+    const nonDefaultRows = scopeRows.filter(
+      (row) => row.scopeKey !== "default",
+    );
 
     for (const row of scopeRows) {
       console.log(`  scope ${row.scopeKey ?? "<null>"}: ${row.count}`);
@@ -98,7 +102,7 @@ async function main() {
       );
     }
 
-    console.log('  status: singleton semantics look healthy.');
+    console.log("  status: singleton semantics look healthy.");
   } finally {
     await client.end();
   }

@@ -87,7 +87,10 @@ test("db release preflight distinguishes baseline-ready from fully migration-rea
   assert.ok(baselineReady);
   assert.ok(migrationReady);
   assert.notEqual(baselineReady.releaseClaim, migrationReady.releaseClaim);
-  assert.match(baselineReady.operationalMeaning, /may still need later repository migrations/);
+  assert.match(
+    baselineReady.operationalMeaning,
+    /may still need later repository migrations/,
+  );
   assert.match(
     migrationReady.requiredEvidence.join("\n"),
     /migration-coverage reports fully applied/,
@@ -116,7 +119,16 @@ test("db release preflight documents every supported database release path", () 
   );
 
   assert.match(getDbReleasePreflightHelpText(), /environment kind: empty/);
-  assert.match(getDbReleasePreflightHelpText(), /environment kind: legacy-without-history/);
-  assert.match(getDbReleasePreflightHelpText(), /environment kind: baseline-ready, migration-ready/);
-  assert.match(getDbReleasePreflightHelpText(), /environment kind: migration-blocked/);
+  assert.match(
+    getDbReleasePreflightHelpText(),
+    /environment kind: legacy-without-history/,
+  );
+  assert.match(
+    getDbReleasePreflightHelpText(),
+    /environment kind: baseline-ready, migration-ready/,
+  );
+  assert.match(
+    getDbReleasePreflightHelpText(),
+    /environment kind: migration-blocked/,
+  );
 });

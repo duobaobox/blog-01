@@ -24,9 +24,10 @@ function readPositiveInteger(value: string | undefined, fallback: number) {
 function readEnvironmentConfig() {
   return {
     enabled: process.env.AI_ENABLED === "true",
-    baseUrl: (
-      process.env.AI_BASE_URL || "https://api.openai.com/v1"
-    ).replace(/\/+$/, ""),
+    baseUrl: (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(
+      /\/+$/,
+      "",
+    ),
     apiKey: process.env.AI_API_KEY?.trim() ?? "",
     model: process.env.AI_MODEL?.trim() ?? "",
     protocol: process.env.AI_PROTOCOL || "chat-completions",
@@ -43,7 +44,9 @@ export async function getAiConfig(): Promise<AiConfig> {
     ? settings?.aiConfigured === true
     : environment.enabled;
   const baseUrl = (
-    useStoredConfig ? settings?.aiBaseUrl || environment.baseUrl : environment.baseUrl
+    useStoredConfig
+      ? settings?.aiBaseUrl || environment.baseUrl
+      : environment.baseUrl
   ).replace(/\/+$/, "");
   const apiKey = useStoredConfig
     ? decryptAiApiKey(settings?.aiApiKeyEncrypted)
@@ -99,10 +102,7 @@ export async function getAiConfig(): Promise<AiConfig> {
     model,
     protocol: "chat-completions",
     timeoutMs: readPositiveInteger(process.env.AI_TIMEOUT_MS, 30_000),
-    maxInputChars: readPositiveInteger(
-      process.env.AI_MAX_INPUT_CHARS,
-      30_000,
-    ),
+    maxInputChars: readPositiveInteger(process.env.AI_MAX_INPUT_CHARS, 30_000),
   };
 }
 

@@ -9,7 +9,9 @@ import {
 
 const execFileAsync = promisify(execFile);
 
-async function runStep(step: ReturnType<typeof buildDbReleasePreflightSteps>[number]) {
+async function runStep(
+  step: ReturnType<typeof buildDbReleasePreflightSteps>[number],
+) {
   console.log(`\n== ${step.title} ==`);
   console.log(`$ npm ${step.command.join(" ")}`);
 
@@ -40,8 +42,12 @@ async function main() {
   const steps = buildDbReleasePreflightSteps(args);
 
   console.log("Starting DB release preflight...");
-  console.log(`  required checks: ${steps.filter((step) => !step.optional).length}`);
-  console.log(`  optional checks: ${steps.filter((step) => step.optional).length}`);
+  console.log(
+    `  required checks: ${steps.filter((step) => !step.optional).length}`,
+  );
+  console.log(
+    `  optional checks: ${steps.filter((step) => step.optional).length}`,
+  );
 
   for (const step of steps) {
     await runStep(step);

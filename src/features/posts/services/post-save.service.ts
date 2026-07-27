@@ -45,7 +45,8 @@ function normalizeStoredMediaReferences(
 ) {
   return references.map((reference) => ({
     mediaId: reference.mediaId,
-    usage: reference.usage === "cover" ? ("cover" as const) : ("content" as const),
+    usage:
+      reference.usage === "cover" ? ("cover" as const) : ("content" as const),
   }));
 }
 
@@ -74,7 +75,8 @@ export async function updatePostIncrementally(
   const materialized = contentChanged
     ? await materializePostContent(input.contentJson)
     : null;
-  const persistedContentJson = materialized?.contentJson ?? existingPost.contentJson;
+  const persistedContentJson =
+    materialized?.contentJson ?? existingPost.contentJson;
 
   const coverChanged = existingPost.coverImageUrl !== input.coverImageUrl;
   const currentMediaReferences = normalizeStoredMediaReferences(

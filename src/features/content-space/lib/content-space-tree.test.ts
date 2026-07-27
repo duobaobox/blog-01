@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  buildContentTree,
-  type ContentTreeInput,
-} from "./content-space-tree";
+import { buildContentTree, type ContentTreeInput } from "./content-space-tree";
 
 test("buildContentTree nests posts under subtopics and topics", () => {
   const input: ContentTreeInput = {
@@ -50,10 +47,10 @@ test("buildContentTree nests posts under subtopics and topics", () => {
 
   const result = buildContentTree(input);
 
-  assert.deepEqual(result.map((folder) => folder.slug), [
-    "engineering-practice",
-    "content-system",
-  ]);
+  assert.deepEqual(
+    result.map((folder) => folder.slug),
+    ["engineering-practice", "content-system"],
+  );
   assert.equal(result[0]?.postCount, 1);
   assert.equal(result[1]?.postCount, 2);
   assert.deepEqual(

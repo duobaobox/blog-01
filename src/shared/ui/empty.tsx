@@ -1,7 +1,7 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/shared/lib/utils"
+import { cn } from "@/shared/lib/utils";
 
 const emptyVariants = cva(
   "group/empty flex w-full flex-col items-center justify-center text-center",
@@ -16,8 +16,8 @@ const emptyVariants = cva(
     defaultVariants: {
       size: "default",
     },
-  }
-)
+  },
+);
 
 const emptyMediaVariants = cva(
   "flex items-center justify-center overflow-hidden",
@@ -31,8 +31,8 @@ const emptyMediaVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
-)
+  },
+);
 
 function Empty({
   className,
@@ -46,7 +46,7 @@ function Empty({
       className={cn(emptyVariants({ size, className }))}
       {...props}
     />
-  )
+  );
 }
 
 function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
@@ -56,7 +56,7 @@ function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("flex max-w-md flex-col items-center gap-1.5", className)}
       {...props}
     />
-  )
+  );
 }
 
 function EmptyMedia({
@@ -70,7 +70,7 @@ function EmptyMedia({
       className={cn(emptyMediaVariants({ variant, className }))}
       {...props}
     />
-  )
+  );
 }
 
 function EmptyTitle({ className, ...props }: React.ComponentProps<"div">) {
@@ -79,27 +79,24 @@ function EmptyTitle({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="empty-title"
       className={cn(
         "text-base font-medium tracking-tight text-foreground group-data-[size=sm]/empty:text-sm group-data-[size=lg]/empty:text-lg",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
-function EmptyDescription({
-  className,
-  ...props
-}: React.ComponentProps<"p">) {
+function EmptyDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="empty-description"
       className={cn(
         "max-w-sm text-sm leading-6 text-muted-foreground group-data-[size=sm]/empty:text-xs group-data-[size=sm]/empty:leading-5",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function EmptyContent({ className, ...props }: React.ComponentProps<"div">) {
@@ -108,11 +105,11 @@ function EmptyContent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="empty-content"
       className={cn(
         "flex flex-wrap items-center justify-center gap-2 pt-1",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 export {
@@ -122,4 +119,4 @@ export {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-}
+};

@@ -33,12 +33,12 @@ flowchart LR
 
 发布操作只按下面路径选择：
 
-| 环境路径 | 覆盖的 `environment kind` | 发布模式 | 发布动作 |
-| --- | --- | --- | --- |
-| 新环境 | `empty` | `DB_SCHEMA_SYNC_MODE=migrate` | 先跑 `npm run db:preflight:release -- --schema`，通过后用共享 `schema-sync.sh` 入口执行 `migrate deploy` |
-| 历史 baseline 过渡 | `legacy-without-history` | 继续 `auto` 或显式 `push`，不要直接切 `migrate` | 先跑 `npm run db:rehearse:baseline`，再执行 `npm run db:baseline -- --apply`，重新预检进入 baseline-ready 后再切 migrate |
-| 已纳入 migration 管理 | `baseline-ready` / `migration-ready` | `DB_SCHEMA_SYNC_MODE=migrate` | `db:check:migration-coverage` 必须完整；缺失仓库 migration 时先应用缺失项，再宣称 fully migration-ready |
-| 异常阻断 | `migration-blocked` | 暂停发布 | 先用 `db:check:migrations` 和 `npx prisma migrate status` 排查失败或未完成 migration |
+| 环境路径              | 覆盖的 `environment kind`            | 发布模式                                        | 发布动作                                                                                                                 |
+| --------------------- | ------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 新环境                | `empty`                              | `DB_SCHEMA_SYNC_MODE=migrate`                   | 先跑 `npm run db:preflight:release -- --schema`，通过后用共享 `schema-sync.sh` 入口执行 `migrate deploy`                 |
+| 历史 baseline 过渡    | `legacy-without-history`             | 继续 `auto` 或显式 `push`，不要直接切 `migrate` | 先跑 `npm run db:rehearse:baseline`，再执行 `npm run db:baseline -- --apply`，重新预检进入 baseline-ready 后再切 migrate |
+| 已纳入 migration 管理 | `baseline-ready` / `migration-ready` | `DB_SCHEMA_SYNC_MODE=migrate`                   | `db:check:migration-coverage` 必须完整；缺失仓库 migration 时先应用缺失项，再宣称 fully migration-ready                  |
+| 异常阻断              | `migration-blocked`                  | 暂停发布                                        | 先用 `db:check:migrations` 和 `npx prisma migrate status` 排查失败或未完成 migration                                     |
 
 部署配置层面，当前统一通过 `DB_SCHEMA_SYNC_MODE` 表达 schema 同步策略：
 
@@ -238,7 +238,6 @@ bash install.sh . --no-edit
 - `scripts/release/start-offline-stack.sh`
 
 如果后续恢复离线交付，也应该基于当前 `app-delivery` 方案重新设计，而不是继续叠加旧脚本。
-
 
 ## 四、健康检查与备份
 

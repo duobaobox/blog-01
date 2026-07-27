@@ -16,10 +16,7 @@ import {
   parseStoredContentJson,
   stringifyContentJson,
 } from "@/features/editor/content-types";
-import {
-  createPost,
-  updatePost,
-} from "@/features/posts/actions/post.actions";
+import { createPost, updatePost } from "@/features/posts/actions/post.actions";
 import {
   getPostAutosaveDelay,
   POST_AUTOSAVE_MAX_WAIT_MS,
@@ -273,7 +270,8 @@ export function PostForm({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const [aiSeoLoading, setAiSeoLoading] = useState(false);
-  const [aiSeoSuggestion, setAiSeoSuggestion] = useState<AiSeoSuggestion | null>(null);
+  const [aiSeoSuggestion, setAiSeoSuggestion] =
+    useState<AiSeoSuggestion | null>(null);
   const [aiSeoError, setAiSeoError] = useState<string | null>(null);
   const [titleEditing, setTitleEditing] = useState(false);
   const {
@@ -393,9 +391,10 @@ export function PostForm({
           seoDescription: form.seoDescription,
         }),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | { result?: AiSeoSuggestion; error?: string }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        result?: AiSeoSuggestion;
+        error?: string;
+      } | null;
 
       if (!response.ok || !payload?.result) {
         throw new Error(payload?.error || "AI 建议生成失败");
@@ -418,13 +417,9 @@ export function PostForm({
 
     patchForm({
       title:
-        form.title.trim() ||
-        aiSeoSuggestion.titleCandidates[0] ||
-        form.title,
+        form.title.trim() || aiSeoSuggestion.titleCandidates[0] || form.title,
       excerpt: form.excerpt.trim() ? form.excerpt : aiSeoSuggestion.excerpt,
-      seoTitle: form.seoTitle.trim()
-        ? form.seoTitle
-        : aiSeoSuggestion.seoTitle,
+      seoTitle: form.seoTitle.trim() ? form.seoTitle : aiSeoSuggestion.seoTitle,
       seoDescription: form.seoDescription.trim()
         ? form.seoDescription
         : aiSeoSuggestion.seoDescription,
@@ -639,7 +634,10 @@ export function PostForm({
             className={`rounded-full border px-2 py-0 text-xs ${POST_STATUS_BADGE_CLASSES[getPostStatusTone(form)]}`}
             title={`当前状态：${getPostStatusLabel(form)}`}
           >
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+            <span
+              aria-hidden="true"
+              className="size-1.5 rounded-full bg-current"
+            />
             {getPostStatusLabel(form)}
           </Badge>
           <div className="min-w-0 max-w-[240px] flex-1 lg:max-w-[360px]">
@@ -647,9 +645,7 @@ export function PostForm({
               <Input
                 ref={titleInputRef}
                 value={form.title}
-                onChange={(event) =>
-                  patchForm({ title: event.target.value })
-                }
+                onChange={(event) => patchForm({ title: event.target.value })}
                 onBlur={finishTitleEdit}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
@@ -725,8 +721,7 @@ export function PostForm({
             size="sm"
             className="w-24"
             disabled={
-              saving ||
-              (!isPublishedPost(form) && !publishability.canPublish)
+              saving || (!isPublishedPost(form) && !publishability.canPublish)
             }
             onClick={() =>
               handleSubmit(isPublishedPost(form) ? "draft" : "published")
@@ -737,11 +732,7 @@ export function PostForm({
                 : publishability.reasons[0]
             }
           >
-            {saving
-              ? "处理中..."
-              : isPublishedPost(form)
-                ? "取消发布"
-                : "发布"}
+            {saving ? "处理中..." : isPublishedPost(form) ? "取消发布" : "发布"}
           </Button>
         </div>
       </div>
@@ -984,7 +975,8 @@ export function PostForm({
                       AI SEO 助手
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      使用服务端 BYOK 配置生成标题、摘要和 SEO 元数据。结果只作为建议，不会自动发布；已有字段不会被覆盖。
+                      使用服务端 BYOK 配置生成标题、摘要和 SEO
+                      元数据。结果只作为建议，不会自动发布；已有字段不会被覆盖。
                     </p>
                   </div>
                   <Button
@@ -1011,14 +1003,18 @@ export function PostForm({
                     <p className="font-medium">建议预览</p>
                     {aiSeoSuggestion.titleCandidates.length > 0 ? (
                       <div className="space-y-1.5">
-                        <span className="text-muted-foreground">标题候选：</span>
+                        <span className="text-muted-foreground">
+                          标题候选：
+                        </span>
                         <div className="flex flex-col gap-1.5">
                           {aiSeoSuggestion.titleCandidates.map((candidate) => (
                             <div
                               key={candidate}
                               className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-2"
                             >
-                              <span className="min-w-0 flex-1">{candidate}</span>
+                              <span className="min-w-0 flex-1">
+                                {candidate}
+                              </span>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -1057,7 +1053,9 @@ export function PostForm({
                     </p>
                     {aiSeoSuggestion.issues.length > 0 ? (
                       <p>
-                        <span className="text-muted-foreground">检查提示：</span>
+                        <span className="text-muted-foreground">
+                          检查提示：
+                        </span>
                         {aiSeoSuggestion.issues.join("；")}
                       </p>
                     ) : null}

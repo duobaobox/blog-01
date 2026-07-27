@@ -54,7 +54,9 @@ export function isSiteResourceUrl(value: string): boolean {
     return true;
   }
 
-  return value.startsWith("/") && !value.startsWith("//") && !value.includes("\\");
+  return (
+    value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")
+  );
 }
 
 export function validateOptionalHttpUrl(

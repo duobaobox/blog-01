@@ -12,10 +12,7 @@ type HomeHeroVisualProps = {
   sceneSeed: number;
 };
 
-export function HomeHeroVisual({
-  visual,
-  sceneSeed,
-}: HomeHeroVisualProps) {
+export function HomeHeroVisual({ visual, sceneSeed }: HomeHeroVisualProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 

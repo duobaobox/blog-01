@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createAdminCategoriesPageDataQuery, createPublicCategoryQueries } from "./category.queries";
-import { createAdminTagsPageDataQuery, createPublicTagQueries } from "./tag.queries";
+import {
+  createAdminCategoriesPageDataQuery,
+  createPublicCategoryQueries,
+} from "./category.queries";
+import {
+  createAdminTagsPageDataQuery,
+  createPublicTagQueries,
+} from "./tag.queries";
 
 test("public category queries always use public scope", async () => {
   const calls: Array<{ fn: string; arg?: unknown }> = [];

@@ -30,7 +30,9 @@ const PARTICLES = Array.from({ length: 20 }, (_, index) => {
       (seededRandom(seed * 5) - 0.5) * 15 + 5,
       (seededRandom(seed * 7) - 0.5) * 20 - 5,
     ] as [number, number, number],
-    colorIndex: Math.floor(seededRandom(seed * 11) * DARK_PARTICLE_COLORS.length),
+    colorIndex: Math.floor(
+      seededRandom(seed * 11) * DARK_PARTICLE_COLORS.length,
+    ),
     scale: seededRandom(seed * 13) * 0.5 + 0.2,
   };
 });
@@ -67,7 +69,7 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
   const isDark = theme === "dark";
   const bodyColor = isDark ? "#334155" : "#e2e8f0"; // slate-700 / slate-200
   const screenColor = isDark ? "#0ea5e9" : "#3b82f6"; // primary/accent glow
-  const screenBg = isDark ? "#0f172a" : "#1e293b"; 
+  const screenBg = isDark ? "#0f172a" : "#1e293b";
   const keyColor = isDark ? "#1e293b" : "#94a3b8";
 
   const groupRef = useRef<THREE.Group>(null);
@@ -82,7 +84,7 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
             position={[x - 6.5, 0, z - 4.5]}
             color={bodyColor}
           />
-        ))
+        )),
       )}
 
       {/* Keyboard */}
@@ -93,7 +95,7 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
             position={[x - 4.5, 0.5, z - 3.5]}
             color={keyColor}
           />
-        ))
+        )),
       )}
       {/* Trackpad */}
       {Array.from({ length: 3 }).map((_, x) =>
@@ -103,15 +105,14 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
             position={[x - 1, 0.5, z + 1.5]}
             color={keyColor}
           />
-        ))
+        )),
       )}
 
       {/* Screen Lid (Vertical/Angled back slightly, using rotated group) */}
       <group position={[0, 0.5, -5]} rotation={[-0.1, 0, 0]}>
         {Array.from({ length: 14 }).map((_, x) =>
           Array.from({ length: 9 }).map((_, y) => {
-            const isScreenEdge =
-              x === 0 || x === 13 || y === 0 || y === 8;
+            const isScreenEdge = x === 0 || x === 13 || y === 0 || y === 8;
             const isLogo = x === 6 && y === 4;
 
             // Back of screen
@@ -162,7 +163,7 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
                 )}
               </group>
             );
-          })
+          }),
         )}
       </group>
     </group>
@@ -170,7 +171,13 @@ const VoxelLaptop = ({ theme }: { theme: string }) => {
 };
 
 // Voxel Coffee Mug
-const VoxelCoffee = ({ position, theme }: { position: [number, number, number]; theme: string }) => {
+const VoxelCoffee = ({
+  position,
+  theme,
+}: {
+  position: [number, number, number];
+  theme: string;
+}) => {
   const isDark = theme === "dark";
   const mugColor = isDark ? "#ef4444" : "#f87171"; // red
   const coffeeColor = "#451a03";
@@ -183,11 +190,11 @@ const VoxelCoffee = ({ position, theme }: { position: [number, number, number]; 
           Array.from({ length: 5 }).map((_, y) => {
             const r = Math.sqrt((x - 1.5) ** 2 + (z - 1.5) ** 2);
             if (r > 2) return null; // Make it roughly cylindrical
-            
+
             const isBase = y === 0;
             const isWall = r > 1.2 && y > 0;
             const isCoffee = !isWall && y === 3;
-            
+
             if (!isBase && !isWall && !isCoffee) return null;
 
             return (
@@ -197,12 +204,16 @@ const VoxelCoffee = ({ position, theme }: { position: [number, number, number]; 
                 color={isCoffee ? coffeeColor : mugColor}
               />
             );
-          })
-        )
+          }),
+        ),
       )}
       {/* Handle */}
       {Array.from({ length: 3 }).map((_, y) => (
-        <Voxel key={`handle-${y}`} position={[2.5, y + 1, 0]} color={mugColor} />
+        <Voxel
+          key={`handle-${y}`}
+          position={[2.5, y + 1, 0]}
+          color={mugColor}
+        />
       ))}
       <Voxel position={[2.5, 3, 0]} color={mugColor} />
       <Voxel position={[2.5, 1, 0]} color={mugColor} />
@@ -217,11 +228,12 @@ const Particles = ({ theme }: { theme: string }) => {
   const colors = isDark ? DARK_PARTICLE_COLORS : LIGHT_PARTICLE_COLORS;
 
   const groupRef = useRef<THREE.Group>(null);
-  
+
   useFrame(({ clock }) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = clock.getElapsedTime() * 0.05;
-      groupRef.current.position.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.5;
+      groupRef.current.position.y =
+        Math.sin(clock.getElapsedTime() * 0.5) * 0.5;
     }
   });
 
@@ -249,7 +261,10 @@ export function VoxelScene() {
         shadows
         gl={{ preserveDrawingBuffer: true, antialias: false }} // pixel art style looks better without/with specific antialiasing, but we'll leave it simple
       >
-        <color attach="background" args={theme === "dark" ? ["#09090b"] : ["#fafafa"]} />
+        <color
+          attach="background"
+          args={theme === "dark" ? ["#09090b"] : ["#fafafa"]}
+        />
         <ambientLight intensity={theme === "dark" ? 0.8 : 1.2} />
         <directionalLight
           position={[10, 20, 10]}
@@ -257,9 +272,13 @@ export function VoxelScene() {
           castShadow
           shadow-mapSize={[1024, 1024]}
         />
-        <pointLight position={[-10, 0, -20]} intensity={theme === "dark" ? 2 : 1.5} color="#3b82f6" />
+        <pointLight
+          position={[-10, 0, -20]}
+          intensity={theme === "dark" ? 2 : 1.5}
+          color="#3b82f6"
+        />
         <pointLight position={[0, -10, 0]} intensity={1} />
-        
+
         <Environment preset="city" />
 
         <PresentationControls

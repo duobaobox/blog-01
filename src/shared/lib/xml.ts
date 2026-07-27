@@ -7,7 +7,10 @@ const XML_ENTITIES: Record<string, string> = {
 };
 
 export function escapeXml(value: string) {
-  return value.replace(/[&<>"']/g, (character) => XML_ENTITIES[character] ?? character);
+  return value.replace(
+    /[&<>"']/g,
+    (character) => XML_ENTITIES[character] ?? character,
+  );
 }
 
 export function wrapXmlCdata(value: string) {

@@ -109,7 +109,8 @@ const demoPosts: readonly DemoPostSeed[] = [
   {
     title: "把博客后台重做成内容工作台后，最先该验证哪三件事",
     slug: "demo-admin-workspace-first-checks",
-    excerpt: "先验证结构定位、列表切换和编辑保存链路，能最快看出这次重构值不值。",
+    excerpt:
+      "先验证结构定位、列表切换和编辑保存链路，能最快看出这次重构值不值。",
     categorySlug: "product-design",
     folderSlug: "product-experience",
     tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
@@ -184,7 +185,8 @@ const demoPosts: readonly DemoPostSeed[] = [
   {
     title: "摘要和 SEO 描述应该一起设计，而不是上线前临时补",
     slug: "demo-excerpt-seo-together",
-    excerpt: "摘要决定列表页点击意愿，SEO 描述决定搜索结果点击意愿，这两者应同时设计。",
+    excerpt:
+      "摘要决定列表页点击意愿，SEO 描述决定搜索结果点击意愿，这两者应同时设计。",
     categorySlug: "content-ops",
     folderSlug: "content-strategy-lab",
     tagSlugs: ["seo", "content-strategy", "demo-data"],
@@ -304,7 +306,8 @@ const demoPosts: readonly DemoPostSeed[] = [
   {
     title: "Docker 化之后，真正容易出问题的往往是初始化和数据同步",
     slug: "demo-docker-bootstrap",
-    excerpt: "服务启动只是开始，数据库连接、schema 同步和种子数据才是稳定运行的基础。",
+    excerpt:
+      "服务启动只是开始，数据库连接、schema 同步和种子数据才是稳定运行的基础。",
     categorySlug: "devops",
     folderSlug: "delivery-ops",
     tagSlugs: ["docker", "publishing-flow", "demo-data"],
@@ -330,7 +333,8 @@ const demoPosts: readonly DemoPostSeed[] = [
   {
     title: "发布前检查不该只看前台，还要把后台主流程走一遍",
     slug: "demo-release-checklist",
-    excerpt: "后台能否新建、保存、删除和回到列表，决定了发版后能不能继续稳定维护。",
+    excerpt:
+      "后台能否新建、保存、删除和回到列表，决定了发版后能不能继续稳定维护。",
     categorySlug: "devops",
     folderSlug: "delivery-ops",
     tagSlugs: ["docker", "publishing-flow", "demo-data"],
@@ -414,226 +418,226 @@ const demoPosts: readonly DemoPostSeed[] = [
       },
     ],
   },
-  ...([
-    {
-      title: "后台文章列表如果只适合看十篇以内的数据，那它其实还没准备好进入真实使用",
-      slug: "demo-admin-list-density",
-      excerpt:
-        "当文章数量上来之后，列表的信息密度、筛选效率和滚动中的定位感会立刻暴露问题。",
-      categorySlug: "product-design",
-      folderSlug: "product-experience",
-      tagSlugs: ["admin-ux", "performance", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 22,
-      createdDaysAgo: 23,
-      lead:
-        "后台列表在十篇以内通常看不出问题，但当内容逐渐变多，信息密度和选中状态是否足够清晰就会立刻成为真实阻力。",
-      focus:
-        "这篇文章可以帮助你观察长标题、较长摘要和多标签组合出现在中高密度列表里时的可读性。",
-    },
-    {
-      title: "文章标题一旦变长，前后台的截断、悬浮提示和视觉重心都会一起接受检验",
-      slug: "demo-long-title-behavior",
-      excerpt:
-        "长标题是最容易把列表设计、详情页层级和编辑器头部布局一起拉出来测试的内容类型。",
-      categorySlug: "frontend-engineering",
-      folderSlug: "frontend-implementation",
-      tagSlugs: ["react", "admin-ux", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 24,
-      createdDaysAgo: 25,
-      lead:
-        "短标题通常不会出问题，但只要内容进入真实写作状态，标题长度很快就会超出理想范围，于是很多细节都会暴露出来。",
-      focus:
-        "这类文章最适合观察后台 tooltip、前台列表卡片换行、详情页标题节奏以及移动端首屏是否仍然稳定。",
-    },
-    {
-      title: "专题策划不是把文章堆到一起，而是提前决定用户会沿着什么路径继续阅读",
-      slug: "demo-editorial-path-design",
-      excerpt:
-        "专题页真正承接的是阅读路径，所以测试数据里需要存在可以串联浏览的相关主题文章。",
-      categorySlug: "content-ops",
-      folderSlug: "content-strategy-lab",
-      tagSlugs: ["editorial-planning", "content-strategy", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 26,
-      createdDaysAgo: 27,
-      lead:
-        "很多博客会做专题，但专题页如果没有清晰的阅读顺序，就只是把标签和分类又包了一层壳，并没有真正提高内容利用率。",
-      focus:
-        "这篇文章适合和同文件夹的其他文章一起测试前台连续阅读的感觉，也适合检查后台按主题组织内容时是否顺手。",
-    },
-    {
-      title: "当标签数量慢慢变多之后，标签页更像内容入口还是更像筛选器，其实是两种完全不同的设计决策",
-      slug: "demo-tag-page-role",
-      excerpt:
-        "标签页的角色如果不明确，前台会显得凌乱，后台也会越来越难维护跨主题内容。",
-      categorySlug: "content-ops",
-      folderSlug: "content-strategy-lab",
-      tagSlugs: ["seo", "editorial-planning", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 28,
-      createdDaysAgo: 29,
-      lead:
-        "标签页可以是轻量筛选，也可以是跨栏目浏览入口，但两者在标题、摘要和推荐逻辑上的要求并不一样。",
-      focus:
-        "你可以用它测试标签页的标题、文章排序和回到博客列表后的浏览连贯性，看当前结构更偏向哪一种。",
-    },
-    {
-      title: "把更多真实文章灌进数据库之后，前台分页、精选区和分类页才会真正表现出自己的性格",
-      slug: "demo-data-volume-matters",
-      excerpt:
-        "只有当数据量足够时，分页和模块节奏的优缺点才会被放大出来，少量数据通常会掩盖结构问题。",
-      categorySlug: "frontend-engineering",
-      folderSlug: "frontend-implementation",
-      tagSlugs: ["nextjs", "performance", "demo-data"],
-      status: "published",
-      isFeatured: true,
-      publishedDaysAgo: 30,
-      createdDaysAgo: 31,
-      lead:
-        "稀疏数据带来的最大误判，是你会误以为当前页面结构已经很整洁，但一旦文章数量增加，真正的密度问题和排序问题都会同时出现。",
-      focus:
-        "这篇文章的作用就是故意把列表体量抬起来，帮助你观察前台翻页和首页模块在更高数据量下是否仍然自然。",
-    },
-    {
-      title: "部署流程里最需要被复盘的，往往不是命令本身，而是每一步在系统中的因果顺序",
-      slug: "demo-deployment-sequence",
-      excerpt:
-        "发版失败很多时候不是单点错误，而是顺序错了，所以演示数据里也应该有运维主题内容去覆盖前台主题广度。",
-      categorySlug: "devops",
-      folderSlug: "delivery-ops",
-      tagSlugs: ["docker", "publishing-flow", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 32,
-      createdDaysAgo: 33,
-      lead:
-        "只记命令而不理解顺序，通常意味着出问题时只能重复试错。对博客系统来说，数据库、服务启动和内容初始化尤其依赖顺序。",
-      focus:
-        "这篇文章可以帮助前台保持主题多样性，也适合你在后台测试搜索“部署”“顺序”等关键词时观察命中效果。",
-    },
-    {
-      title: "如果后台新建文章之后不能马上形成列表反馈，用户对系统是否成功响应会明显不安",
-      slug: "demo-create-feedback-loop",
-      excerpt:
-        "即时反馈是内容工作台体验的关键，它比空状态文案更能决定用户是否信任系统。",
-      categorySlug: "product-design",
-      folderSlug: "product-experience",
-      tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 34,
-      createdDaysAgo: 35,
-      lead:
-        "用户点了新建之后，最先需要确认的是系统有没有真正接住这个动作，而不是先去理解复杂的状态提示。",
-      focus:
-        "这篇文章和我们刚做的即时创建逻辑是配套的，方便你继续回看后台创建后的列表反馈是否自然。",
-    },
-    {
-      title: "文章摘要长短不一时，列表卡片的节奏感能不能保持稳定，决定了博客页是不是耐看",
-      slug: "demo-excerpt-length-rhythm",
-      excerpt:
-        "真实数据里摘要长度一定会不均匀，所以列表卡片必须在信息差异中依然保持浏览节奏。",
-      categorySlug: "frontend-engineering",
-      folderSlug: "frontend-implementation",
-      tagSlugs: ["react", "content-strategy", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 36,
-      createdDaysAgo: 37,
-      lead:
-        "统一长度的假数据会让页面显得过于理想化，而真实博客最常见的情况恰恰是标题和摘要长度都不平均。",
-      focus:
-        "这篇文章和其他长短不一的内容一起，能帮助你直接看出列表卡片的高度节奏是否足够稳。",
-    },
-    {
-      title: "从写作到上线的每一个小摩擦，最后都会累积成内容团队更新频率下降的真实原因",
-      slug: "demo-friction-compounds",
-      excerpt:
-        "体验里的微小阻力在单次使用时不明显，但在高频写作场景里会持续侵蚀效率和意愿。",
-      categorySlug: "product-design",
-      folderSlug: "product-experience",
-      tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
-      status: "published",
-      isFeatured: false,
-      publishedDaysAgo: 38,
-      createdDaysAgo: 39,
-      lead:
-        "任何一次多余点击、模糊反馈或切换成本，看起来都不算大，但只要进入持续写作状态，这些细节就会快速累积成真实负担。",
-      focus:
-        "把这类文章和更多后台动作一起测试，会更容易让你判断现在的工作台体验是不是已经到了真正可用的阶段。",
-    },
-    {
-      title: "下一批内容还没完全成型：这是为了测试草稿堆积时，列表过滤和搜索是否还能保持清晰",
-      slug: "demo-draft-backlog-density",
-      excerpt:
-        "草稿数量一旦上来，后台的筛选、命名和再次定位就会比发布态更先暴露问题。",
-      categorySlug: "content-ops",
-      folderSlug: "idea-backlog",
-      tagSlugs: ["publishing-flow", "demo-data"],
-      status: "draft",
-      isFeatured: false,
-      publishedDaysAgo: null,
-      createdDaysAgo: 2,
-      lead:
-        "草稿区最容易出现的问题不是写不写得完，而是随着半成品变多，用户越来越难确认哪些该继续、哪些该合并、哪些可以删掉。",
-      focus:
-        "这篇额外草稿的作用就是让你在后台切换草稿视图时，看到比之前更接近真实的密度。",
-    },
-    {
-      title: "这个选题先放着：后面再决定它更适合写成工具评测、实践复盘，还是一篇完整的系统设计文章",
-      slug: "demo-draft-direction-pending",
-      excerpt:
-        "方向未定的草稿很适合测试标签、分类和文件夹在内容还没成型时的组织方式。",
-      categorySlug: "product-design",
-      folderSlug: "idea-backlog",
-      tagSlugs: ["editorial-planning", "demo-data"],
-      status: "draft",
-      isFeatured: false,
-      publishedDaysAgo: null,
-      createdDaysAgo: 5,
-      lead:
-        "很多真实草稿都不是从明确标题开始，而是从一个模糊方向开始，这对后台的重命名、移动和再次打开体验都是更严格的考验。",
-      focus:
-        "你可以把它当成一个更接近现实的半成品，看看当前工作台是否支持这种不确定状态下的内容管理。",
-    },
-  ] satisfies readonly DemoPostBlueprint[]).map(
-    ({
-      lead,
-      focus,
-      ...post
-    }: DemoPostBlueprint): DemoPostSeed => ({
-      ...post,
-      sections: [
-        {
-          heading: "为什么这类内容值得保留在演示数据里",
-          paragraphs: [
-            lead,
-            "演示数据如果太整齐，很多真实问题就会被掩盖。把不同长度、不同主题和不同完成度的内容一起放进系统，反而更容易发现结构是否经得起真实使用。",
-          ],
-        },
-        {
-          heading: "这篇文章主要帮助你测什么",
-          paragraphs: [
-            focus,
-            "除了前台浏览，你也可以顺手回到后台验证搜索、筛选、重新定位和再次编辑这条链路是否仍然顺畅。",
-          ],
-        },
-        {
-          heading: "继续优化时可以观察的信号",
-          paragraphs: [
-            "当数据规模和内容长度都开始变化时，页面是否仍然容易扫读、状态是否仍然清楚、交互是否仍然可预期，这些都会比视觉细节本身更早说明问题。",
-          ],
-          bullets: ["标题是否容易扫读", "状态是否容易辨认", "回到列表后是否容易继续操作"],
-        },
-      ],
-    }),
-  ),
+  ...(
+    [
+      {
+        title:
+          "后台文章列表如果只适合看十篇以内的数据，那它其实还没准备好进入真实使用",
+        slug: "demo-admin-list-density",
+        excerpt:
+          "当文章数量上来之后，列表的信息密度、筛选效率和滚动中的定位感会立刻暴露问题。",
+        categorySlug: "product-design",
+        folderSlug: "product-experience",
+        tagSlugs: ["admin-ux", "performance", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 22,
+        createdDaysAgo: 23,
+        lead: "后台列表在十篇以内通常看不出问题，但当内容逐渐变多，信息密度和选中状态是否足够清晰就会立刻成为真实阻力。",
+        focus:
+          "这篇文章可以帮助你观察长标题、较长摘要和多标签组合出现在中高密度列表里时的可读性。",
+      },
+      {
+        title:
+          "文章标题一旦变长，前后台的截断、悬浮提示和视觉重心都会一起接受检验",
+        slug: "demo-long-title-behavior",
+        excerpt:
+          "长标题是最容易把列表设计、详情页层级和编辑器头部布局一起拉出来测试的内容类型。",
+        categorySlug: "frontend-engineering",
+        folderSlug: "frontend-implementation",
+        tagSlugs: ["react", "admin-ux", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 24,
+        createdDaysAgo: 25,
+        lead: "短标题通常不会出问题，但只要内容进入真实写作状态，标题长度很快就会超出理想范围，于是很多细节都会暴露出来。",
+        focus:
+          "这类文章最适合观察后台 tooltip、前台列表卡片换行、详情页标题节奏以及移动端首屏是否仍然稳定。",
+      },
+      {
+        title:
+          "专题策划不是把文章堆到一起，而是提前决定用户会沿着什么路径继续阅读",
+        slug: "demo-editorial-path-design",
+        excerpt:
+          "专题页真正承接的是阅读路径，所以测试数据里需要存在可以串联浏览的相关主题文章。",
+        categorySlug: "content-ops",
+        folderSlug: "content-strategy-lab",
+        tagSlugs: ["editorial-planning", "content-strategy", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 26,
+        createdDaysAgo: 27,
+        lead: "很多博客会做专题，但专题页如果没有清晰的阅读顺序，就只是把标签和分类又包了一层壳，并没有真正提高内容利用率。",
+        focus:
+          "这篇文章适合和同文件夹的其他文章一起测试前台连续阅读的感觉，也适合检查后台按主题组织内容时是否顺手。",
+      },
+      {
+        title:
+          "当标签数量慢慢变多之后，标签页更像内容入口还是更像筛选器，其实是两种完全不同的设计决策",
+        slug: "demo-tag-page-role",
+        excerpt:
+          "标签页的角色如果不明确，前台会显得凌乱，后台也会越来越难维护跨主题内容。",
+        categorySlug: "content-ops",
+        folderSlug: "content-strategy-lab",
+        tagSlugs: ["seo", "editorial-planning", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 28,
+        createdDaysAgo: 29,
+        lead: "标签页可以是轻量筛选，也可以是跨栏目浏览入口，但两者在标题、摘要和推荐逻辑上的要求并不一样。",
+        focus:
+          "你可以用它测试标签页的标题、文章排序和回到博客列表后的浏览连贯性，看当前结构更偏向哪一种。",
+      },
+      {
+        title:
+          "把更多真实文章灌进数据库之后，前台分页、精选区和分类页才会真正表现出自己的性格",
+        slug: "demo-data-volume-matters",
+        excerpt:
+          "只有当数据量足够时，分页和模块节奏的优缺点才会被放大出来，少量数据通常会掩盖结构问题。",
+        categorySlug: "frontend-engineering",
+        folderSlug: "frontend-implementation",
+        tagSlugs: ["nextjs", "performance", "demo-data"],
+        status: "published",
+        isFeatured: true,
+        publishedDaysAgo: 30,
+        createdDaysAgo: 31,
+        lead: "稀疏数据带来的最大误判，是你会误以为当前页面结构已经很整洁，但一旦文章数量增加，真正的密度问题和排序问题都会同时出现。",
+        focus:
+          "这篇文章的作用就是故意把列表体量抬起来，帮助你观察前台翻页和首页模块在更高数据量下是否仍然自然。",
+      },
+      {
+        title:
+          "部署流程里最需要被复盘的，往往不是命令本身，而是每一步在系统中的因果顺序",
+        slug: "demo-deployment-sequence",
+        excerpt:
+          "发版失败很多时候不是单点错误，而是顺序错了，所以演示数据里也应该有运维主题内容去覆盖前台主题广度。",
+        categorySlug: "devops",
+        folderSlug: "delivery-ops",
+        tagSlugs: ["docker", "publishing-flow", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 32,
+        createdDaysAgo: 33,
+        lead: "只记命令而不理解顺序，通常意味着出问题时只能重复试错。对博客系统来说，数据库、服务启动和内容初始化尤其依赖顺序。",
+        focus:
+          "这篇文章可以帮助前台保持主题多样性，也适合你在后台测试搜索“部署”“顺序”等关键词时观察命中效果。",
+      },
+      {
+        title:
+          "如果后台新建文章之后不能马上形成列表反馈，用户对系统是否成功响应会明显不安",
+        slug: "demo-create-feedback-loop",
+        excerpt:
+          "即时反馈是内容工作台体验的关键，它比空状态文案更能决定用户是否信任系统。",
+        categorySlug: "product-design",
+        folderSlug: "product-experience",
+        tagSlugs: ["admin-ux", "publishing-flow", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 34,
+        createdDaysAgo: 35,
+        lead: "用户点了新建之后，最先需要确认的是系统有没有真正接住这个动作，而不是先去理解复杂的状态提示。",
+        focus:
+          "这篇文章和我们刚做的即时创建逻辑是配套的，方便你继续回看后台创建后的列表反馈是否自然。",
+      },
+      {
+        title:
+          "文章摘要长短不一时，列表卡片的节奏感能不能保持稳定，决定了博客页是不是耐看",
+        slug: "demo-excerpt-length-rhythm",
+        excerpt:
+          "真实数据里摘要长度一定会不均匀，所以列表卡片必须在信息差异中依然保持浏览节奏。",
+        categorySlug: "frontend-engineering",
+        folderSlug: "frontend-implementation",
+        tagSlugs: ["react", "content-strategy", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 36,
+        createdDaysAgo: 37,
+        lead: "统一长度的假数据会让页面显得过于理想化，而真实博客最常见的情况恰恰是标题和摘要长度都不平均。",
+        focus:
+          "这篇文章和其他长短不一的内容一起，能帮助你直接看出列表卡片的高度节奏是否足够稳。",
+      },
+      {
+        title:
+          "从写作到上线的每一个小摩擦，最后都会累积成内容团队更新频率下降的真实原因",
+        slug: "demo-friction-compounds",
+        excerpt:
+          "体验里的微小阻力在单次使用时不明显，但在高频写作场景里会持续侵蚀效率和意愿。",
+        categorySlug: "product-design",
+        folderSlug: "product-experience",
+        tagSlugs: ["admin-ux", "content-strategy", "demo-data"],
+        status: "published",
+        isFeatured: false,
+        publishedDaysAgo: 38,
+        createdDaysAgo: 39,
+        lead: "任何一次多余点击、模糊反馈或切换成本，看起来都不算大，但只要进入持续写作状态，这些细节就会快速累积成真实负担。",
+        focus:
+          "把这类文章和更多后台动作一起测试，会更容易让你判断现在的工作台体验是不是已经到了真正可用的阶段。",
+      },
+      {
+        title:
+          "下一批内容还没完全成型：这是为了测试草稿堆积时，列表过滤和搜索是否还能保持清晰",
+        slug: "demo-draft-backlog-density",
+        excerpt:
+          "草稿数量一旦上来，后台的筛选、命名和再次定位就会比发布态更先暴露问题。",
+        categorySlug: "content-ops",
+        folderSlug: "idea-backlog",
+        tagSlugs: ["publishing-flow", "demo-data"],
+        status: "draft",
+        isFeatured: false,
+        publishedDaysAgo: null,
+        createdDaysAgo: 2,
+        lead: "草稿区最容易出现的问题不是写不写得完，而是随着半成品变多，用户越来越难确认哪些该继续、哪些该合并、哪些可以删掉。",
+        focus:
+          "这篇额外草稿的作用就是让你在后台切换草稿视图时，看到比之前更接近真实的密度。",
+      },
+      {
+        title:
+          "这个选题先放着：后面再决定它更适合写成工具评测、实践复盘，还是一篇完整的系统设计文章",
+        slug: "demo-draft-direction-pending",
+        excerpt:
+          "方向未定的草稿很适合测试标签、分类和文件夹在内容还没成型时的组织方式。",
+        categorySlug: "product-design",
+        folderSlug: "idea-backlog",
+        tagSlugs: ["editorial-planning", "demo-data"],
+        status: "draft",
+        isFeatured: false,
+        publishedDaysAgo: null,
+        createdDaysAgo: 5,
+        lead: "很多真实草稿都不是从明确标题开始，而是从一个模糊方向开始，这对后台的重命名、移动和再次打开体验都是更严格的考验。",
+        focus:
+          "你可以把它当成一个更接近现实的半成品，看看当前工作台是否支持这种不确定状态下的内容管理。",
+      },
+    ] satisfies readonly DemoPostBlueprint[]
+  ).map(({ lead, focus, ...post }: DemoPostBlueprint): DemoPostSeed => ({
+    ...post,
+    sections: [
+      {
+        heading: "为什么这类内容值得保留在演示数据里",
+        paragraphs: [
+          lead,
+          "演示数据如果太整齐，很多真实问题就会被掩盖。把不同长度、不同主题和不同完成度的内容一起放进系统，反而更容易发现结构是否经得起真实使用。",
+        ],
+      },
+      {
+        heading: "这篇文章主要帮助你测什么",
+        paragraphs: [
+          focus,
+          "除了前台浏览，你也可以顺手回到后台验证搜索、筛选、重新定位和再次编辑这条链路是否仍然顺畅。",
+        ],
+      },
+      {
+        heading: "继续优化时可以观察的信号",
+        paragraphs: [
+          "当数据规模和内容长度都开始变化时，页面是否仍然容易扫读、状态是否仍然清楚、交互是否仍然可预期，这些都会比视觉细节本身更早说明问题。",
+        ],
+        bullets: [
+          "标题是否容易扫读",
+          "状态是否容易辨认",
+          "回到列表后是否容易继续操作",
+        ],
+      },
+    ],
+  })),
 ];
 
 function daysAgo(days: number) {
@@ -759,7 +763,9 @@ async function main() {
   const scaledDemoPosts = expandDemoPostSeeds(demoPosts, seedScale);
 
   console.log("Resetting and seeding demo content...");
-  console.log(`Demo post seed scale: ${seedScale} (${scaledDemoPosts.length} posts)`);
+  console.log(
+    `Demo post seed scale: ${seedScale} (${scaledDemoPosts.length} posts)`,
+  );
 
   const adminUser =
     (await db.user.findFirst({
@@ -775,7 +781,9 @@ async function main() {
     }));
 
   if (!adminUser) {
-    throw new Error("No admin user found. Please create an admin account first.");
+    throw new Error(
+      "No admin user found. Please create an admin account first.",
+    );
   }
 
   console.log(`Using admin author: ${adminUser.username || adminUser.email}`);
@@ -819,10 +827,8 @@ async function main() {
     const contentText = buildContentText(seed);
     const stats = readingTime(contentText);
     const wordCount =
-      contentText
-        .replace(/\s+/g, "")
-        .split("")
-        .filter(Boolean).length || Math.max(1, Math.round(stats.words));
+      contentText.replace(/\s+/g, "").split("").filter(Boolean).length ||
+      Math.max(1, Math.round(stats.words));
 
     const categoryId = categoryMap.get(seed.categorySlug);
     if (!categoryId) {

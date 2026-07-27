@@ -184,15 +184,15 @@ API Key 只在服务端读取，不能下发给浏览器、不能写入日志、
 
 内置服务商预设：
 
-| 服务商 | 默认 Base URL | 默认模型示例 |
-| --- | --- | --- |
-| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
-| DeepSeek | `https://api.deepseek.com` | `deepseek-v4-flash` |
-| 阿里云百炼 / 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
-| 智谱 AI / GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-5.2` |
-| 月之暗面 / Kimi | `https://api.moonshot.cn/v1` | `kimi-k3` |
-| 火山方舟 / 豆包 | `https://ark.cn-beijing.volces.com/api/v3` | `doubao-seed-1-6-250615` |
-| 硅基流动 | `https://api.siliconflow.cn/v1` | `Qwen/Qwen3-8B` |
+| 服务商                | 默认 Base URL                                       | 默认模型示例             |
+| --------------------- | --------------------------------------------------- | ------------------------ |
+| OpenAI                | `https://api.openai.com/v1`                         | `gpt-4o-mini`            |
+| DeepSeek              | `https://api.deepseek.com`                          | `deepseek-v4-flash`      |
+| 阿里云百炼 / 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus`              |
+| 智谱 AI / GLM         | `https://open.bigmodel.cn/api/paas/v4`              | `glm-5.2`                |
+| 月之暗面 / Kimi       | `https://api.moonshot.cn/v1`                        | `kimi-k3`                |
+| 火山方舟 / 豆包       | `https://ark.cn-beijing.volces.com/api/v3`          | `doubao-seed-1-6-250615` |
+| 硅基流动              | `https://api.siliconflow.cn/v1`                     | `Qwen/Qwen3-8B`          |
 
 预设只负责减少配置成本，模型名称和 Base URL 仍允许管理员修改，以适应供应商的模型更新和业务空间地址。
 
@@ -292,6 +292,7 @@ type AiEditTextResult = {
 - `src/components/admin/settings-form.tsx`
 - `src/components/admin/ai-settings-form.tsx`
 - `src/app/admin/(protected)/ai/page.tsx`
+
 ## 10. 验收标准
 
 ### SEO

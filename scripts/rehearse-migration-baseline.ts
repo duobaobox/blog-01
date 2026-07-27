@@ -57,7 +57,10 @@ async function dropSchema(schema: string) {
 
 async function main() {
   const rehearsalSchema = buildRehearsalSchemaName();
-  const rehearsalUrl = buildSchemaUrl(process.env.DATABASE_URL!, rehearsalSchema);
+  const rehearsalUrl = buildSchemaUrl(
+    process.env.DATABASE_URL!,
+    rehearsalSchema,
+  );
   const commandEnv = {
     ...process.env,
     DATABASE_URL: rehearsalUrl,

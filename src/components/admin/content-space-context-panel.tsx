@@ -122,7 +122,9 @@ export function ContentSpaceContextPanel({
                   name="search"
                   value={localSearchQuery}
                   onChange={(event) => setLocalSearchQuery(event.target.value)}
-                  placeholder={folder ? `在 ${folder.name} 中搜索` : "请先选择文件夹"}
+                  placeholder={
+                    folder ? `在 ${folder.name} 中搜索` : "请先选择文件夹"
+                  }
                   aria-label="搜索当前文件夹文章"
                   className="h-8 pl-8 pr-8"
                   disabled={!folder}
@@ -163,7 +165,9 @@ export function ContentSpaceContextPanel({
           <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
             {posts.length === 0 ? (
               <PostsEmptyState
-                title={searchQuery ? "没有匹配的文章" : getEmptyTitle(statusFilter)}
+                title={
+                  searchQuery ? "没有匹配的文章" : getEmptyTitle(statusFilter)
+                }
                 description={
                   searchQuery
                     ? `当前文件夹里没有匹配“${searchQuery}”的文章。`

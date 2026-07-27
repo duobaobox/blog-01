@@ -1,46 +1,41 @@
-"use client"
+"use client";
 
-import {
-  useCallback,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react"
-import type { Editor } from "@tiptap/core"
-import { Sparkles } from "lucide-react"
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import type { Editor } from "@tiptap/core";
+import { Sparkles } from "lucide-react";
 import {
   parseStoredContentJson,
   stringifyContentJson,
-} from "@/features/editor/content-types"
+} from "@/features/editor/content-types";
 import {
   SimpleEditor,
   type SimpleEditorSelection,
   type SimpleEditorUpdate,
-} from "@/components/tiptap/templates/simple/simple-editor"
-import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog"
-import type { MediaItem } from "@/features/media/types/storage.types"
-import { Button } from "@/shared/ui/button"
+} from "@/components/tiptap/templates/simple/simple-editor";
+import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
+import type { MediaItem } from "@/features/media/types/storage.types";
+import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/shared/ui/dialog"
-import { Label } from "@/shared/ui/label"
-import { Textarea } from "@/shared/ui/textarea"
+} from "@/shared/ui/dialog";
+import { Label } from "@/shared/ui/label";
+import { Textarea } from "@/shared/ui/textarea";
 
 export type EditorSnapshot = {
-  json: string
-  text: string
-}
+  json: string;
+  text: string;
+};
 
 export type PostRichEditorProps = {
-  initialJson: string
-  contentKey?: string
-  placeholder?: string
-  onChange: (snapshot: EditorSnapshot) => void
-  onEditorReady?: (editor: Editor | null) => void
-}
+  initialJson: string;
+  contentKey?: string;
+  placeholder?: string;
+  onChange: (snapshot: EditorSnapshot) => void;
+  onEditorReady?: (editor: Editor | null) => void;
+};
 
 type AiEditOperation =
   | "polish"
@@ -49,15 +44,15 @@ type AiEditOperation =
   | "shorten"
   | "professional"
   | "conversational"
-  | "custom"
+  | "custom";
 
 type AiEditResult = {
-  text: string
-}
+  text: string;
+};
 
 const AI_EDIT_OPERATIONS: Array<{
-  value: AiEditOperation
-  label: string
+  value: AiEditOperation;
+  label: string;
 }> = [
   { value: "polish", label: "润色" },
   { value: "simplify", label: "简化" },
@@ -66,16 +61,16 @@ const AI_EDIT_OPERATIONS: Array<{
   { value: "professional", label: "更专业" },
   { value: "conversational", label: "更口语" },
   { value: "custom", label: "自定义" },
-]
+];
 
-const subscribeToHydration = () => () => {}
+const subscribeToHydration = () => () => {};
 
 function useHasHydrated() {
   return useSyncExternalStore(
     subscribeToHydration,
     () => true,
     () => false,
-  )
+  );
 }
 
 export function PostRichEditor({
@@ -85,41 +80,41 @@ export function PostRichEditor({
   onChange,
   onEditorReady,
 }: PostRichEditorProps) {
-  const hasHydrated = useHasHydrated()
-  const [editor, setEditor] = useState<Editor | null>(null)
-  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
+  const hasHydrated = useHasHydrated();
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [aiEditSelection, setAiEditSelection] =
-    useState<SimpleEditorSelection | null>(null)
-  const [aiEditDialogOpen, setAiEditDialogOpen] = useState(false)
+    useState<SimpleEditorSelection | null>(null);
+  const [aiEditDialogOpen, setAiEditDialogOpen] = useState(false);
   const [aiEditOperation, setAiEditOperation] =
-    useState<AiEditOperation>("polish")
-  const [aiEditInstruction, setAiEditInstruction] = useState("")
-  const [aiEditLoading, setAiEditLoading] = useState(false)
-  const [aiEditResult, setAiEditResult] = useState<AiEditResult | null>(null)
-  const [aiEditError, setAiEditError] = useState<string | null>(null)
+    useState<AiEditOperation>("polish");
+  const [aiEditInstruction, setAiEditInstruction] = useState("");
+  const [aiEditLoading, setAiEditLoading] = useState(false);
+  const [aiEditResult, setAiEditResult] = useState<AiEditResult | null>(null);
+  const [aiEditError, setAiEditError] = useState<string | null>(null);
 
   const initialContent = useMemo(
     () => parseStoredContentJson(initialJson),
     [initialJson],
-  )
+  );
 
   const handleEditorReady = useCallback(
     (nextEditor: Editor | null) => {
-      setEditor(nextEditor)
-      onEditorReady?.(nextEditor)
+      setEditor(nextEditor);
+      onEditorReady?.(nextEditor);
     },
     [onEditorReady],
-  )
+  );
 
   const handleUpdate = useCallback(
     ({ json, text }: SimpleEditorUpdate) => {
       onChange({
         json: stringifyContentJson(json),
         text,
-      })
+      });
     },
     [onChange],
-  )
+  );
 
   const handleMediaSelect = useCallback(
     (media: MediaItem) => {
@@ -131,40 +126,40 @@ export function PostRichEditor({
           alt: media.alt || media.filename,
           title: media.filename,
         })
-        .run()
+        .run();
     },
     [editor],
-  )
+  );
 
   const handleOpenAiEdit = useCallback(
     (selection: SimpleEditorSelection | null) => {
       if (!selection) {
-        setAiEditSelection(null)
-        setAiEditResult(null)
-        setAiEditError("请先在正文中选中一段文本。")
-        setAiEditDialogOpen(true)
-        return
+        setAiEditSelection(null);
+        setAiEditResult(null);
+        setAiEditError("请先在正文中选中一段文本。");
+        setAiEditDialogOpen(true);
+        return;
       }
 
-      setAiEditSelection(selection)
-      setAiEditResult(null)
-      setAiEditError(null)
-      setAiEditInstruction("")
-      setAiEditOperation("polish")
-      setAiEditDialogOpen(true)
+      setAiEditSelection(selection);
+      setAiEditResult(null);
+      setAiEditError(null);
+      setAiEditInstruction("");
+      setAiEditOperation("polish");
+      setAiEditDialogOpen(true);
     },
     [],
-  )
+  );
 
   const handleGenerateAiEdit = useCallback(async () => {
     if (!aiEditSelection) {
-      setAiEditError("请先选中一段正文，再生成改写。")
-      return
+      setAiEditError("请先选中一段正文，再生成改写。");
+      return;
     }
 
-    setAiEditLoading(true)
-    setAiEditError(null)
-    setAiEditResult(null)
+    setAiEditLoading(true);
+    setAiEditError(null);
+    setAiEditResult(null);
 
     try {
       const response = await fetch("/api/ai/generate", {
@@ -178,29 +173,30 @@ export function PostRichEditor({
           operation: aiEditOperation,
           instruction: aiEditInstruction,
         }),
-      })
-      const payload = (await response.json().catch(() => null)) as
-        | { result?: AiEditResult; error?: string }
-        | null
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        result?: AiEditResult;
+        error?: string;
+      } | null;
 
       if (!response.ok || !payload?.result?.text) {
-        throw new Error(payload?.error || "AI 改写失败")
+        throw new Error(payload?.error || "AI 改写失败");
       }
 
-      setAiEditResult(payload.result)
+      setAiEditResult(payload.result);
     } catch (error) {
       setAiEditError(
         error instanceof Error && error.message
           ? error.message
           : "AI 改写失败，请稍后重试。",
-      )
+      );
     } finally {
-      setAiEditLoading(false)
+      setAiEditLoading(false);
     }
-  }, [aiEditInstruction, aiEditOperation, aiEditSelection])
+  }, [aiEditInstruction, aiEditOperation, aiEditSelection]);
 
   const handleApplyAiEdit = useCallback(() => {
-    if (!editor || !aiEditSelection || !aiEditResult?.text) return
+    if (!editor || !aiEditSelection || !aiEditResult?.text) return;
 
     editor
       .chain()
@@ -209,19 +205,19 @@ export function PostRichEditor({
         { from: aiEditSelection.from, to: aiEditSelection.to },
         aiEditResult.text,
       )
-      .run()
+      .run();
 
-    setAiEditDialogOpen(false)
-    setAiEditResult(null)
-    setAiEditError(null)
-  }, [aiEditResult, aiEditSelection, editor])
+    setAiEditDialogOpen(false);
+    setAiEditResult(null);
+    setAiEditError(null);
+  }, [aiEditResult, aiEditSelection, editor]);
 
   if (!hasHydrated) {
     return (
       <div className="post-rich-editor" aria-hidden="true">
         <div className="simple-editor-wrapper min-h-[320px]" />
       </div>
-    )
+    );
   }
 
   return (
@@ -246,10 +242,10 @@ export function PostRichEditor({
       <Dialog
         open={aiEditDialogOpen}
         onOpenChange={(open) => {
-          setAiEditDialogOpen(open)
+          setAiEditDialogOpen(open);
           if (!open) {
-            setAiEditError(null)
-            setAiEditResult(null)
+            setAiEditError(null);
+            setAiEditResult(null);
           }
         }}
       >
@@ -277,7 +273,9 @@ export function PostRichEditor({
                     type="button"
                     size="sm"
                     variant={
-                      aiEditOperation === operation.value ? "default" : "outline"
+                      aiEditOperation === operation.value
+                        ? "default"
+                        : "outline"
                     }
                     onClick={() => setAiEditOperation(operation.value)}
                   >
@@ -343,5 +341,5 @@ export function PostRichEditor({
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

@@ -6,10 +6,7 @@ export default async function AdminSettingsPage() {
   const pageData = await getAdminSettingsPageData();
 
   return (
-    <AdminPage
-      title="站点设置"
-      description="管理站点身份、公开信息与媒体资源"
-    >
+    <AdminPage title="站点设置" description="管理站点身份、公开信息与媒体资源">
       <SettingsForm
         settings={pageData.settings}
         showSetupNotice={pageData.showSetupNotice}
