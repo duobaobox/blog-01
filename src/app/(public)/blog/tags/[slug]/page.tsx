@@ -1,14 +1,14 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Separator } from "@/shared/ui/separator";
+import { notFound } from "next/navigation";
 import { PostsPagination } from "@/components/blog/posts-pagination";
-import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { PostListCard } from "@/features/posts/components/post-list-card";
-import { assignMotifIndices } from "@/features/posts/components/card-motifs";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
+import { assignMotifIndices } from "@/features/posts/lib/card-motif-assignment";
 import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
-import { getPublicTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
+import { getPublicTagBySlug } from "@/features/taxonomy/queries/tag.queries";
 import { generateSeo } from "@/infrastructure/seo";
+import { Separator } from "@/shared/ui/separator";
 
 export const revalidate = 300;
 
@@ -19,9 +19,13 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const tag = await getPublicTagBySlug(slug);
-  if (!tag) return { title: "标签未找到" };
+
+  if (!tag) {
+    return { title: "标签未找到" };
+  }
+
   return generateSeo({
-    title: `标签: ${tag.name}`,
+    title: `标签：${tag.name}`,
     description: tag.description || `浏览和“${tag.name}”相关的已发布文章。`,
     url: `/blog/tags/${tag.slug}`,
   });
@@ -34,22 +38,27 @@ export default async function TagPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
-  const { slug } = await params;
-  const currentSearchParams = await searchParams;
-
+  const [{ slug }, currentSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const tag = await getPublicTagBySlug(slug);
 
-  if (!tag) notFound();
+  if (!tag) {
+    notFound();
+  }
 
-  const { posts, totalPages, totalPosts, currentPage, isValidPage, isOutOfRange } =
-    await resolvePublicPostsPage({
-      page: currentSearchParams.page,
+  const pageData = await resolvePublicPostsPage({
+    page: currentSearchParams.page,
     tagId: tag.id,
-    });
+  });
 
-  if (!isValidPage || isOutOfRange) notFound();
+  if (!pageData.isValidPage || pageData.isOutOfRange) {
+    notFound();
+  }
 
-  const motifIndices = assignMotifIndices(posts.length);
+  const { posts, totalPages, totalPosts, currentPage } = pageData;
+  const motifIndices = assignMotifIndices(posts.map((post) => post.slug));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
@@ -57,23 +66,27 @@ export default async function TagPage({
         <h1 className="text-3xl font-bold tracking-tight">标签</h1>
         <TagBadge name={tag.name} color={tag.color} className="text-sm" />
       </div>
-      {tag.description && (
+      {tag.description ? (
         <p className="mt-2 text-muted-foreground">{tag.description}</p>
-      )}
+      ) : null}
       <Separator className="my-6" />
 
       <div className="space-y-6">
         {posts.length === 0 ? (
           <PostsEmptyState
             title="这个标签下还没有文章"
-            description={`和 “${tag.name}” 相关的内容还在整理中。`}
+            description={`和“${tag.name}”相关的内容还在整理中。`}
             className="py-14"
             icon={null}
           />
         ) : (
           <>
-            {posts.map((post, i) => (
-              <PostListCard key={post.slug} post={post} motifIndex={motifIndices[i]} />
+            {posts.map((post, index) => (
+              <PostListCard
+                key={post.slug}
+                post={post}
+                motifIndex={motifIndices[index]}
+              />
             ))}
             <PostsPagination
               pathname={`/blog/tags/${tag.slug}`}
@@ -88,7 +101,7 @@ export default async function TagPage({
       <div className="mt-8">
         <Link
           href="/blog"
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           ← 返回博客
         </Link>
