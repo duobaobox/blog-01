@@ -1,9 +1,9 @@
-export const NAVIGATION_CONDENSE_ON = 64; // 向下滚动超过此值后收缩
-export const NAVIGATION_CONDENSE_OFF = 24; // 回到此值以下后展开
+export const NAVIGATION_CONDENSE_ON = 64;
+export const NAVIGATION_CONDENSE_OFF = 24;
 
-const GLASS_MAP_BORDER_RATIO = 0.5; // 只在边缘形成较窄的折射带
-const GLASS_MAP_ALPHA = 5; // 中心保持完全中性，避免上下背景在中间镜像
-const GLASS_MAP_BLUR = 10; // 仅柔化边缘，过大会让上下位移扩散到中心
+const GLASS_MAP_BORDER_RATIO = 0.5;
+const GLASS_MAP_ALPHA_PERCENT = 5;
+const GLASS_MAP_BLUR = 10;
 
 export function resolveNavigationCondensedState(
   condensed: boolean,
@@ -26,6 +26,8 @@ export function buildNavigationGlassMap(width: number, height: number) {
   const radius = Math.round(Math.min(resolvedWidth, resolvedHeight) / 2);
   const inset =
     Math.min(resolvedWidth, resolvedHeight) * (GLASS_MAP_BORDER_RATIO * 0.5);
+  const innerWidth = Math.max(1, resolvedWidth - inset * 2);
+  const innerHeight = Math.max(1, resolvedHeight - inset * 2);
 
   const svg =
     `<svg viewBox="0 0 ${resolvedWidth} ${resolvedHeight}" xmlns="http://www.w3.org/2000/svg">` +
@@ -39,10 +41,10 @@ export function buildNavigationGlassMap(width: number, height: number) {
     '<stop offset="100%" stop-color="blue"/>' +
     "</linearGradient>" +
     "</defs>" +
-    `<rect x="0" y="0" width="${resolvedWidth}" height="${resolvedHeight}" fill="black"/>` +
-    `<rect x="0" y="0" width="${resolvedWidth}" height="${resolvedHeight}" rx="${radius}" fill="url(#red)"/>` +
-    `<rect x="0" y="0" width="${resolvedWidth}" height="${resolvedHeight}" rx="${radius}" fill="url(#blue)" style="mix-blend-mode:difference"/>` +
-    `<rect x="${inset}" y="${inset}" width="${resolvedWidth - inset * 2}" height="${resolvedHeight - inset * 2}" rx="${radius}" fill="hsl(0 0% 50% / ${GLASS_MAP_ALPHA})" style="filter:blur(${GLASS_MAP_BLUR}px)"/>` +
+    `<rect width="${resolvedWidth}" height="${resolvedHeight}" fill="black"/>` +
+    `<rect width="${resolvedWidth}" height="${resolvedHeight}" rx="${radius}" fill="url(#red)"/>` +
+    `<rect width="${resolvedWidth}" height="${resolvedHeight}" rx="${radius}" fill="url(#blue)" style="mix-blend-mode:difference"/>` +
+    `<rect x="${inset}" y="${inset}" width="${innerWidth}" height="${innerHeight}" rx="${radius}" fill="hsl(0 0% 50% / ${GLASS_MAP_ALPHA_PERCENT}%)" style="filter:blur(${GLASS_MAP_BLUR}px)"/>` +
     "</svg>";
 
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
