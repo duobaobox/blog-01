@@ -43,7 +43,7 @@ export function HomeSectionShell({
         {action ? (
           <Link
             href={action.href}
-            className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[#6d63f2] transition-colors hover:text-[#554bd4] dark:text-[#b9b5ff] dark:hover:text-white"
+            className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand transition-colors hover:text-brand-hover"
           >
             {action.label}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
