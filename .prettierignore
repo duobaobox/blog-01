@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+dist
+delivery
+media
+src/generated
+package-lock.json
+*.min.*
