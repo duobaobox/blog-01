@@ -1,6 +1,7 @@
 import { HomeFeaturedPosts } from "@/features/home/components/home-featured-posts";
 import { HomeHero } from "@/features/home/components/home-hero";
 import { homeConfig } from "@/features/home/config/home.config";
+import { createHomeSceneSeed } from "@/features/home/lib/home-scene";
 import { getHomepageFeaturedOrLatestPosts } from "@/features/posts/queries/post.queries";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { generateSeo } from "@/infrastructure/seo";
@@ -16,7 +17,9 @@ export default async function HomePage() {
     getResolvedSiteConfig(),
     getHomepageFeaturedOrLatestPosts(homeConfig.sections.featuredPosts.limit),
   ]);
-  const heroSceneSeed = Math.random();
+  const heroSceneSeed = createHomeSceneSeed(
+    `${site.name}:${homepagePosts.posts[0]?.slug ?? "empty"}`,
+  );
 
   return (
     <div className="relative isolate min-h-full overflow-hidden">
