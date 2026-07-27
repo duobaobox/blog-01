@@ -1,9 +1,10 @@
 export const revalidate = 300;
 
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
+import { ThemeProvider } from "@/shared/ui/theme-provider";
 import "./globals.css";
+import "./public-theme.css";
 import "./tiptap-content.scss";
 import "./editor.css";
 
@@ -44,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased overflow-x-clip">
+      <body className="overflow-x-clip antialiased">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
