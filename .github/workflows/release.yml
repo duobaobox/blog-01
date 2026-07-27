@@ -1,9 +1,20 @@
 name: Release
+run-name: Release ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing semantic version tag, for example v0.1.0
+        required: true
+        type: string
+      target_ref:
+        description: Git ref to build, normally the same version tag
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -12,18 +23,23 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
   cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+  RELEASE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
 
 jobs:
   verify:
     name: 发版前检查
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      release_sha: ${{ steps.release_commit.outputs.sha }}
+      release_sha_short: ${{ steps.release_commit.outputs.short_sha }}
     env:
       DATABASE_URL: postgresql://blog:release-database-password-2026@127.0.0.1:5432/blog?schema=public
       BETTER_AUTH_SECRET: release-auth-secret-with-more-than-thirty-two-characters-2026
@@ -50,14 +66,27 @@ jobs:
     steps:
       - name: 检出版本代码
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
 
       - name: 校验版本标签
         run: |
-          if ! printf '%s' "${GITHUB_REF_NAME}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'; then
-            echo "Unsupported release tag: ${GITHUB_REF_NAME}" >&2
+          set -euo pipefail
+
+          if ! printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'; then
+            echo "Unsupported release tag: $RELEASE_TAG" >&2
             echo "Expected a semantic version such as v0.1.0 or v0.1.0-rc.1." >&2
             exit 1
           fi
+
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}" >/dev/null
+
+      - name: 记录发行提交
+        id: release_commit
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: 校验交付脚本
         run: |
@@ -93,7 +122,7 @@ jobs:
 
       - name: 验证服务器安装包
         run: |
-          bash scripts/release/build-release-bundle.sh "${GITHUB_REF_NAME#v}"
+          bash scripts/release/build-release-bundle.sh "${RELEASE_TAG#v}"
           (
             cd dist
             sha256sum -c blog-01-linux-amd64.tar.gz.sha256
@@ -108,6 +137,9 @@ jobs:
     steps:
       - name: 检出版本代码
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
 
       - name: 配置 Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -126,15 +158,17 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: latest=false
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
-            type=sha,prefix=sha-
+            type=semver,pattern={{version}},value=${{ env.RELEASE_TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.RELEASE_TAG }}
+            type=raw,value=latest,enable=${{ !contains(env.RELEASE_TAG, '-') }}
+            type=raw,value=sha-${{ needs.verify.outputs.release_sha_short }}
           labels: |
             org.opencontainers.image.title=Blog-01
             org.opencontainers.image.description=Self-hosted Next.js blog system
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.documentation=https://github.com/${{ github.repository }}#readme
+            org.opencontainers.image.revision=${{ needs.verify.outputs.release_sha }}
+            org.opencontainers.image.version=${{ env.RELEASE_TAG }}
             org.opencontainers.image.licenses=MIT
 
       - name: 构建并推送 AMD64 镜像
@@ -157,7 +191,7 @@ jobs:
           push-to-registry: true
 
       - name: 生成服务器安装包
-        run: bash scripts/release/build-release-bundle.sh "${GITHUB_REF_NAME#v}"
+        run: bash scripts/release/build-release-bundle.sh "${RELEASE_TAG#v}"
 
       - name: 证明安装包来源
         uses: actions/attest@v4
@@ -175,16 +209,16 @@ jobs:
           RELEASE_FLAGS=(
             --verify-tag
             --generate-notes
-            --title "Blog-01 ${GITHUB_REF_NAME}"
+            --title "Blog-01 ${RELEASE_TAG}"
           )
 
-          if printf '%s' "${GITHUB_REF_NAME}" | grep -q '-'; then
+          if printf '%s' "$RELEASE_TAG" | grep -q '-'; then
             RELEASE_FLAGS+=(--prerelease --latest=false)
           else
             RELEASE_FLAGS+=(--latest)
           fi
 
-          gh release create "${GITHUB_REF_NAME}" \
+          gh release create "$RELEASE_TAG" \
             dist/blog-01-linux-amd64.tar.gz \
             dist/blog-01-linux-amd64.tar.gz.sha256 \
             "${RELEASE_FLAGS[@]}"
