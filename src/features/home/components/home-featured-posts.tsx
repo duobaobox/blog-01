@@ -17,9 +17,9 @@ type HomeFeaturedPostsProps = {
 const placeholderStyles = [
   {
     surface:
-      "from-brand/10 via-brand/5 to-white dark:from-brand/15 dark:via-brand/8 dark:to-slate-950",
-    halo: "bg-brand/20 dark:bg-brand/[0.14]",
-    icon: "from-brand to-brand-hover shadow-brand/[0.22]",
+      "from-site-accent/10 via-site-accent/5 to-white dark:from-site-accent/15 dark:via-site-accent/8 dark:to-slate-950",
+    halo: "bg-site-accent/20 dark:bg-site-accent/[0.14]",
+    icon: "from-site-accent to-site-accent-hover shadow-site-accent/[0.22]",
   },
   {
     surface:
@@ -53,7 +53,7 @@ function HomePostCard({
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[#ebe8f4] bg-white/[0.94] shadow-[0_14px_36px_-30px_rgba(82,75,155,0.34)] transition duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_22px_44px_-29px_rgba(82,75,155,0.34)] dark:border-white/10 dark:bg-white/[0.055]"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[#ebe8f4] bg-white/[0.94] shadow-[0_14px_36px_-30px_rgba(82,75,155,0.34)] transition duration-300 hover:-translate-y-1 hover:border-site-accent/25 hover:shadow-[0_22px_44px_-29px_rgba(82,75,155,0.34)] dark:border-white/10 dark:bg-white/[0.055]"
     >
       <div
         className={`relative aspect-[16/9] overflow-hidden border-b border-[#eeeaf7] bg-linear-to-br ${placeholder.surface} dark:border-white/10`}
@@ -87,7 +87,7 @@ function HomePostCard({
           </>
         )}
 
-        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/75 bg-white/[0.78] text-brand shadow-sm backdrop-blur transition duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55">
+        <span className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full border border-white/75 bg-white/[0.78] text-site-accent shadow-sm backdrop-blur transition duration-300 group-hover:rotate-6 group-hover:bg-white dark:border-white/15 dark:bg-slate-950/55">
           <ArrowUpRight className="size-4" />
         </span>
       </div>
@@ -97,7 +97,7 @@ function HomePostCard({
           {firstTag ? (
             <TagBadge name={firstTag.name} color={firstTag.color} />
           ) : post.category ? (
-            <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand">
+            <span className="rounded-full bg-site-accent-soft px-2.5 py-1 text-xs font-medium text-site-accent">
               {post.category.name}
             </span>
           ) : (
@@ -107,7 +107,7 @@ function HomePostCard({
           )}
         </div>
 
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[#252a3e] transition-colors group-hover:text-brand sm:text-lg dark:text-white dark:group-hover:text-brand">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-[#252a3e] transition-colors group-hover:text-site-accent sm:text-lg dark:text-white dark:group-hover:text-site-accent">
           {post.title}
         </h3>
 
@@ -147,7 +147,7 @@ export function HomeFeaturedPosts({
       action={config.action}
       className="relative overflow-hidden"
     >
-      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-brand-soft blur-3xl dark:bg-brand/10" />
+      <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-site-accent-soft blur-3xl dark:bg-site-accent/10" />
       <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => (
           <HomePostCard
