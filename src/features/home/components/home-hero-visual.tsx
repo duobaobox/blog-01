@@ -18,7 +18,7 @@ export function HomeHeroVisual({
   const { resolvedTheme } = useTheme();
   const scenes: readonly HomeScene[] =
     resolvedTheme === "dark" ? visual.dark : visual.light;
-  const scene = pickHomeScene(scenes, () => sceneSeed);
+  const scene = pickHomeScene(scenes, sceneSeed);
 
   return (
     <div className="relative flex h-full w-full items-end justify-center lg:justify-end">
