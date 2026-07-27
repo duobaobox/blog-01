@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import type { HomeScene } from "@/features/home/lib/home-scene";
@@ -9,26 +8,17 @@ import { pickHomeScene } from "@/features/home/lib/home-scene";
 
 type HomeHeroVisualProps = {
   visual: HomeHeroConfig["visual"];
+  sceneSeed: number;
 };
 
-export function HomeHeroVisual({ visual }: HomeHeroVisualProps) {
+export function HomeHeroVisual({
+  visual,
+  sceneSeed,
+}: HomeHeroVisualProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const scene = useMemo(() => {
-    if (!resolvedTheme || !mounted) {
-      return visual.light[0];
-    }
-
-    const scenes: readonly HomeScene[] =
-      resolvedTheme === "dark" ? visual.dark : visual.light;
-
-    return pickHomeScene(scenes);
-  }, [resolvedTheme, visual, mounted]);
+  const scenes: readonly HomeScene[] =
+    resolvedTheme === "dark" ? visual.dark : visual.light;
+  const scene = pickHomeScene(scenes, () => sceneSeed);
 
   return (
     <div className="relative flex h-full w-full items-end justify-center lg:justify-end">
