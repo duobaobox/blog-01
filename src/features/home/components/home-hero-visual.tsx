@@ -1,11 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import type { HomeScene } from "@/features/home/lib/home-scene";
 import { pickHomeScene } from "@/features/home/lib/home-scene";
+
+const subscribeToHydration = () => () => {};
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
 
 type HomeHeroVisualProps = {
   visual: HomeHeroConfig["visual"];
@@ -14,14 +18,13 @@ type HomeHeroVisualProps = {
 
 export function HomeHeroVisual({ visual, sceneSeed }: HomeHeroVisualProps) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const scenes: readonly HomeScene[] =
-    mounted && resolvedTheme === "dark" ? visual.dark : visual.light;
+    hydrated && resolvedTheme === "dark" ? visual.dark : visual.light;
   const scene = pickHomeScene(scenes, sceneSeed);
 
   return (
