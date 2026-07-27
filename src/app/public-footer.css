@@ -1,0 +1,124 @@
+@layer components {
+  .public-footer {
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  .public-footer__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns:
+      minmax(220px, 1.35fr)
+      repeat(2, minmax(110px, 0.58fr))
+      minmax(180px, 0.8fr);
+    gap: 2.5rem;
+  }
+
+  .public-footer__brand {
+    min-width: 0;
+  }
+
+  .public-footer__kicker {
+    margin: 0 0 0.8rem;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .public-footer__links {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .public-footer__links a {
+    width: fit-content;
+    color: var(--muted-foreground);
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition:
+      color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .public-footer__links a:hover {
+    color: var(--foreground);
+    transform: translateX(2px);
+  }
+
+  .public-footer__note {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    align-self: start;
+    padding: 0.85rem 0.95rem;
+    border: 1px dashed rgb(148 163 184 / 0.32);
+    border-radius: 0.8rem;
+    color: var(--muted-foreground);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .dark .public-footer__note {
+    border-color: rgb(148 163 184 / 0.24);
+  }
+
+  .public-footer__note-dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    flex: 0 0 auto;
+    margin-top: 0.28rem;
+    border-radius: 9999px;
+    background: var(--site-accent-500);
+    box-shadow: 0 0 0 4px var(--site-accent-soft);
+  }
+
+  .public-footer__bottom {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(148 163 184 / 0.2);
+  }
+
+  @media (max-width: 900px) {
+    .public-footer__grid {
+      grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(110px, 0.6fr));
+    }
+
+    .public-footer__note {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .public-footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2rem 1.25rem;
+    }
+
+    .public-footer__brand,
+    .public-footer__note {
+      grid-column: 1 / -1;
+    }
+
+    .public-footer__bottom {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-top: 2.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .public-footer__links a {
+      transition: none;
+    }
+  }
+}
