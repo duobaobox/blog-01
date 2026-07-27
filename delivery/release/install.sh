@@ -298,16 +298,13 @@ inspect_schema_sync_mode
 print_header "Starting Blog-01"
 compose up -d --wait blog
 
-set -a
-# shellcheck disable=SC1090
-. "$ENV_FILE"
-set +a
-
-APP_URL="${SITE_URL%/}"
+APP_URL="$(read_env_value SITE_URL "$ENV_FILE")"
+APP_URL="${APP_URL%/}"
+ADMIN_SETUP_TOKEN_VALUE="$(read_env_value ADMIN_SETUP_TOKEN "$ENV_FILE")"
 ADMIN_SETUP_URL="$APP_URL/admin/setup"
 ADMIN_LOGIN_URL="$APP_URL/admin/login"
 
-if [[ -x "$BLOGCTL" ]]; then
+if [[ -f "$BLOGCTL" ]]; then
   chmod +x "$BLOGCTL"
 fi
 
@@ -316,7 +313,7 @@ echo "Frontend:    $APP_URL"
 echo "Admin setup: $ADMIN_SETUP_URL"
 echo "Admin login: $ADMIN_LOGIN_URL"
 echo
-echo "Initial setup token: ${ADMIN_SETUP_TOKEN}"
+echo "Initial setup token: ${ADMIN_SETUP_TOKEN_VALUE}"
 echo "Configuration file: $ENV_FILE"
 echo
 echo "Management commands:"
