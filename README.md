@@ -1,84 +1,192 @@
 # Blog-01
 
-一个基于 Next.js App Router、PostgreSQL、Prisma、Better Auth 和 Tiptap 的个人博客系统。
+[![CI](https://github.com/duobaobox/blog-01/actions/workflows/ci.yml/badge.svg)](https://github.com/duobaobox/blog-01/actions/workflows/ci.yml)
+[![Release](https://github.com/duobaobox/blog-01/actions/workflows/release.yml/badge.svg)](https://github.com/duobaobox/blog-01/actions/workflows/release.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-核心功能开发已基本完成，项目当前进入稳定化和发布准备阶段。前台博客、后台内容工作台、编辑器、媒体库、站点设置、SEO 输出、Docker 交付和数据库迁移基线均已落地。About、Projects 和首页仍采用代码维护的静态页面骨架，暂不纳入后台页面管理。
+一个基于 Next.js、PostgreSQL、Prisma、Better Auth 和 Tiptap 的开源自托管博客系统。
 
-## 当前状态
+Blog-01 同时提供简洁的公开博客和完整的后台内容工作台，适合部署到自己的云服务器。官方发行版通过 GitHub Actions 自动构建 Linux AMD64 容器镜像，并提供版本化安装、升级、备份和恢复工具。
 
-已经稳定的主流程：
+## 一键安装
 
-- 管理员初始化、登录和账户设置
-- 文章新建、编辑、自动保存、手动保存、发布、取消发布和永久删除
-- 文件夹组织私人笔记，发布状态决定是否成为公开 Blog；删除文件夹需输入确认，并会永久删除其中全部文章
-- 分类、标签和 SEO 按需补充，不作为写作前置条件，也不计为内容欠债
-- 媒体上传、替换、引用追踪和文章封面
-- 前台文章列表、详情、分类、标签、RSS 和 sitemap
-- Docker standalone 构建、数据库同步和发布包交付
+系统要求：
 
-当前阶段不建议继续扩张大功能。发布前优先完成：
+- Linux AMD64 / x86_64；
+- Ubuntu 22.04、24.04 或其他常见 Linux 发行版；
+- 建议至少 2 GB 内存；
+- 服务器可以访问 GitHub 和 GitHub Container Registry。
 
-- 真实内容与真实媒体的完整回归
-- 生产环境变量、管理员初始化和 HTTPS 验证
-- 历史数据库 baseline / migration 演练
-- `lint`、测试、构建和数据库预检
-- 备份、发布与回滚流程演练
+在服务器执行：
 
-## 功能概览
+```bash
+curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh | sudo bash
+```
 
-- 文章创建、编辑、内部保存、发布、取消发布和输入确认删除
-- Tiptap 富文本编辑，支持 Markdown 粘贴导入
-- 编辑器后台自动保存，不刷新页面、不重建编辑会话
-- 文章列表按创建时间稳定排序，保存和发布不会改变位置
-- 概览展示已发布、内部、分类、标签统计，以及继续写作和最近发布内容
-- 前台博客列表、分类页、标签页和文章详情页
-- 后台三栏工作台：文件夹 → 笔记列表 → 编辑器
-- 媒体上传、媒体库、替换、引用关系和基础元数据
-- 分类、标签、站点设置和管理员账户设置
-- RSS、robots.txt、sitemap、深色 / 浅色主题
-- Docker 本地运行、发布包交付和 Prisma baseline migration
+安装器会自动安装或检查 Docker，下载最新正式版本，生成安全密钥，启动 PostgreSQL 和 Blog-01，并等待健康检查通过。
+
+默认安装目录：
+
+```text
+/opt/blog-01
+```
+
+默认访问地址：
+
+```text
+http://服务器公网IP:3000
+```
+
+首次安装完成后，终端会显示管理员初始化口令。打开：
+
+```text
+http://服务器公网IP:3000/admin/setup
+```
+
+使用初始化口令创建第一个管理员。
+
+### 安装时指定域名
+
+DNS 已经指向服务器时，可以直接写入正式地址：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
+sudo env SITE_URL=https://blog.example.com bash /tmp/blog-01-install.sh
+```
+
+应用仍监听 `3000` 端口，需要使用 Nginx、Caddy、1Panel 或宝塔反向代理并配置 HTTPS。
+
+### 安装指定版本
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
+sudo env BLOG_VERSION=0.1.0 bash /tmp/blog-01-install.sh
+```
+
+当前官方镜像只发布 `linux/amd64`。ARM64 暂不在首个公开版本的支持范围内。
+
+## 日常管理
+
+进入安装目录：
+
+```bash
+cd /opt/blog-01
+```
+
+查看状态：
+
+```bash
+sudo ./blogctl status
+```
+
+查看日志：
+
+```bash
+sudo ./blogctl logs
+```
+
+重启：
+
+```bash
+sudo ./blogctl restart
+```
+
+修改环境配置：
+
+```bash
+sudo ./blogctl config
+sudo ./blogctl restart
+```
+
+升级到最新正式版本：
+
+```bash
+sudo ./blogctl update
+```
+
+升级到指定版本：
+
+```bash
+sudo ./blogctl update 0.2.0
+```
+
+升级前会自动备份数据库和媒体；如果新容器无法通过健康检查，管理脚本会尝试恢复到原镜像版本。
+
+## 备份与恢复
+
+创建数据库和媒体备份：
+
+```bash
+cd /opt/blog-01
+sudo ./blogctl backup
+```
+
+默认保存在：
+
+```text
+/opt/blog-01/backups/
+```
+
+恢复指定快照：
+
+```bash
+sudo ./blogctl restore ./backups/20260101T000000Z
+```
+
+恢复前会再次创建当前状态备份。
+
+不要使用：
+
+```bash
+docker compose down -v
+```
+
+`-v` 会删除 PostgreSQL 和媒体持久化卷。
+
+## 功能
+
+- 文章新建、编辑、自动保存、手动保存、发布、取消发布和永久删除；
+- Tiptap 富文本编辑器，支持 Markdown 粘贴导入；
+- 文件夹、分类和标签组织；
+- 媒体上传、媒体库、封面和引用追踪；
+- 后台三栏内容工作台；
+- 站点设置、管理员账户设置和首次安装向导；
+- RSS、robots.txt、sitemap 和基础 SEO；
+- 深色和浅色主题；
+- 可选的 OpenAI Compatible AI 服务；
+- Docker 健康检查、数据库 migration、备份与恢复；
+- GitHub Actions CI、GHCR 镜像和 GitHub Release 自动发版。
 
 ## 技术栈
 
-- Next.js 16 + React 19
-- TypeScript
-- Tailwind CSS v4 + shadcn/ui
-- PostgreSQL + Prisma
-- Better Auth
-- Tiptap
+- Next.js 16 + React 19；
+- TypeScript；
+- Tailwind CSS v4 + shadcn/ui；
+- PostgreSQL 16 + Prisma；
+- Better Auth；
+- Tiptap；
+- Docker Compose。
 
-精确版本以 [package.json](./package.json) 为准。
+精确依赖版本以 [package.json](./package.json) 为准。
 
-## 快速开始
+## 本地开发
 
-安装依赖：
-
-```bash
-npm install
-```
-
-创建环境变量：
+准备 Node.js 22、Docker 和 Docker Compose。
 
 ```bash
+git clone https://github.com/duobaobox/blog-01.git
+cd blog-01
+npm ci
 cp .env.example .env
 ```
 
-本地常用变量：
+启动 PostgreSQL：
 
-```env
-DATABASE_URL="postgresql://blog:blog@localhost:5432/blog?schema=public"
-BETTER_AUTH_SECRET="replace-with-local-secret"
-BETTER_AUTH_URL="http://localhost:3000"
-SITE_URL="http://localhost:3000"
-
-SEED_ADMIN_NAME="Admin"
-SEED_ADMIN_USERNAME="admin"
-SEED_ADMIN_EMAIL="admin@example.com"
-SEED_ADMIN_PASSWORD="admin123456"
-ADMIN_SETUP_TOKEN=""
+```bash
+docker compose up -d db
 ```
 
-初始化数据库：
+生成 Prisma Client 并同步开发数据库：
 
 ```bash
 npm run db:generate
@@ -96,11 +204,11 @@ npm run dev
 - 前台：<http://localhost:3000>
 - 后台：<http://localhost:3000/admin/login>
 
-本地开发且未设置 `ADMIN_SETUP_TOKEN` 时，首次访问后台会自动准备默认管理员。生产环境或设置了 `ADMIN_SETUP_TOKEN` 时，`/admin/setup` 会显示初始化表单，由初始化口令创建管理员。
+本地开发且没有设置 `ADMIN_SETUP_TOKEN` 时，可以使用开发环境默认管理员。生产环境必须通过 `/admin/setup` 和初始化口令创建管理员。
 
 ## 质量检查
 
-常规改动至少执行：
+提交前至少执行：
 
 ```bash
 npm run lint
@@ -108,115 +216,83 @@ npm test
 npm run build
 ```
 
-GitHub Actions 会在 `main` 推送和 Pull Request 上执行数据库 migration、lint、测试与构建。
+CI 会在 Pull Request 和 `main` 分支推送时：
 
-涉及 Prisma schema、数据库发布或部署时，再执行：
+1. 启动临时 PostgreSQL；
+2. 执行 Prisma migration；
+3. 运行 lint、测试和 Next.js build；
+4. 构建 Linux AMD64 生产镜像；
+5. 启动真实生产容器；
+6. 验证健康检查、首页和管理员初始化页。
 
-```bash
-npm run db:diff
-npm run db:check:migrations
-npm run db:check:migration-coverage
-npm run db:preflight:release
-```
+## 发布
 
-## Docker
-
-本地 Docker 启动：
+正式版本采用语义化标签：
 
 ```bash
-docker compose up -d --build db
-docker compose --profile tools run --rm migrate
-docker compose up -d --build app
+git tag -a v0.1.0 -m "Blog-01 v0.1.0"
+git push origin v0.1.0
 ```
 
-发布版交付入口：
+Release workflow 会自动：
 
-```bash
-docker buildx build --platform linux/amd64 -t blog-01-app:release --load .
-mkdir -p dist/app-delivery
-docker save -o dist/app-delivery/blog-01-app-release.tar blog-01-app:release
-bash scripts/release/refresh-app-delivery.sh
-tar -C dist -czf dist/app-delivery-release.tar.gz app-delivery
+- 再次执行完整质量检查；
+- 构建并推送 `ghcr.io/duobaobox/blog-01` AMD64 镜像；
+- 生成版本标签和 `latest` 标签；
+- 生成服务器安装包和 SHA256 校验文件；
+- 生成构建来源证明；
+- 创建 GitHub Release。
+
+带连字符的标签会作为预发布版本，例如：
+
+```text
+v0.2.0-rc.1
 ```
 
-更完整的部署说明见 [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)。
+预发布版本不会覆盖 `latest`。
 
 ## 数据库同步
 
-当前统一使用 `DB_SCHEMA_SYNC_MODE`：
+生产容器统一使用 `DB_SCHEMA_SYNC_MODE`：
 
-- `auto`：默认模式，按数据库状态自动选择 `migrate` 或 `push`
-- `push`：历史环境兼容模式
-- `migrate`：目标环境已完成 migration / baseline 后使用
-- `skip`：完全跳过应用启动时的 schema 同步
+- `auto`：按数据库状态选择 migration 或兼容同步；
+- `push`：历史环境兼容模式；
+- `migrate`：已纳入 Prisma migration 管理的环境；
+- `skip`：由外部系统负责数据库迁移。
 
-常用检查：
-
-```bash
-npm run db:check:sync-mode
-npm run db:check:migrations
-npm run db:check:migration-coverage
-npm run db:preflight:release -- --schema
-```
-
-历史库切换到 migrate 前，先看 [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)。
-
-## 常用脚本
-
-```bash
-npm run dev
-npm run build
-npm run lint
-npm test
-
-npm run db:generate
-npm run db:sync
-npm run db:push
-npm run db:backfill:post-content
-npm run db:preflight:release
-npm run db:seed
-npm run db:seed:demo-posts
-```
+全新安装会自动使用仓库中的 migration。历史数据库升级前请先备份，并参考 [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)。
 
 ## 目录结构
 
 ```text
-src/
-  app/              Next.js App Router 页面和 API
-  components/       页面组合与 UI 组件
-  features/         posts、media、taxonomy、settings、content-space 等业务模块
-  infrastructure/   auth、db、cache、storage 等基础设施
-  shared/           跨模块 UI 与工具
-  generated/        Prisma 生成代码，不手动编辑
-prisma/             schema、migrations 和 seed
-scripts/            数据库检查、发布包刷新和迁移辅助脚本
-docs/               当前维护文档
-delivery/release/   发布包模板文件
-media/              本地媒体挂载目录
+src/                    Next.js 应用与业务模块
+prisma/                 Schema、migration 和 seed
+delivery/release/       服务器安装包模板
+scripts/release/        Release 资产构建脚本
+.github/workflows/      CI 和自动发版
+docs/                   架构、部署、备份和维护文档
 ```
 
-## 核心约定
+## 安全
 
-- 正文唯一事实源是 Tiptap JSON；HTML、Text、TOC、字数和阅读时长在保存时统一物化，公开页面直接读取物化结果
-- 后台页面只消费 page-data query，不直接组装数据库读模型
-- 写路径遵循 parser → action → service → repository → cache invalidation
-- 自动保存和切换文章保存属于后台持久化，不写操作历史
-- 手动保存和发布必须使用明确的 save intent，并生成对应操作记录
-- 编辑器组件的生命周期只跟文章 ID 关联，不能跟 `updatedAt` 或保存响应关联
-- 内容工作台文章列表按 `createdAt` 排序，避免更新后跳位
-- Tiptap 本地 Sass 聚合使用 `@use`，全局字体入口放在 `globals.css`
-- 媒体记录保存 provider、storage key、URL 和基础元数据
-- 生产初始化使用 `ADMIN_SETUP_TOKEN`，不要依赖默认管理员密码
+- 不要提交 `.env`、`.env.release` 或真实 API 密钥；
+- 生产环境必须使用随机 `BETTER_AUTH_SECRET`；
+- 完成管理员初始化后妥善保管 `.env.release`；
+- 数据库端口不应暴露到公网；
+- 正式环境建议只开放 `22`、`80` 和 `443`；
+- 数据库与媒体必须一起备份。
 
-更完整的开发约束见 [AGENTS.md](./AGENTS.md)，架构边界见 [当前架构基线](./docs/architecture-baseline.md)。
+安全问题请不要创建公开 Issue，处理方式见 [SECURITY.md](./SECURITY.md)。
 
 ## 文档
 
-- [协作与维护约定](./AGENTS.md)
 - [文档索引](./docs/README.md)
-- [当前架构基线](./docs/architecture-baseline.md)
-- [前台页面框架与主题扩展](./docs/public-page-layouts.md)
 - [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./docs/alicloud-docker-nginx-https-guide.md)
+- [备份与恢复](./docs/backup-and-restore.md)
 - [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
-- [Posts 查询计划基线](./docs/performance/posts-query-baseline.md)
+- [当前架构基线](./docs/architecture-baseline.md)
+
+## License
+
+Blog-01 使用 [MIT License](./LICENSE) 开源。

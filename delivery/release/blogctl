@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="$SCRIPT_DIR/compose.yaml"
+ENV_FILE="$SCRIPT_DIR/.env.release"
+REPOSITORY="duobaobox/blog-01"
+ASSET_NAME="blog-01-linux-amd64.tar.gz"
+
+usage() {
+  cat <<'EOF'
+Usage: ./blogctl <command> [arguments]
+
+Commands:
+  status                 Show container status and current version.
+  logs                   Follow application logs.
+  start                  Start the stack and wait for health checks.
+  stop                   Stop containers without deleting data volumes.
+  restart                Restart the application container.
+  update [version]       Back up and update to latest or a specific version.
+  backup                 Back up PostgreSQL and uploaded media.
+  restore <directory>    Back up the current state, then restore a snapshot.
+  config                 Edit .env.release.
+  version                Print the installed version.
+  uninstall              Remove containers but keep database and media volumes.
+  help                    Show this help message.
+EOF
+}
+
+require_installation() {
+  if [[ ! -f "$COMPOSE_FILE" || ! -f "$ENV_FILE" ]]; then
+    echo "Blog-01 is not configured in $SCRIPT_DIR." >&2
+    exit 1
+  fi
+
+  if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+    echo "Docker and Docker Compose v2 are required." >&2
+    exit 1
+  fi
+}
+
+compose() {
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+read_env_value() {
+  local key="$1"
+  awk -F= -v key="$key" '$1 == key { sub(/^[^=]*=/, "", $0); print $0; exit }' "$ENV_FILE"
+}
+
+set_env_value() {
+  local key="$1"
+  local value="$2"
+  local escaped
+
+  escaped="${value//\\/\\\\}"
+  escaped="${escaped//&/\\&}"
+  escaped="${escaped//#/\\#}"
+
+  if grep -q "^${key}=" "$ENV_FILE"; then
+    sed -i "s#^${key}=.*#${key}=${escaped}#" "$ENV_FILE"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+  fi
+}
+
+installed_version() {
+  local version
+  version="$(read_env_value BLOG_VERSION)"
+  printf '%s\n' "${version:-unknown}"
+}
+
+backup_stack() {
+  local backup_root="${BACKUP_ROOT:-$SCRIPT_DIR/backups}"
+  BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-14}" \
+    "$SCRIPT_DIR/backup-docker.sh" "$backup_root"
+}
+
+release_download_url() {
+  local requested="$1"
+  if [[ "$requested" == "latest" ]]; then
+    printf 'https://github.com/%s/releases/latest/download/%s\n' "$REPOSITORY" "$ASSET_NAME"
+  else
+    requested="${requested#v}"
+    printf 'https://github.com/%s/releases/download/v%s/%s\n' "$REPOSITORY" "$requested" "$ASSET_NAME"
+  fi
+}
+
+download_release() {
+  local requested="$1"
+  local target_dir="$2"
+  local asset_url checksum_url
+
+  asset_url="$(release_download_url "$requested")"
+  checksum_url="${asset_url}.sha256"
+
+  command -v curl >/dev/null 2>&1 || { echo "curl is required." >&2; exit 1; }
+  command -v sha256sum >/dev/null 2>&1 || { echo "sha256sum is required." >&2; exit 1; }
+  command -v tar >/dev/null 2>&1 || { echo "tar is required." >&2; exit 1; }
+
+  echo "Downloading $asset_url"
+  curl -fL --retry 3 --connect-timeout 15 -o "$target_dir/$ASSET_NAME" "$asset_url"
+  curl -fL --retry 3 --connect-timeout 15 -o "$target_dir/$ASSET_NAME.sha256" "$checksum_url"
+
+  (
+    cd "$target_dir"
+    sha256sum -c "$ASSET_NAME.sha256"
+    tar -xzf "$ASSET_NAME"
+  )
+}
+
+update_stack() {
+  local requested="${1:-latest}"
+  local current_version new_version temp_dir extracted_dir
+
+  current_version="$(installed_version)"
+  temp_dir="$(mktemp -d)"
+  trap 'rm -rf "$temp_dir"' RETURN
+
+  download_release "$requested" "$temp_dir"
+  extracted_dir="$temp_dir/blog-01-linux-amd64"
+
+  if [[ ! -f "$extracted_dir/VERSION" ]]; then
+    echo "Downloaded release does not contain VERSION." >&2
+    exit 1
+  fi
+
+  new_version="$(tr -d '[:space:]' < "$extracted_dir/VERSION")"
+  if [[ -z "$new_version" ]]; then
+    echo "Downloaded release has an empty version." >&2
+    exit 1
+  fi
+
+  echo "Updating Blog-01: $current_version -> $new_version"
+  echo "Creating a safety backup first."
+  backup_stack
+
+  cp -a "$extracted_dir/." "$SCRIPT_DIR/"
+  chmod +x \
+    "$SCRIPT_DIR/install.sh" \
+    "$SCRIPT_DIR/blogctl" \
+    "$SCRIPT_DIR/backup-docker.sh" \
+    "$SCRIPT_DIR/restore-docker.sh"
+
+  set_env_value APP_IMAGE "ghcr.io/duobaobox/blog-01"
+  set_env_value BLOG_VERSION "$new_version"
+  chmod 600 "$ENV_FILE"
+
+  if compose pull blog && compose up -d --wait blog; then
+    echo "Blog-01 updated successfully to $new_version."
+    return 0
+  fi
+
+  echo "Update failed. Attempting to restore image version $current_version." >&2
+  set_env_value BLOG_VERSION "$current_version"
+  compose pull blog || true
+  compose up -d --wait blog || true
+  echo "Rollback attempt finished. Review logs with: $SCRIPT_DIR/blogctl logs" >&2
+  exit 1
+}
+
+edit_config() {
+  local editor_bin
+
+  if command -v nano >/dev/null 2>&1; then
+    editor_bin="nano"
+  elif [[ -n "${EDITOR:-}" ]] && command -v "$EDITOR" >/dev/null 2>&1; then
+    editor_bin="$EDITOR"
+  else
+    editor_bin="vi"
+  fi
+
+  "$editor_bin" "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+  echo "Configuration saved. Run '$SCRIPT_DIR/blogctl restart' to apply it."
+}
+
+command="${1:-help}"
+shift || true
+
+case "$command" in
+  help|-h|--help)
+    usage
+    ;;
+  status)
+    require_installation
+    echo "Installed version: $(installed_version)"
+    compose ps
+    ;;
+  logs)
+    require_installation
+    compose logs -f --tail=200 blog
+    ;;
+  start)
+    require_installation
+    compose up -d --wait
+    ;;
+  stop)
+    require_installation
+    compose stop
+    ;;
+  restart)
+    require_installation
+    compose up -d --wait --force-recreate blog
+    ;;
+  update)
+    require_installation
+    update_stack "${1:-latest}"
+    ;;
+  backup)
+    require_installation
+    backup_stack
+    ;;
+  restore)
+    require_installation
+    [[ $# -ge 1 ]] || { echo "Usage: ./blogctl restore <backup-directory>" >&2; exit 1; }
+    echo "Creating a safety backup before restore."
+    backup_stack
+    CONFIRM_RESTORE=1 "$SCRIPT_DIR/restore-docker.sh" "$1"
+    ;;
+  config)
+    require_installation
+    edit_config
+    ;;
+  version)
+    require_installation
+    installed_version
+    ;;
+  uninstall)
+    require_installation
+    compose down
+    echo "Containers were removed. Database and media volumes were kept."
+    echo "To reinstall, run: $SCRIPT_DIR/install.sh --no-edit"
+    ;;
+  *)
+    echo "Unknown command: $command" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

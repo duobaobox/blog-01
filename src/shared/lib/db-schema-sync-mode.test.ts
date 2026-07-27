@@ -100,7 +100,7 @@ test("schema sync recommendation reports migration-ready when repository migrati
   assert.equal(result.recommendedMode, "migrate");
 });
 
-test("schema sync recommendation falls back to push when migration state is blocked", () => {
+test("schema sync recommendation blocks startup when migration state is abnormal", () => {
   const result = deriveSchemaSyncRecommendation({
     snapshot: {
       hasMigrationsTable: true,
@@ -119,5 +119,5 @@ test("schema sync recommendation falls back to push when migration state is bloc
   });
 
   assert.equal(result.environmentKind, "migration-blocked");
-  assert.equal(result.recommendedMode, "push");
+  assert.equal(result.recommendedMode, "blocked");
 });
