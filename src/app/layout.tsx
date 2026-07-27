@@ -5,6 +5,9 @@ import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.q
 import { ThemeProvider } from "@/shared/ui/theme-provider";
 import "./globals.css";
 import "./public-theme.css";
+import "./public-home.css";
+import "./public-header.css";
+import "./public-footer.css";
 import "./tiptap-content.scss";
 import "./editor.css";
 
