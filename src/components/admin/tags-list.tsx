@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { AdminPage } from "@/components/admin/admin-page";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -9,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { TagForm } from "./tag-form";
 
 interface Tag {
@@ -32,81 +33,75 @@ export function TagsList({ tags }: { tags: Tag[] }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-[1680px] p-4 md:p-6">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold">标签管理</h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              管理文章的标签，标签可以跨分类关联相关内容
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setCreating(true)}>
-            <Plus className="size-4" />
-            新建标签
-          </Button>
-        </div>
-
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">名称</th>
-                <th className="px-4 py-3 text-left font-medium">颜色</th>
-                <th className="px-4 py-3 text-left font-medium">文章数</th>
-                <th className="px-4 py-3 text-right font-medium">操作</th>
+    <AdminPage
+      title="标签管理"
+      description="管理文章的标签，标签可以跨分类关联相关内容"
+      actions={
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="size-4" />
+          新建标签
+        </Button>
+      }
+    >
+      <div className="rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-medium">名称</th>
+              <th className="px-4 py-3 text-left font-medium">颜色</th>
+              <th className="px-4 py-3 text-left font-medium">文章数</th>
+              <th className="px-4 py-3 text-right font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tags.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-4 py-10 text-center text-muted-foreground"
+                >
+                  暂无标签，点击右上角新建一个
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {tags.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-10 text-center text-muted-foreground"
-                  >
-                    暂无标签，点击右上角新建一个
+            ) : (
+              tags.map((tag) => (
+                <tr
+                  key={tag.id}
+                  className="border-b last:border-0 hover:bg-muted/30"
+                >
+                  <td className="px-4 py-3 font-medium">{tag.name}</td>
+                  <td className="px-4 py-3">
+                    {tag.color ? (
+                      <div className="flex items-center gap-2">
+                        <TagBadge name={tag.name} color={tag.color} />
+                        <span className="text-xs text-muted-foreground">
+                          {tag.color}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {tag._count.posts}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setCreating(false);
+                        setEditing(tag);
+                      }}
+                    >
+                      编辑
+                    </Button>
                   </td>
                 </tr>
-              ) : (
-                tags.map((tag) => (
-                  <tr
-                    key={tag.id}
-                    className="border-b last:border-0 hover:bg-muted/30"
-                  >
-                    <td className="px-4 py-3 font-medium">{tag.name}</td>
-                    <td className="px-4 py-3">
-                      {tag.color ? (
-                        <div className="flex items-center gap-2">
-                          <TagBadge name={tag.name} color={tag.color} />
-                          <span className="text-xs text-muted-foreground">
-                            {tag.color}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {tag._count.posts}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setCreating(false);
-                          setEditing(tag);
-                        }}
-                      >
-                        编辑
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       <Dialog
@@ -122,6 +117,6 @@ export function TagsList({ tags }: { tags: Tag[] }) {
           <TagForm tag={editing ?? undefined} onClose={handleClose} />
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminPage>
   );
 }
