@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,12 +15,14 @@ concurrency:
 
 jobs:
   verify:
+    name: 代码与数据库检查
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       DATABASE_URL: postgresql://blog:ci-database-password-2026@127.0.0.1:5432/blog?schema=public
       BETTER_AUTH_SECRET: ci-auth-secret-with-more-than-thirty-two-characters-2026
       BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_TRUSTED_ORIGINS: http://localhost:3000
       SITE_URL: http://localhost:3000
       ADMIN_SETUP_TOKEN: ci-setup-token-2026
       NEXT_TELEMETRY_DISABLED: "1"
@@ -40,10 +43,10 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: 配置 Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -65,3 +68,93 @@ jobs:
 
       - name: 构建应用
         run: npm run build
+
+  container:
+    name: AMD64 容器集成测试
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v6
+
+      - name: 配置 Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 构建生产镜像
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: blog-01-ci:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 启动并检查生产容器
+        env:
+          IMAGE: blog-01-ci:${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          docker network create blog-01-ci
+          docker run -d \
+            --name blog-01-ci-db \
+            --network blog-01-ci \
+            -e POSTGRES_USER=blog \
+            -e POSTGRES_PASSWORD=ci-container-password-2026 \
+            -e POSTGRES_DB=blog \
+            postgres:16
+
+          for attempt in $(seq 1 30); do
+            if docker exec blog-01-ci-db pg_isready -U blog -d blog >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "PostgreSQL did not become ready." >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          docker run -d \
+            --name blog-01-ci-app \
+            --network blog-01-ci \
+            -p 3000:3000 \
+            -e DATABASE_URL=postgresql://blog:ci-container-password-2026@blog-01-ci-db:5432/blog?schema=public \
+            -e DB_SCHEMA_SYNC_MODE=migrate \
+            -e BETTER_AUTH_SECRET=ci-container-auth-secret-with-more-than-thirty-two-characters \
+            -e BETTER_AUTH_URL=http://127.0.0.1:3000 \
+            -e BETTER_AUTH_TRUSTED_ORIGINS=http://127.0.0.1:3000 \
+            -e SITE_URL=http://127.0.0.1:3000 \
+            -e ADMIN_SETUP_TOKEN=ci-container-setup-token \
+            -e STORAGE_PROVIDER=local \
+            "$IMAGE"
+
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo "Application did not become healthy." >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          curl -fsS http://127.0.0.1:3000/ >/dev/null
+          curl -fsS http://127.0.0.1:3000/admin/setup >/dev/null
+
+      - name: 输出失败日志
+        if: failure()
+        run: |
+          docker logs blog-01-ci-db 2>&1 || true
+          docker logs blog-01-ci-app 2>&1 || true
+
+      - name: 清理测试容器
+        if: always()
+        run: |
+          docker rm -f blog-01-ci-app blog-01-ci-db 2>/dev/null || true
+          docker network rm blog-01-ci 2>/dev/null || true
