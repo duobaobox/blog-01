@@ -1,0 +1,29 @@
+:root {
+  --site-accent-500: #2563eb;
+  --site-accent-600: #1d4ed8;
+  --site-accent-soft: rgb(37 99 235 / 0.1);
+  --site-accent-foreground: #ffffff;
+  --home-text-strong: #20243a;
+  --home-text-muted: #747b91;
+  --home-card-surface: rgb(255 255 255 / 0.94);
+  --home-card-border: #ebe8f4;
+  --home-card-muted: #9aa0b0;
+  --home-card-chip: #f7f7fa;
+  --home-card-shadow: 0 14px 36px -30px rgb(82 75 155 / 0.34);
+  --home-card-shadow-hover: 0 22px 44px -29px rgb(82 75 155 / 0.34);
+}
+
+.dark {
+  --site-accent-500: #60a5fa;
+  --site-accent-600: #93c5fd;
+  --site-accent-soft: rgb(96 165 250 / 0.16);
+  --site-accent-foreground: #0f172a;
+  --home-text-strong: #ffffff;
+  --home-text-muted: rgb(203 213 225 / 0.75);
+  --home-card-surface: rgb(255 255 255 / 0.055);
+  --home-card-border: rgb(255 255 255 / 0.1);
+  --home-card-muted: #94a3b8;
+  --home-card-chip: rgb(255 255 255 / 0.05);
+  --home-card-shadow: 0 14px 36px -30px rgb(0 0 0 / 0.5);
+  --home-card-shadow-hover: 0 22px 44px -29px rgb(0 0 0 / 0.58);
+}
