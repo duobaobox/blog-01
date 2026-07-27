@@ -10,6 +10,7 @@ type HomeHeroProps = {
   config: HomeHeroConfig;
   highlightedPost?: PublicPostCard;
   postSource: "featured" | "latest";
+  sceneSeed: number;
 };
 
 export function HomeHero({
@@ -17,6 +18,7 @@ export function HomeHero({
   config,
   highlightedPost,
   postSource,
+  sceneSeed,
 }: HomeHeroProps) {
   const description = site.subtitle || config.description || site.description;
 
@@ -82,7 +84,7 @@ export function HomeHero({
         </div>
 
         <div className="relative z-10 -mt-5 w-full sm:-mt-10 lg:pointer-events-none lg:absolute lg:bottom-0 lg:left-[28%] lg:right-6 lg:top-0 lg:m-0 lg:w-auto xl:left-[24%]">
-          <HomeHeroVisual visual={config.visual} />
+          <HomeHeroVisual visual={config.visual} sceneSeed={sceneSeed} />
         </div>
       </div>
     </section>
