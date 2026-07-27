@@ -9,6 +9,8 @@
     "test": "tsx --tsconfig tsconfig.test.json --test && npm run test:backup",
     "test:backup": "sh scripts/backup-docker.test.sh",
     "lint": "eslint",
+    "format": "npx --yes prettier@3.9.6 --write .",
+    "format:check": "npx --yes prettier@3.9.6 --check .",
     "db:sync": "sh scripts/schema-sync.sh",
     "db:push": "prisma db push",
     "db:diff": "sh scripts/check-schema-diff.sh",
