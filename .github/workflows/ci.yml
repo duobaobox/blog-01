@@ -45,11 +45,28 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v6
 
+      - name: 校验部署脚本与 Compose
+        run: |
+          bash -n install.sh
+          bash -n delivery/release/install.sh
+          bash -n delivery/release/blogctl
+          bash -n scripts/release/build-release-bundle.sh
+          bash -n scripts/release/refresh-app-delivery.sh
+          docker compose --env-file .env.release.example -f docker-compose.release.yml config >/dev/null
+
       - name: 配置 Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
+
+      - name: 验证服务器安装包
+        run: |
+          bash scripts/release/build-release-bundle.sh 0.0.0-ci
+          (
+            cd dist
+            sha256sum -c blog-01-linux-amd64.tar.gz.sha256
+          )
 
       - name: 安装依赖
         run: npm ci
