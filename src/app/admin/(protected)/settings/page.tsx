@@ -1,22 +1,19 @@
-import { getAdminSettingsPageData } from "@/features/settings/queries/settings.queries";
+import { AdminPage } from "@/components/admin/admin-page";
 import { SettingsForm } from "@/components/admin/settings-form";
+import { getAdminSettingsPageData } from "@/features/settings/queries/settings.queries";
 
 export default async function AdminSettingsPage() {
   const pageData = await getAdminSettingsPageData();
+
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="mx-auto w-full max-w-[1680px] p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="text-lg font-semibold">站点设置</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            管理站点身份、公开信息与媒体资源
-          </p>
-        </div>
-        <SettingsForm
-          settings={pageData.settings}
-          showSetupNotice={pageData.showSetupNotice}
-        />
-      </div>
-    </div>
+    <AdminPage
+      title="站点设置"
+      description="管理站点身份、公开信息与媒体资源"
+    >
+      <SettingsForm
+        settings={pageData.settings}
+        showSetupNotice={pageData.showSetupNotice}
+      />
+    </AdminPage>
   );
 }
