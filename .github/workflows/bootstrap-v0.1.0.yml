@@ -18,6 +18,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TARGET_SHA: 4d8c1cd3e3b482d05f4473c6614ffddc65cb96cd
       RELEASE_TAG: v0.1.0
+      DISPATCH_REPORT: .github/release-v0.1.0-dispatch.txt
 
     steps:
       - name: 检出仓库
@@ -47,20 +48,56 @@ jobs:
         run: |
           set -euo pipefail
 
-          existing_runs="$(gh run list \
+          existing_run="$(gh run list \
             --workflow release.yml \
             --limit 30 \
-            --json displayTitle,status,conclusion \
-            --jq '[.[] | select(.displayTitle == "Release v0.1.0")] | length')"
+            --json databaseId,displayTitle,status,conclusion,url,createdAt \
+            --jq '[.[] | select(.displayTitle == "Release v0.1.0")] | sort_by(.createdAt) | last // empty')"
 
-          if [[ "$existing_runs" != "0" ]]; then
-            echo "Release v0.1.0 already has a workflow run."
+          if [[ -z "$existing_run" ]]; then
+            gh workflow run release.yml \
+              --ref main \
+              -f release_tag="$RELEASE_TAG" \
+              -f target_ref="$RELEASE_TAG"
+
+            for attempt in $(seq 1 20); do
+              sleep 3
+              existing_run="$(gh run list \
+                --workflow release.yml \
+                --limit 30 \
+                --json databaseId,displayTitle,status,conclusion,url,createdAt \
+                --jq '[.[] | select(.displayTitle == "Release v0.1.0")] | sort_by(.createdAt) | last // empty')"
+              [[ -n "$existing_run" ]] && break
+            done
+          fi
+
+          if [[ -z "$existing_run" ]]; then
+            echo "Release v0.1.0 could not be found after dispatch." >&2
+            exit 1
+          fi
+
+          {
+            echo "release_tag=$RELEASE_TAG"
+            echo "target_sha=$TARGET_SHA"
+            echo "recorded_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "run_id=$(printf '%s' "$existing_run" | jq -r .databaseId)"
+            echo "run_status=$(printf '%s' "$existing_run" | jq -r .status)"
+            echo "run_conclusion=$(printf '%s' "$existing_run" | jq -r '.conclusion // ""')"
+            echo "run_url=$(printf '%s' "$existing_run" | jq -r .url)"
+          } > "$DISPATCH_REPORT"
+
+      - name: 写入调度报告
+        run: |
+          set -euo pipefail
+
+          git pull --rebase origin main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DISPATCH_REPORT"
+
+          if git diff --cached --quiet; then
             exit 0
           fi
 
-          gh workflow run release.yml \
-            --ref main \
-            -f release_tag="$RELEASE_TAG" \
-            -f target_ref="$RELEASE_TAG"
-
-          echo "Release v0.1.0 was dispatched."
+          git commit -m "记录 v0.1.0 Release 调度状态"
+          git push origin HEAD:main
