@@ -1,10 +1,10 @@
-"use client";
-
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { Calendar, Clock } from "lucide-react";
 import type { MediaPresentation } from "@/features/media/queries/media.queries";
+import { cardMotifs } from "@/features/posts/components/card-motifs";
 import { getPostDisplayDate } from "@/features/posts/lib/post-status";
+import { resolveMotifIndex } from "@/features/posts/lib/card-motif-assignment";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { formatDate } from "@/shared/lib/date";
 import {
@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { cardMotifs, getMotifIndex } from "@/features/posts/components/card-motifs";
 
 type PostListCardProps = {
   post: {
@@ -39,23 +38,33 @@ type PostListCardProps = {
     }>;
   };
   showCategory?: boolean;
-  /** 可选：由父组件统一分配图腾索引，保证相邻卡片不同；不传则基于 slug 哈希 */
   motifIndex?: number;
 };
 
-export function PostListCard({ post, showCategory = true, motifIndex }: PostListCardProps) {
-  const preview = post.excerpt ?? `${post.contentText.slice(0, 120)}...`;
+function getPostPreview(excerpt: string | null, contentText: string) {
+  if (excerpt?.trim()) {
+    return excerpt.trim();
+  }
+
+  const preview = contentText.trim().slice(0, 120);
+  return preview ? `${preview}${contentText.trim().length > 120 ? "..." : ""}` : "";
+}
+
+export function PostListCard({
+  post,
+  showCategory = true,
+  motifIndex,
+}: PostListCardProps) {
+  const preview = getPostPreview(post.excerpt, post.contentText);
   const displayDate = getPostDisplayDate(post);
   const coverImage = post.coverImage;
   const cardImage = coverImage?.variants?.card ?? coverImage;
   const coverImageUrl = coverImage?.url ?? post.coverImageUrl;
-
-  const motifIdx = motifIndex ?? getMotifIndex(post.slug);
-  const MotifComponent = cardMotifs[motifIdx];
+  const MotifComponent = cardMotifs[resolveMotifIndex(motifIndex, post.slug)];
 
   return (
-    <Link href={`/blog/${post.slug}`} className="block group">
-      <Card className="relative gap-0 py-0 transition-all duration-200 hover:border-primary/20 hover:shadow-md">
+    <Link href={`/blog/${post.slug}`} className="group block">
+      <Card className="relative gap-0 py-0 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-site-accent/20 hover:shadow-md">
         {coverImageUrl ? (
           <div className="overflow-hidden rounded-t-xl border-b bg-muted/30">
             <Image
@@ -64,60 +73,67 @@ export function PostListCard({ post, showCategory = true, motifIndex }: PostList
               width={cardImage?.width ?? 1200}
               height={cardImage?.height ?? 630}
               sizes="(min-width: 1280px) 352px, (min-width: 768px) 50vw, 100vw"
-              className="h-52 w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+              className="h-52 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
           </div>
         ) : null}
-        <CardHeader className="space-y-3 py-4">
+
+        <CardHeader className="relative z-10 space-y-3 py-4">
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {post.isFeatured ? (
               <>
-                <span className="font-medium text-primary">精选</span>
-                <span>·</span>
+                <span className="font-medium text-site-accent">精选</span>
+                <span aria-hidden="true">·</span>
               </>
             ) : null}
-            {showCategory && post.category && (
+            {showCategory && post.category ? (
               <>
-                <span className="font-medium text-primary">
+                <span className="font-medium text-site-accent">
                   {post.category.name}
                 </span>
-                <span>·</span>
+                <span aria-hidden="true">·</span>
               </>
-            )}
-            <span className="inline-flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {displayDate ? formatDate(displayDate) : ""}
-            </span>
-            {post.readingTimeMinutes && (
+            ) : null}
+            {displayDate ? (
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="size-3" aria-hidden="true" />
+                {formatDate(displayDate)}
+              </span>
+            ) : null}
+            {post.readingTimeMinutes ? (
               <>
-                <span>·</span>
+                <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+                  <Clock className="size-3" aria-hidden="true" />
                   {post.readingTimeMinutes} 分钟
                 </span>
               </>
-            )}
+            ) : null}
           </div>
-          <CardTitle className="text-xl leading-tight">{post.title}</CardTitle>
-          <CardDescription className="line-clamp-2 text-sm leading-relaxed">
-            {preview}
-          </CardDescription>
-          {post.tags.length > 0 && (
+
+          <CardTitle className="text-xl leading-tight transition-colors group-hover:text-site-accent">
+            {post.title}
+          </CardTitle>
+          {preview ? (
+            <CardDescription className="line-clamp-2 text-sm leading-relaxed">
+              {preview}
+            </CardDescription>
+          ) : null}
+          {post.tags.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2 pt-2">
-              {post.tags.map((pt) => (
+              {post.tags.map((item) => (
                 <TagBadge
-                  key={pt.tag.id}
-                  name={pt.tag.name}
-                  color={pt.tag.color}
+                  key={item.tag.id}
+                  name={item.tag.name}
+                  color={item.tag.color}
                 />
               ))}
             </div>
-          )}
+          ) : null}
         </CardHeader>
 
-        {/* 右下角 SVG 几何图腾（8 种随机） */}
         <div
-          className="pointer-events-none absolute right-0 bottom-0 h-36 w-48 overflow-hidden rounded-br-xl select-none"
+          className="pointer-events-none absolute bottom-0 right-0 h-36 w-48 select-none overflow-hidden rounded-br-xl"
           aria-hidden="true"
           style={{
             maskImage:
@@ -128,7 +144,7 @@ export function PostListCard({ post, showCategory = true, motifIndex }: PostList
         >
           <MotifComponent
             strokeWidth={0.95}
-            className="absolute right-0 bottom-0 h-full w-full text-primary/[0.16] transition-all duration-500 ease-out group-hover:scale-[1.04] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
+            className="absolute bottom-0 right-0 h-full w-full text-site-accent/[0.16] transition-transform duration-500 ease-out group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-[1.04]"
           />
         </div>
       </Card>
