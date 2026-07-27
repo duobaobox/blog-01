@@ -1,0 +1,38 @@
+name: Bootstrap v0.1.0 Tag
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/release-v0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: 创建 v0.1.0 标签
+        env:
+          TARGET_SHA: 4d8c1cd3e3b482d05f4473c6614ffddc65cb96cd
+        run: |
+          set -euo pipefail
+
+          if git rev-parse -q --verify refs/tags/v0.1.0 >/dev/null; then
+            echo "v0.1.0 already exists."
+            exit 0
+          fi
+
+          git cat-file -e "${TARGET_SHA}^{commit}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a v0.1.0 "$TARGET_SHA" -m "Blog-01 v0.1.0"
+          git push origin v0.1.0
