@@ -80,8 +80,37 @@ jobs:
       - name: 代码检查
         run: npm run lint
 
-      - name: 运行测试
-        run: npm test
+      - name: 运行单元测试
+        id: unit_tests
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx tsx --tsconfig tsconfig.test.json --test 2>&1 | tee unit-test.log
+
+      - name: 运行备份脚本测试
+        id: backup_tests
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run test:backup 2>&1 | tee backup-test.log
+
+      - name: 上传测试日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ github.run_id }}
+          path: |
+            unit-test.log
+            backup-test.log
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: 汇总测试结果
+        if: steps.unit_tests.outcome == 'failure' || steps.backup_tests.outcome == 'failure'
+        run: |
+          echo "Unit tests: ${{ steps.unit_tests.outcome }}"
+          echo "Backup tests: ${{ steps.backup_tests.outcome }}"
+          exit 1
 
       - name: 构建应用
         run: npm run build
