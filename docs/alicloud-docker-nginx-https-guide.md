@@ -1,185 +1,326 @@
 # 阿里云 Docker + Nginx + HTTPS 上线手册
 
-这份手册描述的是第二阶段的正式上线方式：
+本文适用于阿里云 ECS Linux AMD64 实例。
 
-- Docker Compose 跑 `app + db`
-- 宿主机 Nginx 监听 `80/443`
-- Nginx 反向代理到 `127.0.0.1:3000`
-- 域名和 HTTPS 由 Nginx / Certbot 处理
+目标架构：
 
-## 目标拓扑
-
-```mermaid
-flowchart TD
-  User["浏览器"] --> DNS["域名 DNS"]
-  DNS --> Nginx["Nginx :80 / :443"]
-  Nginx --> App["Docker app :3000"]
-  App --> DB["Docker PostgreSQL"]
-  App --> Media["./media"]
-  DB --> PgData["postgres_data volume"]
+```text
+浏览器
+  → 域名 DNS
+  → Nginx 80/443
+  → Blog-01 127.0.0.1:3000
+  → PostgreSQL Docker 内网
 ```
 
-## 1. 服务器准备
+## 1. 准备服务器
 
-建议开放端口：
+推荐：
 
-- `22`
-- `80`
-- `443`
+- Ubuntu 22.04 或 24.04；
+- Linux AMD64 / x86_64；
+- 至少 2 GB 内存；
+- 40 GB 以上磁盘。
 
-如果数据库只给容器内部用，不要开放 `5432`。
+阿里云安全组开放：
 
-安装：
+- `22`：SSH；
+- `80`：HTTP；
+- `443`：HTTPS。
+
+不要开放：
+
+- `5432`：PostgreSQL；
+- `3000`：正式启用 Nginx 后可以从安全组关闭。
+
+## 2. 配置域名
+
+在域名 DNS 中添加 A 记录：
+
+```text
+blog.example.com → ECS 公网 IP
+```
+
+等待解析生效：
 
 ```bash
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg lsb-release git nginx certbot python3-certbot-nginx
-curl -fsSL https://get.docker.com | sh
-sudo systemctl enable docker
-sudo systemctl start docker
+ping blog.example.com
 ```
 
-## 2. 启动应用
+## 3. 一键安装 Blog-01
 
-源码部署：
+登录服务器：
 
 ```bash
-git clone <your-repo>
-cd blog-01
-cp .env.example .env
+ssh root@服务器公网IP
 ```
 
-至少修改：
-
-```env
-POSTGRES_PASSWORD=replace-with-strong-password
-BETTER_AUTH_SECRET=replace-with-strong-random-secret
-BETTER_AUTH_URL=https://your-domain.com
-SITE_URL=https://your-domain.com
-ADMIN_SETUP_TOKEN=replace-with-one-time-setup-token
-```
-
-管理员初始化走显式 setup 入口：首次访问 `/admin/login` 时，如果数据库里还没有任何用户，系统会跳转到 `/admin/setup`。生产环境不会自动创建默认管理员，需要在表单里填写昵称、邮箱、登录账号、密码和 `ADMIN_SETUP_TOKEN` 初始化口令。只有本地开发且未设置 `ADMIN_SETUP_TOKEN` 时，才会自动创建默认管理员用于快速开发。
-
-启动：
+执行：
 
 ```bash
-docker compose up -d --build db
-docker compose run --rm --profile tools migrate
-docker compose up -d app
+curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
+SITE_URL=https://blog.example.com bash /tmp/blog-01-install.sh
 ```
 
-先验证应用本体：
+安装器会自动：
+
+- 安装或检查 Docker 与 Compose v2；
+- 下载最新正式 Release；
+- 验证安装包 SHA256；
+- 安装到 `/opt/blog-01`；
+- 生成数据库密码和鉴权密钥；
+- 拉取 GHCR 镜像；
+- 启动 PostgreSQL；
+- 执行数据库 migration；
+- 启动应用并等待健康检查。
+
+检查：
 
 ```bash
+cd /opt/blog-01
+./blogctl status
 curl -I http://127.0.0.1:3000
-docker compose logs app --tail=100
-docker compose logs db --tail=100
+curl http://127.0.0.1:3000/api/health
 ```
 
-如果你现在不是源码部署，而是本地打包后上传服务器，请先按
-[docker-build-and-release-guide.md](./docker-build-and-release-guide.md)
-里的“发布版交付”部分把容器跑起来，再接入下面的 Nginx。
+查看日志：
 
-## 3. 配置 Nginx
+```bash
+./blogctl logs
+```
+
+## 4. 安装 Nginx 和 Certbot
+
+```bash
+apt update
+apt install -y nginx certbot python3-certbot-nginx
+systemctl enable --now nginx
+```
 
 创建站点配置：
 
 ```bash
-sudo vim /etc/nginx/sites-available/blog-01.conf
+nano /etc/nginx/sites-available/blog-01.conf
 ```
 
-示例：
+内容：
 
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
+    listen [::]:80;
+
+    server_name blog.example.com;
 
     client_max_body_size 20m;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 }
 ```
 
-启用：
+启用配置：
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/blog-01.conf /etc/nginx/sites-enabled/blog-01.conf
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl reload nginx
+ln -sf /etc/nginx/sites-available/blog-01.conf /etc/nginx/sites-enabled/blog-01.conf
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl reload nginx
 ```
 
-## 4. 配置 HTTPS
+## 5. 启用 HTTPS
 
 ```bash
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-sudo certbot renew --dry-run
+certbot --nginx -d blog.example.com
+certbot renew --dry-run
 ```
 
-成功后，正式访问地址应当是：
+正式访问：
 
 ```text
-https://your-domain.com
+https://blog.example.com
 ```
 
-并且 `.env` 中这两个值必须与正式地址一致：
+## 6. 初始化管理员
 
-- `BETTER_AUTH_URL`
-- `SITE_URL`
+安装完成时终端会输出 `ADMIN_SETUP_TOKEN`。也可以查看：
 
-## 5. 上线后检查
+```bash
+cd /opt/blog-01
+grep '^ADMIN_SETUP_TOKEN=' .env.release
+```
+
+打开：
+
+```text
+https://blog.example.com/admin/setup
+```
+
+填写初始化口令并创建管理员。
+
+完成后登录：
+
+```text
+https://blog.example.com/admin/login
+```
+
+## 7. 验收
 
 至少检查：
 
-- 首页
-- `/admin/login`
-- 管理员登录
-- 新建文章
-- 上传图片
-- `/robots.txt`
-- `/sitemap.xml`
-- `/feed.xml`
+- 首页；
+- `/blog`；
+- `/admin/setup` 和 `/admin/login`；
+- 管理员登录；
+- 新建并发布文章；
+- 上传图片并在前台打开；
+- `/robots.txt`；
+- `/sitemap.xml`；
+- `/feed.xml`；
+- 深色和浅色主题；
+- 手机端菜单；
+- 浏览器控制台无 hydration 报错。
 
-## 6. 备份
+## 8. 日常运维
 
-当前自托管模式下，至少备份：
+查看状态：
 
-- `postgres_data`
-- 媒体持久化存储：源码部署是项目目录下的 `./media`；发布版交付是 Docker 的 `media_data` 卷
+```bash
+cd /opt/blog-01
+./blogctl status
+```
 
-仓库/发布包提供的 `backup-docker.sh` 会从应用容器的 `/app/public/media` 打包媒体，因此可同时兼容以上两种挂载方式。不要用 `docker compose down -v` 更新应用，否则会删除数据库和媒体卷。
+查看日志：
 
-## 7. 常见排障
+```bash
+./blogctl logs
+```
 
-### 登录 403
+升级：
 
-优先检查：
+```bash
+./blogctl update
+```
 
-- `BETTER_AUTH_URL`
-- 真实访问地址
-- Nginx 代理头是否包含 `Host` 和 `X-Forwarded-Proto`
+备份：
+
+```bash
+./blogctl backup
+```
+
+重启：
+
+```bash
+./blogctl restart
+```
+
+修改域名或 AI 等环境变量：
+
+```bash
+./blogctl config
+./blogctl restart
+```
+
+## 9. 备份建议
+
+备份同时包含：
+
+- PostgreSQL 数据库；
+- 媒体上传文件；
+- SHA256 校验文件。
+
+建议每天执行：
+
+```bash
+cd /opt/blog-01
+BACKUP_RETENTION_DAYS=14 ./blogctl backup
+```
+
+可通过 cron 定时：
+
+```bash
+crontab -e
+```
+
+例如每天凌晨 3 点：
+
+```cron
+0 3 * * * cd /opt/blog-01 && BACKUP_RETENTION_DAYS=14 ./blogctl backup >> /var/log/blog-01-backup.log 2>&1
+```
+
+不要执行：
+
+```bash
+docker compose down -v
+```
+
+这会删除数据库和媒体卷。
+
+## 10. 常见问题
+
+### GHCR 镜像无法拉取
+
+如果出现：
+
+```text
+denied
+manifest unknown
+```
+
+检查：
+
+- 使用的是正式发布版本；
+- `ghcr.io/duobaobox/blog-01` 包已设为 Public；
+- `.env.release` 中 `BLOG_VERSION` 对应真实 Release；
+- 服务器可以访问 `ghcr.io`。
+
+### 登录 403 或 Invalid origin
+
+检查 `/opt/blog-01/.env.release`：
+
+```env
+BETTER_AUTH_URL=https://blog.example.com
+BETTER_AUTH_TRUSTED_ORIGINS=https://blog.example.com
+SITE_URL=https://blog.example.com
+```
+
+三项必须与浏览器实际访问地址完全一致。
+
+同时确认 Nginx 已传递：
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+```
 
 ### 图片 404
 
-优先检查：
+检查：
 
-- 站点媒体库里是否真的有文件
-- `app` 服务是否已经为 `/app/public/media` 提供了持久化挂载
+```bash
+cd /opt/blog-01
+docker inspect blog-app --format '{{json .Mounts}}'
+```
 
-### SEO 地址仍是 localhost
+应用必须把 `media_data` 挂载到：
 
-优先检查：
+```text
+/app/public/media
+```
 
-- `.env` 中 `SITE_URL`
-- 后台站点设置里的 `siteUrl`
+### SEO 地址还是 localhost
+
+检查：
+
+- `.env.release` 的 `SITE_URL`；
+- 后台站点设置中的站点地址；
+- 修改配置后是否执行 `./blogctl restart`。
