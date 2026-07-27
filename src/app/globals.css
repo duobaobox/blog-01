@@ -43,6 +43,10 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-brand: var(--brand-primary);
+  --color-brand-hover: var(--brand-primary-hover);
+  --color-brand-soft: var(--brand-primary-soft);
+  --color-brand-foreground: var(--brand-primary-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -65,6 +69,10 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
+  --brand-primary: #002fa7;
+  --brand-primary-hover: #001f78;
+  --brand-primary-soft: rgb(0 47 167 / 0.1);
+  --brand-primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -100,6 +108,10 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
+  --brand-primary: #78a0ff;
+  --brand-primary-hover: #a7c0ff;
+  --brand-primary-soft: rgb(120 160 255 / 0.16);
+  --brand-primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -264,22 +276,22 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: 1px solid rgb(99 102 241 / 0.24);
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 24%, transparent);
     border-radius: 11px;
     background: linear-gradient(
       145deg,
-      rgb(224 231 255 / 0.82),
-      rgb(219 234 254 / 0.35)
+      color-mix(in srgb, var(--brand-primary) 12%, white),
+      color-mix(in srgb, var(--brand-primary) 4%, transparent)
     );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
   }
 
   .dark .public-brand__mark {
-    border-color: rgb(129 140 248 / 0.32);
+    border-color: color-mix(in srgb, var(--brand-primary) 32%, transparent);
     background: linear-gradient(
       145deg,
       rgb(30 41 59 / 0.94),
-      rgb(49 46 129 / 0.4)
+      color-mix(in srgb, var(--brand-primary) 22%, rgb(30 41 59))
     );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
   }
@@ -296,12 +308,12 @@
 
   .public-brand__spark {
     position: relative;
-    color: rgb(79 70 229);
+    color: var(--brand-primary);
     transform: rotate(45deg) scale(0.68);
   }
 
   .dark .public-brand__spark {
-    color: rgb(165 180 252);
+    color: var(--brand-primary);
   }
 
   .public-brand__spark::before,
@@ -622,77 +634,5 @@
         transparent 80%
       ),
       linear-gradient(135deg, #11131d 0%, #17192a 50%, #211713 100%);
-  }
-}
-
-
-@layer components {
-  /* 首页交互统一使用克莱因蓝，避免影响其他公开页面与后台。 */
-  .public-shell[data-public-surface="home"] {
-    --home-klein-blue: #002fa7;
-    --home-klein-blue-hover: #001f78;
-    --home-klein-blue-soft: rgb(0 47 167 / 0.12);
-  }
-
-  .dark .public-shell[data-public-surface="home"] {
-    --home-klein-blue: #78a0ff;
-    --home-klein-blue-hover: #a7c0ff;
-    --home-klein-blue-soft: rgb(120 160 255 / 0.18);
-  }
-
-  .public-shell[data-public-surface="home"] .public-header nav a,
-  .public-shell[data-public-surface="home"] .public-footer a,
-  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand) {
-    color: var(--home-klein-blue) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-header nav a:hover,
-  .public-shell[data-public-surface="home"] .public-header nav a:focus-visible,
-  .public-shell[data-public-surface="home"] .public-footer a:hover,
-  .public-shell[data-public-surface="home"] .public-footer a:focus-visible,
-  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand):hover,
-  .public-shell[data-public-surface="home"] .public-main a:not(.public-brand):focus-visible {
-    color: var(--home-klein-blue-hover) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-header button {
-    color: var(--home-klein-blue) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-header button:hover,
-  .public-shell[data-public-surface="home"] .public-header button:focus-visible {
-    color: var(--home-klein-blue-hover) !important;
-    background: var(--home-klein-blue-soft) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-main a h3 {
-    color: var(--home-klein-blue) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-main a h3:hover {
-    color: var(--home-klein-blue-hover) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-main a svg {
-    color: var(--home-klein-blue) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-main a[class*="bg-linear-to-r"] {
-    background: var(--home-klein-blue) !important;
-    color: white !important;
-    box-shadow: 0 14px 30px -14px rgb(0 47 167 / 0.58) !important;
-  }
-
-  .public-shell[data-public-surface="home"] .public-main a[class*="bg-linear-to-r"]:hover {
-    background: var(--home-klein-blue-hover) !important;
-    color: white !important;
-    box-shadow: 0 18px 34px -14px rgb(0 47 167 / 0.7) !important;
-  }
-
-  .public-shell[data-public-surface="home"]
-    .public-main
-    a[class*="bg-linear-to-r"]
-    svg {
-    color: white !important;
   }
 }
