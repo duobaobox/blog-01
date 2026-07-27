@@ -43,10 +43,10 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
-  --color-brand: var(--brand-primary);
-  --color-brand-hover: var(--brand-primary-hover);
-  --color-brand-soft: var(--brand-primary-soft);
-  --color-brand-foreground: var(--brand-primary-foreground);
+  --color-site-accent: var(--site-accent-500);
+  --color-site-accent-hover: var(--site-accent-600);
+  --color-site-accent-soft: var(--site-accent-soft);
+  --color-site-accent-foreground: var(--site-accent-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -69,10 +69,10 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  --brand-primary: #3b82f6;
-  --brand-primary-hover: #2563eb;
-  --brand-primary-soft: rgb(59 130 246 / 0.1);
-  --brand-primary-foreground: #ffffff;
+  --site-accent-500: #3b82f6;
+  --site-accent-600: #2563eb;
+  --site-accent-soft: rgb(59 130 246 / 0.1);
+  --site-accent-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -108,10 +108,10 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  --brand-primary: #60a5fa;
-  --brand-primary-hover: #93c5fd;
-  --brand-primary-soft: rgb(96 165 250 / 0.16);
-  --brand-primary-foreground: #ffffff;
+  --site-accent-500: #60a5fa;
+  --site-accent-600: #93c5fd;
+  --site-accent-soft: rgb(96 165 250 / 0.16);
+  --site-accent-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -276,22 +276,22 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--brand-primary) 24%, transparent);
+    border: 1px solid color-mix(in srgb, var(--site-accent-500) 24%, transparent);
     border-radius: 11px;
     background: linear-gradient(
       145deg,
-      color-mix(in srgb, var(--brand-primary) 12%, white),
-      color-mix(in srgb, var(--brand-primary) 4%, transparent)
+      color-mix(in srgb, var(--site-accent-500) 12%, white),
+      color-mix(in srgb, var(--site-accent-500) 4%, transparent)
     );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
   }
 
   .dark .public-brand__mark {
-    border-color: color-mix(in srgb, var(--brand-primary) 32%, transparent);
+    border-color: color-mix(in srgb, var(--site-accent-500) 32%, transparent);
     background: linear-gradient(
       145deg,
       rgb(30 41 59 / 0.94),
-      color-mix(in srgb, var(--brand-primary) 22%, rgb(30 41 59))
+      color-mix(in srgb, var(--site-accent-500) 22%, rgb(30 41 59))
     );
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
   }
@@ -308,12 +308,12 @@
 
   .public-brand__spark {
     position: relative;
-    color: var(--brand-primary);
+    color: var(--site-accent-500);
     transform: rotate(45deg) scale(0.68);
   }
 
   .dark .public-brand__spark {
-    color: var(--brand-primary);
+    color: var(--site-accent-500);
   }
 
   .public-brand__spark::before,
@@ -637,20 +637,3 @@
   }
 }
 
-
-@layer components {
-  /* 首页品牌色作用域：与文章卡片图腾的纯蓝点缀保持一致。 */
-  .public-shell[data-public-surface="home"] {
-    --brand-primary: #3b82f6 !important;
-    --brand-primary-hover: #2563eb !important;
-    --brand-primary-soft: rgb(59 130 246 / 0.1) !important;
-    --brand-primary-foreground: #ffffff !important;
-  }
-
-  .dark .public-shell[data-public-surface="home"] {
-    --brand-primary: #60a5fa !important;
-    --brand-primary-hover: #93c5fd !important;
-    --brand-primary-soft: rgb(96 165 250 / 0.16) !important;
-    --brand-primary-foreground: #ffffff !important;
-  }
-}
