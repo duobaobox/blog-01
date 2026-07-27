@@ -1,0 +1,184 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  verify:
+    name: 发版前检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://blog:release-database-password-2026@127.0.0.1:5432/blog?schema=public
+      BETTER_AUTH_SECRET: release-auth-secret-with-more-than-thirty-two-characters-2026
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_TRUSTED_ORIGINS: http://localhost:3000
+      SITE_URL: http://localhost:3000
+      ADMIN_SETUP_TOKEN: release-setup-token-2026
+      NEXT_TELEMETRY_DISABLED: "1"
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: blog
+          POSTGRES_PASSWORD: release-database-password-2026
+          POSTGRES_DB: blog
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blog -d blog"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: 检出版本代码
+        uses: actions/checkout@v6
+
+      - name: 校验版本标签
+        run: |
+          if ! printf '%s' "${GITHUB_REF_NAME}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'; then
+            echo "Unsupported release tag: ${GITHUB_REF_NAME}" >&2
+            echo "Expected a semantic version such as v0.1.0 or v0.1.0-rc.1." >&2
+            exit 1
+          fi
+
+      - name: 配置 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 生成 Prisma Client
+        run: npm run db:generate
+
+      - name: 应用数据库迁移
+        run: npx prisma migrate deploy
+
+      - name: 代码检查
+        run: npm run lint
+
+      - name: 运行测试
+        run: npm test
+
+      - name: 构建应用
+        run: npm run build
+
+  publish:
+    name: 发布 AMD64 镜像与安装包
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: 检出版本代码
+        uses: actions/checkout@v6
+
+      - name: 配置 Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 登录 GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 生成镜像标签与 OCI 元数据
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-') }}
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=Blog-01
+            org.opencontainers.image.description=Self-hosted Next.js blog system
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.documentation=https://github.com/${{ github.repository }}#readme
+            org.opencontainers.image.licenses=MIT
+
+      - name: 构建并推送 AMD64 镜像
+        id: image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 生成服务器安装包
+        run: |
+          set -euo pipefail
+
+          VERSION="${GITHUB_REF_NAME#v}"
+          RELEASE_DIR="dist/blog-01-linux-amd64"
+          ASSET="dist/blog-01-linux-amd64.tar.gz"
+
+          rm -rf dist
+          mkdir -p "$RELEASE_DIR"
+
+          cp docker-compose.release.yml "$RELEASE_DIR/compose.yaml"
+          cp .env.release.example "$RELEASE_DIR/.env.example"
+          cp delivery/release/install.sh "$RELEASE_DIR/install.sh"
+          cp delivery/release/blogctl "$RELEASE_DIR/blogctl"
+          cp delivery/release/README.md "$RELEASE_DIR/README.md"
+          cp scripts/backup-docker.sh "$RELEASE_DIR/backup-docker.sh"
+          cp scripts/restore-docker.sh "$RELEASE_DIR/restore-docker.sh"
+          printf '%s\n' "$VERSION" > "$RELEASE_DIR/VERSION"
+
+          chmod +x \
+            "$RELEASE_DIR/install.sh" \
+            "$RELEASE_DIR/blogctl" \
+            "$RELEASE_DIR/backup-docker.sh" \
+            "$RELEASE_DIR/restore-docker.sh"
+
+          tar -C dist -czf "$ASSET" blog-01-linux-amd64
+          sha256sum "$ASSET" > "$ASSET.sha256"
+
+      - name: 创建 GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_FLAGS=(
+            --verify-tag
+            --generate-notes
+            --title "Blog-01 ${GITHUB_REF_NAME}"
+          )
+
+          if printf '%s' "${GITHUB_REF_NAME}" | grep -q '-'; then
+            RELEASE_FLAGS+=(--prerelease)
+          else
+            RELEASE_FLAGS+=(--latest)
+          fi
+
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/blog-01-linux-amd64.tar.gz \
+            dist/blog-01-linux-amd64.tar.gz.sha256 \
+            "${RELEASE_FLAGS[@]}"
