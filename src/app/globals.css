@@ -69,9 +69,9 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  --brand-primary: #002fa7;
-  --brand-primary-hover: #001f78;
-  --brand-primary-soft: rgb(0 47 167 / 0.1);
+  --brand-primary: #7663ff;
+  --brand-primary-hover: #5d77f7;
+  --brand-primary-soft: rgb(118 99 255 / 0.1);
   --brand-primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -108,9 +108,9 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  --brand-primary: #78a0ff;
-  --brand-primary-hover: #a7c0ff;
-  --brand-primary-soft: rgb(120 160 255 / 0.16);
+  --brand-primary: #9aa7ff;
+  --brand-primary-hover: #b9c4ff;
+  --brand-primary-soft: rgb(154 167 255 / 0.16);
   --brand-primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
