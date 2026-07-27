@@ -1,5 +1,5 @@
-ARG APT_MIRROR=http://mirrors.tuna.tsinghua.edu.cn
-ARG NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+ARG APT_MIRROR=
+ARG NPM_CONFIG_REGISTRY=https://registry.npmjs.org
 
 FROM node:22-bookworm-slim AS base
 
@@ -10,7 +10,9 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NPM_CONFIG_REGISTRY=$NPM_CONFIG_REGISTRY
 
-RUN sed -i "s|http://deb.debian.org|${APT_MIRROR}|g; s|http://security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+RUN if [ -n "$APT_MIRROR" ]; then \
+      sed -i "s|http://deb.debian.org|${APT_MIRROR}|g; s|http://security.debian.org|${APT_MIRROR}|g; s|https://deb.debian.org|${APT_MIRROR}|g; s|https://security.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources; \
+    fi \
   && apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates openssl \
   && rm -rf /var/lib/apt/lists/*
@@ -24,7 +26,12 @@ FROM deps AS builder
 
 COPY . .
 RUN npm run db:generate
-RUN BETTER_AUTH_SECRET=6f8b9e1a25f7d4c0b3a91e7f2d5c8a0469b2e0f4a7c3d1e8f5b6a9c0d2e4f7a1 BETTER_AUTH_URL=http://localhost:3000 npm run build
+RUN BETTER_AUTH_SECRET=build-only-auth-secret-with-more-than-thirty-two-characters \
+    BETTER_AUTH_URL=http://localhost:3000 \
+    BETTER_AUTH_TRUSTED_ORIGINS=http://localhost:3000 \
+    SITE_URL=http://localhost:3000 \
+    ADMIN_SETUP_TOKEN=build-only-setup-token \
+    npm run build
 
 FROM deps AS prod-deps
 
@@ -36,9 +43,6 @@ COPY . .
 RUN npm run db:generate
 
 FROM base AS runner
-
-ARG APT_MIRROR
-ARG NPM_CONFIG_REGISTRY
 
 WORKDIR /app
 ENV NODE_ENV=production
