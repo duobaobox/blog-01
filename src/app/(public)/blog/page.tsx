@@ -1,16 +1,16 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Separator } from "@/shared/ui/separator";
-import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
-import { PostListCard } from "@/features/posts/components/post-list-card";
-import { assignMotifIndices } from "@/features/posts/components/card-motifs";
+import { notFound } from "next/navigation";
 import { PostsPagination } from "@/components/blog/posts-pagination";
+import { PostListCard } from "@/features/posts/components/post-list-card";
+import { assignMotifIndices } from "@/features/posts/lib/card-motif-assignment";
+import { PostsEmptyState } from "@/features/posts/components/posts-empty-state";
 import { resolvePublicPostsPage } from "@/features/posts/lib/public-posts-page";
+import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
+import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { getPublicCategories } from "@/features/taxonomy/queries/category.queries";
 import { getPublicTags } from "@/features/taxonomy/queries/tag.queries";
-import { TagBadge } from "@/features/taxonomy/components/tag-badge";
-import { CategoryBadge } from "@/features/taxonomy/components/category-badge";
 import { generateSeo } from "@/infrastructure/seo";
+import { Separator } from "@/shared/ui/separator";
 
 export const revalidate = 300;
 
@@ -28,7 +28,6 @@ export default async function BlogPage({
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
   const params = await searchParams;
-
   const [pageData, categories, tags] = await Promise.all([
     resolvePublicPostsPage({ page: params.page }),
     getPublicCategories(),
@@ -41,8 +40,7 @@ export default async function BlogPage({
 
   const { posts, totalPages, totalPosts, currentPage } = pageData;
   const hasSidebarContent = categories.length > 0 || tags.length > 0;
-
-  const motifIndices = assignMotifIndices(posts.length);
+  const motifIndices = assignMotifIndices(posts.map((post) => post.slug));
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
@@ -62,7 +60,6 @@ export default async function BlogPage({
         />
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
-          {/* 文章列表 */}
           <div className="space-y-6">
             {posts.length === 0 ? (
               <PostsEmptyState
@@ -73,8 +70,12 @@ export default async function BlogPage({
               />
             ) : (
               <>
-                {posts.map((post, i) => (
-                  <PostListCard key={post.slug} post={post} motifIndex={motifIndices[i]} />
+                {posts.map((post, index) => (
+                  <PostListCard
+                    key={post.slug}
+                    post={post}
+                    motifIndex={motifIndices[index]}
+                  />
                 ))}
                 <PostsPagination
                   pathname="/blog"
@@ -86,54 +87,51 @@ export default async function BlogPage({
             )}
           </div>
 
-          {/* 侧边栏 */}
           <aside className="space-y-8">
-            {/* 分类部分 */}
             <div>
-              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold">
                 <span>分类</span>
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-site-accent-soft text-xs font-bold text-site-accent">
                   {categories.length}
                 </span>
-              </h3>
+              </h2>
               <div className="space-y-2">
-                {categories.map((cat) => (
+                {categories.map((category) => (
                   <Link
-                    key={cat.id}
-                    href={`/blog/categories/${cat.slug}`}
-                    className="block transition-all duration-200 hover:-translate-x-1"
+                    key={category.id}
+                    href={`/blog/categories/${category.slug}`}
+                    className="block transition-transform duration-200 hover:-translate-x-1"
                   >
                     <CategoryBadge
-                      name={cat.name}
-                      showCount={cat._count.posts}
-                      className="w-full flex"
+                      name={category.name}
+                      showCount={category._count.posts}
+                      className="flex w-full"
                     />
                   </Link>
                 ))}
-                {categories.length === 0 && (
+                {categories.length === 0 ? (
                   <p className="px-3 py-2 text-xs text-muted-foreground">
                     暂无分类
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
 
             <Separator className="my-2" />
 
-            {/* 标签部分 */}
             <div>
-              <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold">
                 <span>标签</span>
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-site-accent-soft text-xs font-bold text-site-accent">
                   {tags.length}
                 </span>
-              </h3>
+              </h2>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
                   <Link
                     key={tag.id}
                     href={`/blog/tags/${tag.slug}`}
-                    className="transition-all duration-200 hover:scale-105"
+                    className="transition-transform duration-200 hover:scale-105"
                   >
                     <TagBadge
                       name={tag.name}
@@ -142,9 +140,9 @@ export default async function BlogPage({
                     />
                   </Link>
                 ))}
-                {tags.length === 0 && (
+                {tags.length === 0 ? (
                   <p className="text-xs text-muted-foreground">暂无标签</p>
-                )}
+                ) : null}
               </div>
             </div>
           </aside>
