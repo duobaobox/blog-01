@@ -1,4 +1,4 @@
-name: Bootstrap v0.1.0 Tag
+name: Bootstrap v0.1.0 Release
 
 on:
   push:
@@ -7,12 +7,17 @@ on:
       - ".github/release-v0.1.0"
 
 permissions:
+  actions: write
   contents: write
 
 jobs:
-  tag:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_SHA: 4d8c1cd3e3b482d05f4473c6614ffddc65cb96cd
+      RELEASE_TAG: v0.1.0
 
     steps:
       - name: 检出仓库
@@ -20,19 +25,42 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 创建 v0.1.0 标签
-        env:
-          TARGET_SHA: 4d8c1cd3e3b482d05f4473c6614ffddc65cb96cd
+      - name: 确认 v0.1.0 标签
         run: |
           set -euo pipefail
 
-          if git rev-parse -q --verify refs/tags/v0.1.0 >/dev/null; then
-            echo "v0.1.0 already exists."
+          if ! git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null; then
+            git cat-file -e "${TARGET_SHA}^{commit}"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Blog-01 $RELEASE_TAG"
+            git push origin "$RELEASE_TAG"
+          fi
+
+          tag_sha="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+          if [[ "$tag_sha" != "$TARGET_SHA" ]]; then
+            echo "$RELEASE_TAG points to $tag_sha instead of $TARGET_SHA." >&2
+            exit 1
+          fi
+
+      - name: 调度正式 Release workflow
+        run: |
+          set -euo pipefail
+
+          existing_runs="$(gh run list \
+            --workflow release.yml \
+            --limit 30 \
+            --json displayTitle,status,conclusion \
+            --jq '[.[] | select(.displayTitle == "Release v0.1.0")] | length')"
+
+          if [[ "$existing_runs" != "0" ]]; then
+            echo "Release v0.1.0 already has a workflow run."
             exit 0
           fi
 
-          git cat-file -e "${TARGET_SHA}^{commit}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a v0.1.0 "$TARGET_SHA" -m "Blog-01 v0.1.0"
-          git push origin v0.1.0
+          gh workflow run release.yml \
+            --ref main \
+            -f release_tag="$RELEASE_TAG" \
+            -f target_ref="$RELEASE_TAG"
+
+          echo "Release v0.1.0 was dispatched."
