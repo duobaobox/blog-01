@@ -1,132 +1,229 @@
 # 发版与回滚 Checklist
 
-## 发版前
+## 一、发版前
 
-- [ ] 确认本次代码已经提交
-- [ ] 确认 `npm run build` 通过
-- [ ] 确认 `npm run db:preflight:release -- --schema` 已执行，至少覆盖 schema sync mode 推荐、migration 状态、migration coverage、baseline 计划、siteSetting 单例检查与 schema diff
-- [ ] 如本次显式设置了 `DB_SCHEMA_SYNC_MODE=push|migrate`，确认预检没有因为推荐模式不一致而失败
-- [ ] 如本次要把环境从 `push` 切到 `migrate`，最好先在本地执行过 `npm run db:rehearse:baseline`
-- [ ] 如本次显式按 `migrate` 路径发版，确认 `db:check:migration-coverage` 没有缺失 repo migration，避免把 baseline-ready 环境误当成 fully migration-ready
-- [ ] 如本次涉及 `siteSetting` 或初始化配置语义调整，确认预检输出中的 `db:check:site-settings` 已通过
-- [ ] 如本次包含 `postMediaReference` 这类历史数据回填，确认执行过 `npm run db:preflight:release -- --media` 或单独审阅过 `db:backfill:post-media-references` 计划
-- [ ] 如本次涉及 posts 查询或索引优化，确认执行过 `npm run db:preflight:release -- --posts` 或单独审阅过 `db:explain:posts`
-- [ ] 确认 `BETTER_AUTH_URL` / `BETTER_AUTH_TRUSTED_ORIGINS` / `SITE_URL` 不含 `localhost`
-- [ ] 生产环境确认已设置 `ADMIN_SETUP_TOKEN`，且不会依赖开发默认管理员账号初始化
-- [ ] 执行 `BACKUP_RETENTION_DAYS=14 ./scripts/backup-docker.sh`，确认数据库和媒体备份均生成，并把副本保存到服务器之外
-- [ ] 记录当前线上镜像版本或当前交付包时间
+- [ ] 本次代码已经通过 Pull Request 合并到 `main`
+- [ ] `main` 分支 CI 全部通过
+- [ ] `npm run lint` 通过
+- [ ] `npm test` 通过
+- [ ] `npm run build` 通过
+- [ ] Linux AMD64 Docker 集成测试通过
+- [ ] Release 安装包构建和 SHA256 校验通过
+- [ ] `package.json` 与 `package-lock.json` 版本一致
+- [ ] README、安装文档和变更说明已更新
+- [ ] 仓库中没有 `.env`、真实 Token、API Key 或私钥
+- [ ] 本次版本号符合语义化版本规则
 
-## 数据库环境发布路径
+## 二、数据库变更门禁
 
-先执行：
+如果修改了 `prisma/schema.prisma`、migration、初始化逻辑或历史数据回填，执行：
 
 ```bash
 npm run db:preflight:release -- --schema
 ```
 
-然后只按预检输出里的 `environment kind` 选择下面路径，不再临场翻译 migration 状态。
-
-默认预检必须覆盖下面 5 个发布决策门禁：
-
-- `db:check:sync-mode`：确认 `DB_SCHEMA_SYNC_MODE` 与当前环境推荐一致
-- `db:check:migrations`：确认 migration 表、失败 migration、环境类型
-- `db:check:migration-coverage`：确认仓库 migration 是否都已应用
-- `db:baseline`：确认 legacy 环境是否仍需 baseline resolve
-- `db:check:site-settings`：确认站点设置单例不会在发布后产生初始化歧义
-
-`--schema`、`--posts`、`--media` 属于按变更触发的加严检查：schema 变更跑 schema diff，posts 查询或索引变更跑 explain，媒体引用回填变更跑 backfill plan。
-
-| 环境类型                                                       | 标准发布模式                                    | 必做门禁                                                               | 标准动作                                                                                          |
-| -------------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `empty` 新环境                                                 | `DB_SCHEMA_SYNC_MODE=migrate`                   | `db:preflight:release -- --schema` 通过                                | 通过共享 `schema-sync.sh` 入口执行 `migrate deploy`                                               |
-| `legacy-without-history` 历史 `db push` 环境                   | 继续 `auto` 或显式 `push`，暂不直接切 `migrate` | `db:preflight:release -- --schema`，必要时先跑 `db:rehearse:baseline`  | 执行 `npm run db:baseline -- --apply`，再重新预检，确认进入 baseline-ready 后再切 migrate         |
-| `baseline-ready` / `migration-ready` 已纳入 migration 管理环境 | `DB_SCHEMA_SYNC_MODE=migrate`                   | `db:check:migration-coverage` 必须完整，才能宣称 fully migration-ready | 执行 `migrate deploy`；如 coverage 缺失，先应用缺失 migration，不把 baseline-ready 误判为完全就绪 |
-| `migration-blocked` 异常环境                                   | 暂停发布                                        | `db:check:migrations` 与 `npx prisma migrate status` 排查清楚          | 先修复失败或未完成 migration，再重新跑发布预检                                                    |
-
-`baseline-ready` 与 `migration-ready` 的运维差异：
-
-- `baseline-ready`：baseline migration 已记录，可以进入 `migrate deploy` 语义，但仍必须审阅 migration coverage，不能宣称当前环境已经应用了仓库里的全部 migration。
-- `migration-ready`：baseline 与仓库后续 migration 都已应用，`db:check:migration-coverage` 完整通过，可以作为 fully migration-ready 环境发布。
-
-## 本地发版动作
+按需加严：
 
 ```bash
-docker buildx build --platform linux/amd64 -t blog-01-app:release --load .
-mkdir -p dist/app-delivery
-docker save -o dist/app-delivery/blog-01-app-release.tar blog-01-app:release
-bash scripts/release/refresh-app-delivery.sh
-tar -C dist -czf dist/app-delivery-release.tar.gz app-delivery
-```
-
-如本次包含 Prisma schema 变更，先在本地或预发环境执行：
-
-```bash
-npm run db:preflight:release -- --schema
 npm run db:preflight:release -- --schema --posts --media
 ```
 
-## 服务器部署动作
+必须确认：
+
+- [ ] `db:check:sync-mode` 与目标环境一致
+- [ ] `db:check:migrations` 没有失败或未完成 migration
+- [ ] `db:check:migration-coverage` 没有缺失仓库 migration
+- [ ] `db:check:site-settings` 通过
+- [ ] 历史 `db push` 环境已评估 baseline
+- [ ] `migration-blocked` 环境已经停止发布并完成排查
+- [ ] 包含破坏性 schema 变更时已提供专门恢复说明
+
+环境处理原则：
+
+| 环境类型 | 默认策略 |
+| --- | --- |
+| `empty` | 使用 `migrate deploy` |
+| `legacy-without-history` | 保持 `auto` 或 `push`，完成 baseline 后再切 migrate |
+| `baseline-ready` | 检查 migration coverage 后使用 migrate |
+| `migration-ready` | 使用 `migrate deploy` |
+| `migration-blocked` | 暂停发布 |
+
+## 三、创建版本
+
+更新版本：
 
 ```bash
-cd /root
-rm -rf app-delivery
-tar -xzf app-delivery-release.tar.gz
-cd app-delivery
-bash install.sh
+npm version 0.1.0 --no-git-tag-version
 ```
 
-## 发版后检查
+再次检查：
 
-- [ ] `docker compose ps` 显示 app 与 db 均为 healthy
-- [ ] `curl -fsS http://127.0.0.1:3000/api/health` 返回 `status=ok`
-- [ ] `docker compose logs --tail=100 blog` 无明显报错
-- [ ] 首页可访问
-- [ ] `/admin/login` 可访问
-- [ ] 新环境首次访问 `/admin/login` 时，若尚无用户，会按预期进入 `/admin/setup`
-- [ ] 生产环境能使用 `ADMIN_SETUP_TOKEN` 在 setup 表单创建自定义管理员
-- [ ] 自定义管理员能登录
-- [ ] 修改管理员密码后，重新登录正常
-- [ ] 能新建文章
+```bash
+npm ci
+npm run lint
+npm test
+npm run build
+bash scripts/release/build-release-bundle.sh 0.1.0
+(
+  cd dist
+  sha256sum -c blog-01-linux-amd64.tar.gz.sha256
+)
+```
+
+提交版本更新并合并到 `main`。
+
+## 四、推送标签
+
+正式版：
+
+```bash
+git checkout main
+git pull
+git tag -a v0.1.0 -m "Blog-01 v0.1.0"
+git push origin v0.1.0
+```
+
+候选版：
+
+```bash
+git tag -a v0.2.0-rc.1 -m "Blog-01 v0.2.0-rc.1"
+git push origin v0.2.0-rc.1
+```
+
+- [ ] Release workflow 的 verify job 通过
+- [ ] GHCR 镜像推送成功
+- [ ] 镜像标签符合预期
+- [ ] 稳定版生成 `latest`
+- [ ] prerelease 没有覆盖 `latest`
+- [ ] 容器来源证明生成成功
+- [ ] 安装包来源证明生成成功
+- [ ] GitHub Release 创建成功
+- [ ] Release 资产包含 tar.gz 与 SHA256
+
+## 五、首次公开发布额外检查
+
+- [ ] `ghcr.io/duobaobox/blog-01` 包已设为 Public
+- [ ] GHCR 包已连接到当前仓库
+- [ ] 未登录状态可以执行 `docker pull ghcr.io/duobaobox/blog-01:<version>`
+- [ ] 仓库包含 MIT LICENSE
+- [ ] SECURITY.md 可访问
+- [ ] 一键安装命令使用公开 Release，而不是 main 分支源码构建
+
+## 六、干净服务器验收
+
+在全新的 Linux AMD64 服务器执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh | sudo bash
+```
+
+验收：
+
+- [ ] Docker 自动安装或正确识别
+- [ ] Release 包 SHA256 校验通过
+- [ ] 安装目录为 `/opt/blog-01`
+- [ ] `.env.release` 权限为 600
+- [ ] PostgreSQL healthy
+- [ ] Blog-01 healthy
+- [ ] `/api/health` 正常
+- [ ] 首页正常
+- [ ] `/admin/setup` 正常
+- [ ] 能使用初始化口令创建管理员
+- [ ] 管理员可以登录
+- [ ] 能新建并发布文章
 - [ ] 能上传图片
-- [ ] `/robots.txt` 正常
-- [ ] `/sitemap.xml` 正常
-- [ ] `/feed.xml` 正常
+- [ ] 重启容器后数据和媒体仍存在
+- [ ] `blogctl status` 正常
+- [ ] `blogctl logs` 正常
+- [ ] `blogctl backup` 正常
 
-## 可直接执行的检查命令
+检查命令：
 
 ```bash
-cd /root/app-delivery
-docker compose --env-file .env.release -f docker-compose.release.yml ps
-docker compose --env-file .env.release -f docker-compose.release.yml logs --tail=100 blog
-grep -E '^(BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|SITE_URL|ADMIN_SETUP_TOKEN)=' .env.release
+cd /opt/blog-01
+./blogctl status
+curl -fsS http://127.0.0.1:3000/api/health
+ls -l .env.release
 ```
 
-## 回滚触发条件
+## 七、升级验收
 
-- 首页或后台无法访问
-- 登录链路异常
-- 初始化管理员无法登录
-- 上传功能失效
-- 发布后前台文章异常
+准备两个版本，例如 `0.1.0` 与 `0.1.1`。
 
-## 回滚原则
+```bash
+cd /opt/blog-01
+./blogctl update 0.1.1
+```
 
-1. 先保留当前 `.env.release`
-2. 回退到上一版 `app-delivery-release.tar.gz`
-3. 重新解压并执行 `bash install.sh . --no-edit`
-4. 如涉及数据回滚，使用已校验的备份目录执行 `CONFIRM_RESTORE=1 ./scripts/restore-docker.sh <backup-dir>`
-5. 如无必要，不直接删数据库卷
+- [ ] 升级前自动生成备份
+- [ ] 新 Release 包校验通过
+- [ ] `BLOG_VERSION` 更新到新版本
+- [ ] 新镜像拉取成功
+- [ ] schema 同步成功
+- [ ] 健康检查通过
+- [ ] 原文章、管理员和媒体仍存在
+- [ ] 新版本功能正常
 
-## 发版记录模板
+## 八、回滚触发条件
+
+- 应用容器无法 healthy；
+- 首页或后台无法访问；
+- 登录链路异常；
+- 上传功能失效；
+- 发布文章异常；
+- migration 失败；
+- 数据兼容性不符合预期。
+
+## 九、回滚
+
+应用回滚前先备份：
+
+```bash
+cd /opt/blog-01
+./blogctl backup
+```
+
+回到指定版本：
+
+```bash
+./blogctl update 0.1.0
+```
+
+如果目标 Release 已不可用，可以手动修改：
+
+```bash
+sed -i 's/^BLOG_VERSION=.*/BLOG_VERSION=0.1.0/' .env.release
+docker compose --env-file .env.release -f compose.yaml pull blog
+docker compose --env-file .env.release -f compose.yaml up -d --wait blog
+```
+
+数据库恢复：
+
+```bash
+./blogctl restore ./backups/备份目录
+```
+
+注意：
+
+- 镜像回滚不会自动撤销已执行的 migration；
+- 破坏性数据库变更必须使用对应版本的恢复计划；
+- 不要删除数据库卷；
+- 不要执行 `docker compose down -v`。
+
+## 十、发版记录模板
 
 ```text
-发版时间：
-操作人：
-本地镜像标签：
-交付包文件名：
-服务器地址：
-是否完成登录验证：
-是否完成上传验证：
-是否回滚：
+版本：
+标签：
+发布时间：
+Release URL：
+镜像：ghcr.io/duobaobox/blog-01:
+镜像 Digest：
+CI 状态：
+GHCR 是否公开：
+全新安装是否通过：
+升级是否通过：
+备份是否通过：
+是否发生回滚：
 备注：
 ```
