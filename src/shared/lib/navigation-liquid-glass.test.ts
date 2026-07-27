@@ -21,6 +21,15 @@ test("navigation glass map follows the live pill dimensions", () => {
   assert.match(svg, /viewBox="0 0 960 42"/);
   assert.match(svg, /rx="21"/);
   assert.match(svg, /mix-blend-mode:difference/);
-  assert.match(svg, /hsl\(0 0% 50% \/ 1\)/);
-  assert.match(svg, /filter:blur\(4px\)/);
+  assert.match(svg, /hsl\(0 0% 50% \/ 5%\)/);
+  assert.match(svg, /filter:blur\(10px\)/);
+});
+
+test("navigation glass map clamps invalid dimensions", () => {
+  const uri = buildNavigationGlassMap(0, -10);
+  const svg = decodeURIComponent(uri.replace("data:image/svg+xml,", ""));
+
+  assert.match(svg, /viewBox="0 0 1 1"/);
+  assert.doesNotMatch(svg, /width="-/);
+  assert.doesNotMatch(svg, /height="-/);
 });
