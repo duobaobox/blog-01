@@ -60,7 +60,7 @@ export function ContentEditorShell({
     [registerBeforeLeave],
   );
 
-  const handlePreview = useCallback(async () => {
+  async function handlePreview() {
     setPreviewOpen(true);
     setPreviewing(true);
     setPreviewError(null);
@@ -91,7 +91,7 @@ export function ContentEditorShell({
     } finally {
       setPreviewing(false);
     }
-  }, [selectedPost?.id]);
+  }
 
   if (!selectedPost && mode !== "new") {
     return (
