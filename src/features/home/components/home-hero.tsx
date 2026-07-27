@@ -28,7 +28,7 @@ export function HomeHero({
             {config.eyebrow}
           </div>
 
-          <p className="mt-7 bg-linear-to-r from-brand via-brand to-brand/65 bg-clip-text text-6xl font-black leading-none tracking-[-0.07em] text-transparent sm:text-7xl lg:text-[4.8rem]">
+          <p className="mt-7 text-6xl font-black leading-none tracking-[-0.07em] text-brand sm:text-7xl lg:text-[4.8rem]">
             {config.greeting}
           </p>
           <h1 className="mt-3 max-w-[12ch] text-4xl font-black leading-[1.08] tracking-[-0.055em] text-[#20243a] sm:text-5xl lg:text-[3.35rem] dark:text-white">
@@ -41,7 +41,7 @@ export function HomeHero({
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href={config.primaryAction.href}
-              className="group inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-brand to-brand-hover px-5 py-3 text-sm font-semibold text-brand-foreground shadow-lg shadow-brand/30 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand/40"
+              className="group inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground shadow-lg shadow-brand/30 transition hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl hover:shadow-brand/40"
             >
               <Sparkles className="size-4" />
               {config.primaryAction.label}
