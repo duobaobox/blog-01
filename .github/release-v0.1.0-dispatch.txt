@@ -1,0 +1,7 @@
+release_tag=v0.1.0
+target_sha=4d8c1cd3e3b482d05f4473c6614ffddc65cb96cd
+recorded_at=2026-07-27T09:12:11Z
+run_id=30252821577
+run_status=in_progress
+run_conclusion=
+run_url=https://github.com/duobaobox/blog-01/actions/runs/30252821577
