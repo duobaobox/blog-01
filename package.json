@@ -1,7 +1,16 @@
 {
   "name": "blog-01",
   "version": "0.1.0",
+  "description": "Self-hosted Next.js blog system with PostgreSQL, Prisma, Better Auth and Tiptap.",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duobaobox/blog-01.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
