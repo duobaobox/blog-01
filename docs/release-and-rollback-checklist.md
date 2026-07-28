@@ -98,7 +98,7 @@ git push origin v0.2.0-rc.1
 - [ ] 容器来源证明生成成功
 - [ ] 安装包来源证明生成成功
 - [ ] GitHub Release 创建成功
-- [ ] Release 资产包含 tar.gz 与 SHA256
+- [ ] Release 资产包含 tar.gz、installer.sh 及各自 SHA256
 
 ## 五、首次公开发布额外检查
 
@@ -107,7 +107,7 @@ git push origin v0.2.0-rc.1
 - [ ] 未登录状态可以执行 `docker pull ghcr.io/duobaobox/blog-01:<version>`
 - [ ] 仓库包含 MIT LICENSE
 - [ ] SECURITY.md 可访问
-- [ ] 一键安装命令使用公开 Release，而不是 main 分支源码构建
+- [ ] 安装器与其 SHA256 来自公开 Release，而不是直接执行 main 分支脚本
 
 ## 六、干净服务器验收
 

@@ -21,6 +21,8 @@ Git tag
 - `ghcr.io/duobaobox/blog-01:latest` 最新稳定镜像；
 - `blog-01-linux-amd64.tar.gz` 服务器安装包；
 - `blog-01-linux-amd64.tar.gz.sha256` 校验文件；
+- `blog-01-installer.sh` 版本化安装器；
+- `blog-01-installer.sh.sha256` 安装器校验文件；
 - GitHub 构建来源证明；
 - GitHub 自动生成的 Release Notes。
 
@@ -50,7 +52,8 @@ ARM64 不在首个公开版本的支持范围内。
 6. 执行 lint、测试和 Next.js build；
 7. 构建 Linux AMD64 生产镜像；
 8. 启动真实 PostgreSQL 与应用容器；
-9. 检查 `/api/health`、首页和 `/admin/setup`。
+9. 检查 `/api/health`、首页和 `/admin/setup`；
+10. 在真实生产容器中运行浏览器闭环：初始化、登录、媒体上传和公开博客入口。
 
 CI 成功意味着 Node 构建和最终 Docker 运行链路都已经验证。
 
@@ -123,8 +126,8 @@ git push origin v0.2.0-rc.1
 3. 构建并推送 AMD64 镜像；
 4. 生成版本标签、`sha-*` 标签和稳定版 `latest`；
 5. 生成容器镜像来源证明；
-6. 构建版本化服务器安装包；
-7. 生成 SHA256；
+6. 构建版本化服务器安装包和安装器；
+7. 为两者生成 SHA256；
 8. 生成安装包来源证明；
 9. 创建 GitHub Release。
 
@@ -149,7 +152,14 @@ Public
 ## 三、普通用户一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh | sudo bash
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/latest/download"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo bash ./blog-01-installer.sh
+)
 ```
 
 安装器会：
@@ -168,19 +178,40 @@ curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh |
 指定正式域名：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
-sudo env SITE_URL=https://blog.example.com bash /tmp/blog-01-install.sh
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/latest/download"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo env SITE_URL=https://blog.example.com bash ./blog-01-installer.sh
+)
 ```
 
 指定版本：
 
 ```bash
-sudo env BLOG_VERSION=0.1.0 bash /tmp/blog-01-install.sh
+RELEASE_TAG="v0.1.0"
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/download/$RELEASE_TAG"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo env BLOG_VERSION=0.1.0 bash ./blog-01-installer.sh
+)
 ```
 
 ## 四、手动安装 Release 包
 
-从 GitHub Release 下载：
+从 GitHub Release 下载以下任一安装入口：
+
+```text
+blog-01-installer.sh
+blog-01-installer.sh.sha256
+```
+
+或下载完整离线安装包：
 
 ```text
 blog-01-linux-amd64.tar.gz

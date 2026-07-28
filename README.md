@@ -17,10 +17,17 @@ Blog-01 同时提供简洁的公开博客和完整的后台内容工作台，适
 - 建议至少 2 GB 内存；
 - 服务器可以访问 GitHub 和 GitHub Container Registry。
 
-在服务器执行：
+从 GitHub Release 下载版本化安装器并校验后执行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh | sudo bash
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/latest/download"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo bash ./blog-01-installer.sh
+)
 ```
 
 安装器会自动安装或检查 Docker，下载最新正式版本，生成安全密钥，启动 PostgreSQL 和 Blog-01，并等待健康检查通过。
@@ -50,8 +57,14 @@ http://服务器公网IP:3000/admin/setup
 DNS 已经指向服务器时，可以直接写入正式地址：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
-sudo env SITE_URL=https://blog.example.com bash /tmp/blog-01-install.sh
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/latest/download"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo env SITE_URL=https://blog.example.com bash ./blog-01-installer.sh
+)
 ```
 
 应用仍监听 `3000` 端口，需要使用 Nginx、Caddy、1Panel 或宝塔反向代理并配置 HTTPS。
@@ -59,8 +72,15 @@ sudo env SITE_URL=https://blog.example.com bash /tmp/blog-01-install.sh
 ### 安装指定版本
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh -o /tmp/blog-01-install.sh
-sudo env BLOG_VERSION=0.1.0 bash /tmp/blog-01-install.sh
+RELEASE_TAG="v0.1.0"
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/download/$RELEASE_TAG"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo env BLOG_VERSION=0.1.0 bash ./blog-01-installer.sh
+)
 ```
 
 当前官方镜像只发布 `linux/amd64`。ARM64 暂不在首个公开版本的支持范围内。
@@ -223,7 +243,7 @@ CI 会在 Pull Request 和 `main` 分支推送时：
 3. 运行 lint、测试和 Next.js build；
 4. 构建 Linux AMD64 生产镜像；
 5. 启动真实生产容器；
-6. 验证健康检查、首页和管理员初始化页。
+6. 验证健康检查、首页、管理员初始化页和 MVP 浏览器闭环（初始化、登录、媒体上传、公开博客入口）。
 
 ## 发布
 
@@ -239,7 +259,7 @@ Release workflow 会自动：
 - 再次执行完整质量检查；
 - 构建并推送 `ghcr.io/duobaobox/blog-01` AMD64 镜像；
 - 生成版本标签和 `latest` 标签；
-- 生成服务器安装包和 SHA256 校验文件；
+- 生成服务器安装包、版本化安装器及其 SHA256 校验文件；
 - 生成构建来源证明；
 - 创建 GitHub Release。
 
