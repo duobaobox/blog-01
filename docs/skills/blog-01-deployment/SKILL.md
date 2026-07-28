@@ -1,54 +1,54 @@
 ---
 name: blog-01-deployment
-description: Deploy, validate, operate, upgrade, back up, restore, and troubleshoot Blog-01 on a Linux AMD64 server using the official GitHub Release and GHCR image. Use this skill for cloud-server deployment, domain and HTTPS setup, administrator initialization, production acceptance checks, upgrades, rollback, and deployment incident diagnosis.
+description: 在 Linux AMD64 服务器上使用官方 GitHub Release 和 GHCR 镜像部署、验收、运维、升级、备份、恢复及排查 Blog-01。适用于云服务器部署、域名与 HTTPS 配置、管理员初始化、生产验收、版本升级、回滚和部署故障诊断。
 ---
 
-# Blog-01 Deployment
+# Blog-01 部署 Skill
 
-Use the official Blog-01 release pipeline. Do not build Next.js from source on the production server unless the user explicitly requests a source deployment.
+默认使用 Blog-01 官方发行链路。除非用户明确要求源码部署，否则不要在生产服务器上从源码构建 Next.js。
 
-## Supported deployment model
+## 支持的部署模型
 
-- Repository: `duobaobox/blog-01`
-- Platform: Linux AMD64 / x86_64
-- Default installation directory: `/opt/blog-01`
-- Application image: `ghcr.io/duobaobox/blog-01:<version>`
-- Application port: `3000`
-- Database: PostgreSQL 16 in Docker
-- Database data: Docker volume `db_data`
-- Uploaded media: Docker volume `media_data`
-- First administrator: `/admin/setup` with `ADMIN_SETUP_TOKEN`
-- Management entry: `/opt/blog-01/blogctl`
+- 仓库：`duobaobox/blog-01`
+- 平台：Linux AMD64 / x86_64
+- 默认安装目录：`/opt/blog-01`
+- 应用镜像：`ghcr.io/duobaobox/blog-01:<version>`
+- 应用端口：`3000`
+- 数据库：Docker 中的 PostgreSQL 16
+- 数据库数据：Docker Volume `db_data`
+- 上传媒体：Docker Volume `media_data`
+- 首位管理员：通过 `/admin/setup` 和 `ADMIN_SETUP_TOKEN` 创建
+- 管理入口：`/opt/blog-01/blogctl`
 
-ARM64 is not supported by the current official release. Stop before changing the server when `uname -m` returns `aarch64` or `arm64`.
+当前官方版本不支持 ARM64。当 `uname -m` 返回 `aarch64` 或 `arm64` 时，在修改服务器之前停止部署并明确告知用户。
 
-## Safety rules
+## 安全规则
 
-1. Never expose PostgreSQL port `5432` to the public internet.
-2. After a reverse proxy is active, do not expose application port `3000` in the cloud security group.
-3. Never run `docker compose down -v`; it deletes the database and media volumes.
-4. Never overwrite an existing `/opt/blog-01/.env.release` during maintenance.
-5. Before upgrading, restoring, or making risky configuration changes, run `./blogctl backup`.
-6. Do not paste `.env.release`, database passwords, Better Auth secrets, API keys, or the administrator setup token into public logs or issues.
-7. Do not claim deployment success until the container is healthy and `/api/health` responds successfully.
-8. Use a fixed release version for production changes when reproducibility matters. Use `latest` only for a new installation or an intentional latest-version upgrade.
+1. 禁止将 PostgreSQL 的 `5432` 端口暴露到公网。
+2. 反向代理启用后，不要在云安全组中继续开放应用端口 `3000`。
+3. 禁止执行 `docker compose down -v`，该命令会删除数据库和媒体数据卷。
+4. 维护已有实例时，禁止覆盖 `/opt/blog-01/.env.release`。
+5. 升级、恢复或修改高风险配置前，先执行 `./blogctl backup`。
+6. 不要把 `.env.release`、数据库密码、Better Auth 密钥、API Key 或管理员初始化口令粘贴到公开日志和 Issue。
+7. 在容器健康且 `/api/health` 成功之前，不得宣称部署成功。
+8. 生产变更需要可复现时，应固定具体版本。`latest` 仅用于全新安装或明确升级到最新稳定版。
 
-## Determine the requested operation
+## 判断本次操作类型
 
-Choose one path:
+先选择对应路径：
 
-- **New installation**: `/opt/blog-01` does not contain `.env.release`.
-- **Existing installation**: use `blogctl`; do not rerun the root installer blindly.
-- **Domain cutover**: application works locally, but DNS, reverse proxy, or HTTPS is incomplete.
-- **Upgrade**: current instance is healthy and the user wants a newer release.
-- **Recovery**: current instance is unhealthy or data must be restored from a backup.
-- **Diagnosis**: gather status and logs before modifying anything.
+- **全新安装**：`/opt/blog-01` 中不存在 `.env.release`。
+- **已有实例维护**：使用 `blogctl`，不要盲目重新运行根目录安装器。
+- **域名切换**：应用本地可访问，但 DNS、反向代理或 HTTPS 尚未完成。
+- **升级**：当前实例健康，用户希望升级版本。
+- **恢复**：当前实例异常，或需要从备份恢复数据。
+- **故障诊断**：先收集状态和日志，再进行修改。
 
-Ask only for facts that cannot be discovered from the server, normally the intended domain name and whether DNS already points to the server.
+只询问无法从服务器自动发现的信息，通常包括目标域名以及 DNS 是否已经指向服务器。
 
-## 1. Preflight
+## 1. 部署前检查
 
-Run these checks before installation:
+安装前执行：
 
 ```bash
 set -e
@@ -67,21 +67,21 @@ curl -fsSI --connect-timeout 15 https://github.com >/dev/null
 curl -fsSI --connect-timeout 15 https://ghcr.io >/dev/null
 ```
 
-Confirm:
+确认：
 
-- architecture is `x86_64` or `amd64`;
-- at least 2 GB memory is recommended;
-- enough free disk space exists;
-- the server can reach GitHub and GHCR;
-- ports `80`, `443`, and `3000` are not unexpectedly occupied.
+- CPU 架构为 `x86_64` 或 `amd64`；
+- 建议至少 2 GB 内存；
+- 磁盘空间充足；
+- 服务器可以访问 GitHub 和 GHCR；
+- `80`、`443`、`3000` 端口没有被意外占用。
 
-For a cloud server, the security group should normally allow `22`, `80`, and `443`. Port `5432` must remain closed.
+云服务器安全组通常只需要开放 `22`、`80` 和 `443`。`5432` 必须保持关闭。
 
-## 2. New installation
+## 2. 全新安装
 
-### With a domain
+### 已有域名
 
-Use the real HTTPS URL when DNS already points to the server:
+DNS 已经指向服务器时，安装时直接使用真实 HTTPS 地址：
 
 ```bash
 curl -fsSL \
@@ -93,9 +93,9 @@ sudo env \
   bash /tmp/blog-01-install.sh
 ```
 
-Replace `blog.example.com` with the real domain.
+将 `blog.example.com` 替换为真实域名。
 
-### Install a specific release
+### 安装指定版本
 
 ```bash
 sudo env \
@@ -104,7 +104,7 @@ sudo env \
   bash /tmp/blog-01-install.sh
 ```
 
-### Without a domain
+### 暂无域名
 
 ```bash
 curl -fsSL \
@@ -112,9 +112,9 @@ curl -fsSL \
   | sudo bash
 ```
 
-The installer downloads the latest stable GitHub Release, verifies its SHA256 file, installs Docker when required, generates production secrets, pulls the GHCR image, starts PostgreSQL, applies database synchronization, starts Blog-01, and waits for health checks.
+安装器会下载最新稳定版 GitHub Release、验证 SHA256、按需安装 Docker、生成生产密钥、拉取 GHCR 镜像、启动 PostgreSQL、执行数据库同步、启动 Blog-01，并等待健康检查通过。
 
-## 3. Validate the application locally
+## 3. 本地验证应用
 
 ```bash
 cd /opt/blog-01
@@ -126,26 +126,26 @@ curl -fsSI http://127.0.0.1:3000/
 curl -fsSI http://127.0.0.1:3000/admin/setup
 ```
 
-When validation fails, inspect logs before restarting repeatedly:
+验证失败时，先查看日志，不要反复盲目重启：
 
 ```bash
 cd /opt/blog-01
 sudo ./blogctl logs
 ```
 
-A successful local deployment requires:
+本地部署成功至少需要满足：
 
-- PostgreSQL container is healthy;
-- Blog-01 container is healthy;
-- `/api/health` succeeds;
-- the homepage responds;
-- `/admin/setup` responds before the first administrator is created.
+- PostgreSQL 容器为 healthy；
+- Blog-01 容器为 healthy；
+- `/api/health` 请求成功；
+- 首页能够响应；
+- 创建首位管理员前，`/admin/setup` 能够响应。
 
-## 4. Configure Nginx and HTTPS
+## 4. 配置 Nginx 和 HTTPS
 
-Skip package installation when the server already uses Caddy, 1Panel, 宝塔, or another reverse proxy. Preserve the existing proxy system instead of installing a competing one.
+服务器已经使用 Caddy、1Panel、宝塔或其他反向代理时，保留现有代理体系，不要再安装会产生端口冲突的 Nginx。
 
-For a plain Ubuntu server using Nginx:
+普通 Ubuntu 服务器使用 Nginx：
 
 ```bash
 sudo apt update
@@ -153,7 +153,7 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 sudo systemctl enable --now nginx
 ```
 
-Create `/etc/nginx/sites-available/blog-01.conf`:
+创建 `/etc/nginx/sites-available/blog-01.conf`：
 
 ```nginx
 server {
@@ -179,7 +179,7 @@ server {
 }
 ```
 
-Enable and test it:
+启用并验证配置：
 
 ```bash
 sudo ln -sf \
@@ -191,25 +191,25 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Issue the certificate only after DNS resolves to this server:
+只有在 DNS 已经解析到当前服务器后，才申请证书：
 
 ```bash
 sudo certbot --nginx -d blog.example.com
 sudo certbot renew --dry-run
 ```
 
-Then verify:
+随后验证：
 
 ```bash
 curl -fsSI https://blog.example.com/
 curl -fsS https://blog.example.com/api/health
 ```
 
-The reverse proxy must preserve `Host` and `X-Forwarded-Proto`; authentication can fail with `Invalid origin` when those headers or the public URL are wrong.
+反向代理必须保留 `Host` 和 `X-Forwarded-Proto`。当代理头或公开地址不正确时，认证可能出现 `Invalid origin`。
 
-## 5. Correct the public URL
+## 5. 校正公开访问地址
 
-The following values in `/opt/blog-01/.env.release` must use the exact browser origin, with no trailing slash:
+`/opt/blog-01/.env.release` 中以下三个值必须与浏览器实际访问的 Origin 完全一致，并且不要带末尾 `/`：
 
 ```env
 BETTER_AUTH_URL=https://blog.example.com
@@ -217,7 +217,7 @@ BETTER_AUTH_TRUSTED_ORIGINS=https://blog.example.com
 SITE_URL=https://blog.example.com
 ```
 
-Use the managed editor:
+使用管理命令修改：
 
 ```bash
 cd /opt/blog-01
@@ -225,34 +225,34 @@ sudo ./blogctl config
 sudo ./blogctl restart
 ```
 
-Do not replace the full environment file just to change the domain.
+不要为了修改域名而替换整个环境变量文件。
 
-## 6. Initialize the administrator
+## 6. 初始化管理员
 
-The installer prints an initialization token. It can also be read locally on the server:
+安装器会输出管理员初始化口令，也可以仅在服务器本地读取：
 
 ```bash
 cd /opt/blog-01
 sudo grep '^ADMIN_SETUP_TOKEN=' .env.release
 ```
 
-Do not publish the token. Open:
+不要公开该口令。打开：
 
 ```text
 https://blog.example.com/admin/setup
 ```
 
-Create the first administrator, then verify login at:
+创建首位管理员，然后在以下地址验证登录：
 
 ```text
 https://blog.example.com/admin/login
 ```
 
-After setup, test creating and publishing an article and uploading one image. Confirm that the image still exists after an application restart.
+初始化完成后，新建并发布一篇文章，上传一张图片，并在重启应用后确认图片仍然存在。
 
-## 7. Production acceptance
+## 7. 生产环境验收
 
-Complete all applicable checks:
+执行所有适用检查：
 
 ```bash
 cd /opt/blog-01
@@ -261,23 +261,23 @@ curl -fsS http://127.0.0.1:3000/api/health
 curl -fsS https://blog.example.com/api/health
 ```
 
-Verify in a browser:
+浏览器中验证：
 
-- homepage;
-- `/blog`;
-- administrator login;
-- create, save, publish, and reopen an article;
-- upload and display an image;
-- `/robots.txt`;
-- `/sitemap.xml`;
-- `/feed.xml`;
-- light and dark themes;
-- mobile navigation;
-- no hydration errors in the browser console.
+- 首页；
+- `/blog`；
+- 管理员登录；
+- 新建、保存、发布并重新打开文章；
+- 上传并展示图片；
+- `/robots.txt`；
+- `/sitemap.xml`；
+- `/feed.xml`；
+- 浅色和深色主题；
+- 移动端导航；
+- 浏览器控制台没有 hydration 报错。
 
-After Nginx or another reverse proxy is working, close public port `3000` in the cloud security group.
+Nginx 或其他反向代理运行正常后，在云安全组中关闭公网 `3000` 端口。
 
-## 8. Daily operations
+## 8. 日常运维
 
 ```bash
 cd /opt/blog-01
@@ -289,17 +289,17 @@ sudo ./blogctl backup
 sudo ./blogctl config
 ```
 
-Backups are stored under:
+备份默认保存在：
 
 ```text
 /opt/blog-01/backups/
 ```
 
-A backup must include both PostgreSQL and uploaded media.
+有效备份必须同时包含 PostgreSQL 数据库和上传媒体。
 
-## 9. Upgrade
+## 9. 升级
 
-First inspect and back up the current installation:
+升级前先检查并备份当前实例：
 
 ```bash
 cd /opt/blog-01
@@ -308,52 +308,52 @@ sudo ./blogctl version
 sudo ./blogctl backup
 ```
 
-Upgrade to the latest stable release:
+升级到最新稳定版：
 
 ```bash
 sudo ./blogctl update
 ```
 
-Upgrade to a specific release:
+升级到指定版本：
 
 ```bash
 sudo ./blogctl update 0.2.0
 ```
 
-The management script verifies the Release asset, creates a safety backup, updates the deployment files, pulls the selected image, waits for health checks, and attempts to restore the previous image version when the new container fails.
+管理脚本会验证 Release 资产、创建安全备份、更新部署文件、拉取指定版本镜像、等待健康检查；新容器失败时会尝试恢复原镜像版本。
 
-After upgrade, repeat the local health check, public health check, login, article, and media acceptance checks.
+升级完成后，重新执行本地健康检查、公开健康检查、管理员登录、文章和媒体验收。
 
-## 10. Restore and rollback
+## 10. 恢复与回滚
 
-List available backups:
+列出可用备份：
 
 ```bash
 cd /opt/blog-01
 find backups -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort
 ```
 
-Restore a selected snapshot:
+恢复指定快照：
 
 ```bash
 cd /opt/blog-01
 sudo ./blogctl restore ./backups/20260101T000000Z
 ```
 
-The restore command creates another safety backup before replacing current data.
+恢复命令会在覆盖当前数据前，再创建一份安全备份。
 
-For an application-only rollback, use a known previous release:
+仅回滚应用版本时，指定一个已知可用的旧版本：
 
 ```bash
 cd /opt/blog-01
 sudo ./blogctl update 0.1.0
 ```
 
-Image rollback does not automatically reverse database migrations. When a release contains destructive schema changes, follow that release's dedicated migration and recovery instructions.
+镜像回滚不会自动撤销数据库 migration。版本包含破坏性 Schema 变更时，必须遵循该版本专门提供的迁移和恢复说明。
 
-## 11. Diagnosis order
+## 11. 故障诊断顺序
 
-Use this order and avoid speculative changes:
+严格按以下顺序收集信息，避免猜测式修改：
 
 ```bash
 cd /opt/blog-01
@@ -364,20 +364,20 @@ sudo docker compose --env-file .env.release -f compose.yaml logs --tail=200 db
 curl -v http://127.0.0.1:3000/api/health
 ```
 
-### GHCR pull failure
+### GHCR 镜像拉取失败
 
-Check:
+检查：
 
 ```bash
 grep -E '^(APP_IMAGE|BLOG_VERSION)=' /opt/blog-01/.env.release
 sudo docker manifest inspect ghcr.io/duobaobox/blog-01:0.1.0 >/dev/null
 ```
 
-Confirm that the version exists and the server can access `ghcr.io`.
+确认版本真实存在，并且服务器能够访问 `ghcr.io`。
 
-### `Invalid origin`, login 403, or redirect loop
+### `Invalid origin`、登录 403 或重定向循环
 
-Check only the non-secret URL fields:
+只检查非敏感 URL 字段：
 
 ```bash
 sudo grep -E \
@@ -385,9 +385,9 @@ sudo grep -E \
   /opt/blog-01/.env.release
 ```
 
-Confirm they exactly match the public HTTPS origin and that the proxy sends `Host` and `X-Forwarded-Proto`.
+确认三个值与公开 HTTPS Origin 完全一致，并且代理传递了 `Host` 和 `X-Forwarded-Proto`。
 
-### Application unhealthy
+### 应用不健康
 
 ```bash
 cd /opt/blog-01
@@ -395,17 +395,17 @@ sudo docker compose --env-file .env.release -f compose.yaml logs --tail=300 blog
 sudo docker compose --env-file .env.release -f compose.yaml logs --tail=200 db
 ```
 
-Look first for database connectivity, migration state, missing environment variables, port conflicts, and filesystem or volume errors.
+优先检查数据库连接、migration 状态、缺失环境变量、端口冲突、文件系统和数据卷错误。
 
-### Uploaded media returns 404
+### 上传媒体返回 404
 
 ```bash
 sudo docker inspect blog-app --format '{{json .Mounts}}'
 ```
 
-Confirm that `media_data` is mounted at `/app/public/media`. Do not manually copy files into the container writable layer.
+确认 `media_data` 挂载到 `/app/public/media`。不要把文件手工复制到容器可写层。
 
-### Nginx returns 502
+### Nginx 返回 502
 
 ```bash
 curl -fsS http://127.0.0.1:3000/api/health
@@ -413,31 +413,31 @@ sudo nginx -t
 sudo journalctl -u nginx --no-pager -n 100
 ```
 
-Fix the application first when the local health endpoint fails. Fix Nginx when local health succeeds but the public proxy fails.
+本地健康接口失败时先修复应用；本地健康正常但公开代理失败时，再修复 Nginx。
 
-## 12. Completion report
+## 12. 完成报告
 
-Return a concise deployment report containing:
+部署完成后，返回一份简洁报告，至少包含：
 
-- operation performed;
-- installed version;
-- installation directory;
-- public URL;
-- local health result;
-- public health result;
-- PostgreSQL and application container status;
-- HTTPS status;
-- administrator setup URL, without exposing the token;
-- backup created, when applicable;
-- ports that should remain open;
-- any remaining user action, such as DNS propagation.
+- 执行的操作；
+- 已安装版本；
+- 安装目录；
+- 公开访问地址；
+- 本地健康检查结果；
+- 公开健康检查结果；
+- PostgreSQL 和应用容器状态；
+- HTTPS 状态；
+- 管理员初始化地址，但不得暴露初始化口令；
+- 是否创建备份；
+- 应继续开放的端口；
+- 用户仍需完成的操作，例如等待 DNS 生效。
 
-State clearly when a check could not be completed. Never report the deployment as successful based only on containers being started.
+无法完成的检查必须明确说明。不得仅因为容器已经启动就宣布部署成功。
 
-## Project references
+## 项目参考文档
 
-- [One-click installation and operation](../../../README.md)
-- [AliCloud Docker, Nginx, and HTTPS guide](../../alicloud-docker-nginx-https-guide.md)
-- [Docker build and release guide](../../docker-build-and-release-guide.md)
-- [Backup and restore](../../backup-and-restore.md)
-- [Release and rollback checklist](../../release-and-rollback-checklist.md)
+- [一键安装与日常运维](../../../README.md)
+- [阿里云 Docker、Nginx 与 HTTPS 上线手册](../../alicloud-docker-nginx-https-guide.md)
+- [Docker 构建与发版指导](../../docker-build-and-release-guide.md)
+- [数据库与媒体备份恢复](../../backup-and-restore.md)
+- [发版与回滚 Checklist](../../release-and-rollback-checklist.md)
