@@ -10,6 +10,7 @@
 
 ## 部署与发版
 
+- [Blog-01 部署 Skill](./skills/blog-01-deployment/SKILL.md)
 - [Docker 构建与发版指导](./docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./alicloud-docker-nginx-https-guide.md)
 - [发版与回滚 Checklist](./release-and-rollback-checklist.md)
@@ -23,4 +24,5 @@
 
 - README 只做入口说明，细节放到专项文档
 - `delivery/release` 是发布包模板输入，不当作项目说明文档展开维护
+- 可执行的 Agent Skill 放在 `docs/skills/<skill-name>/SKILL.md`
 - 临时计划、阶段看板、一次性审计记录完成后不继续进入正式文档索引
