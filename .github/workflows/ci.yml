@@ -66,6 +66,7 @@ jobs:
           (
             cd dist
             sha256sum -c blog-01-linux-amd64.tar.gz.sha256
+            sha256sum -c blog-01-installer.sh.sha256
           )
 
       - name: 安装依赖
