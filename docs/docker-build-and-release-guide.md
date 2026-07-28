@@ -21,6 +21,8 @@ Git tag
 - `ghcr.io/duobaobox/blog-01:latest` 最新稳定镜像；
 - `blog-01-linux-amd64.tar.gz` 服务器安装包；
 - `blog-01-linux-amd64.tar.gz.sha256` 校验文件；
+- `blog-01-installer.sh` 版本化安装器；
+- `blog-01-installer.sh.sha256` 安装器校验文件；
 - GitHub 构建来源证明；
 - GitHub 自动生成的 Release Notes。
 
@@ -149,7 +151,14 @@ Public
 ## 三、普通用户一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/duobaobox/blog-01/main/install.sh | sudo bash
+RELEASE_URL="https://github.com/duobaobox/blog-01/releases/latest/download"
+curl -fL -o /tmp/blog-01-installer.sh "$RELEASE_URL/blog-01-installer.sh"
+curl -fL -o /tmp/blog-01-installer.sh.sha256 "$RELEASE_URL/blog-01-installer.sh.sha256"
+(
+  cd /tmp
+  sha256sum -c blog-01-installer.sh.sha256
+  sudo bash ./blog-01-installer.sh
+)
 ```
 
 安装器会：
@@ -180,7 +189,14 @@ sudo env BLOG_VERSION=0.1.0 bash /tmp/blog-01-install.sh
 
 ## 四、手动安装 Release 包
 
-从 GitHub Release 下载：
+从 GitHub Release 下载以下任一安装入口：
+
+```text
+blog-01-installer.sh
+blog-01-installer.sh.sha256
+```
+
+或下载完整离线安装包：
 
 ```text
 blog-01-linux-amd64.tar.gz
