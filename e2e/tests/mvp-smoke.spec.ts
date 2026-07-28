@@ -14,7 +14,7 @@ const transparentPng =
 async function signIn(page: Page) {
   await page.goto("/admin/login");
   await page.getByLabel("登录账号").fill(admin.username);
-  await page.getByLabel("密码").fill(admin.password);
+  await page.getByLabel("密码", { exact: true }).fill(admin.password);
   await page.getByRole("button", { name: "登录", exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/?(?:\?.*)?$/);
 }
@@ -30,8 +30,8 @@ async function ensureAdminSession(page: Page) {
     await page.getByLabel("昵称").fill(admin.name);
     await page.getByLabel("邮箱").fill(admin.email);
     await page.getByLabel("登录账号").fill(admin.username);
-    await page.getByLabel("密码").fill(admin.password);
-    await page.getByLabel("确认密码").fill(admin.password);
+    await page.getByLabel("密码", { exact: true }).fill(admin.password);
+    await page.getByLabel("确认密码", { exact: true }).fill(admin.password);
     await page.getByLabel("初始化口令").fill(setupToken);
     await page.getByRole("button", { name: "创建管理员账号", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/?(?:\?.*)?$/);
