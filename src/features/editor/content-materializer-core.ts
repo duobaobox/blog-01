@@ -9,6 +9,8 @@ import {
   type TocItem,
 } from "@/features/editor/content-types";
 import { createPostContentExtensions } from "@/features/editor/tiptap-extensions";
+// 纯函数模块（无任何依赖），物化与列表展示共用同一份预览长度与截断规则。
+import { buildPostPreviewText } from "@/features/posts/lib/post-preview";
 
 type HeadingIdState = {
   seenIds: Map<string, number>;
@@ -19,6 +21,7 @@ export type MaterializedPostContent = {
   contentJson: JSONContent;
   contentHtml: string;
   contentText: string;
+  previewText: string | null;
   contentToc: TocItem[];
   wordCount: number;
   readingTimeMinutes: number;
@@ -134,6 +137,7 @@ export async function materializePostContent(
     contentJson,
     contentHtml,
     contentText,
+    previewText: buildPostPreviewText(contentText),
     contentToc,
     wordCount,
     readingTimeMinutes,

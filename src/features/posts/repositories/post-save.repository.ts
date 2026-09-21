@@ -60,6 +60,7 @@ type MaterializedContentUpdate = {
   contentJson: unknown;
   contentHtml: string;
   contentText: string;
+  previewText: string | null;
   contentToc: unknown;
   readingTimeMinutes: number;
   wordCount: number;
@@ -119,6 +120,7 @@ export async function updatePostIncrementally(
               contentJson: contentUpdate.contentJson as Prisma.InputJsonValue,
               contentHtml: contentUpdate.contentHtml,
               contentText: contentUpdate.contentText,
+              previewText: contentUpdate.previewText,
               contentToc: contentUpdate.contentToc as Prisma.InputJsonValue,
               readingTimeMinutes: contentUpdate.readingTimeMinutes,
               wordCount: contentUpdate.wordCount,

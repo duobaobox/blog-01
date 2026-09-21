@@ -33,6 +33,7 @@ async function main() {
         contentJson: true,
         contentHtml: true,
         contentText: true,
+        previewText: true,
         contentToc: true,
         wordCount: true,
         readingTimeMinutes: true,
@@ -47,6 +48,7 @@ async function main() {
         !sameJson(post.contentJson, materialized.contentJson) ||
         post.contentHtml !== materialized.contentHtml ||
         post.contentText !== materialized.contentText ||
+        post.previewText !== materialized.previewText ||
         !sameJson(post.contentToc, materialized.contentToc) ||
         post.wordCount !== materialized.wordCount ||
         post.readingTimeMinutes !== materialized.readingTimeMinutes;
@@ -62,6 +64,7 @@ async function main() {
             contentJson: materialized.contentJson as Prisma.InputJsonValue,
             contentHtml: materialized.contentHtml,
             contentText: materialized.contentText,
+            previewText: materialized.previewText,
             contentToc: materialized.contentToc as Prisma.InputJsonValue,
             wordCount: materialized.wordCount,
             readingTimeMinutes: materialized.readingTimeMinutes,

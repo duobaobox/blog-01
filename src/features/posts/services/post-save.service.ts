@@ -124,6 +124,7 @@ export async function updatePostIncrementally(
           contentJson: materialized.contentJson,
           contentHtml: materialized.contentHtml,
           contentText: materialized.contentText,
+          previewText: materialized.previewText,
           contentToc: materialized.contentToc,
           readingTimeMinutes: materialized.readingTimeMinutes,
           wordCount: materialized.wordCount,

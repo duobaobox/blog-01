@@ -73,7 +73,7 @@ const publicPostCardSelect = {
   slug: true,
   title: true,
   excerpt: true,
-  contentText: true,
+  previewText: true,
   coverImageUrl: true,
   publishedAt: true,
   createdAt: true,
@@ -93,6 +93,61 @@ const publicPostCardSelect = {
           color: true,
         },
       },
+    },
+  },
+} satisfies Prisma.postSelect;
+
+/**
+ * 公开文章详情专用投影。
+ *
+ * `contentJson` 是编辑器的事实源，体积最大且公开页面完全不读（正文走物化后的
+ * `contentHtml`），因此这里用显式 `select` 把它排除，避免每次文章页渲染都白传一份
+ * 完整文档 JSON。分类和标签只取渲染所需的列，不拉 `description` 等长文本。
+ */
+export const publishedPostDetailSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  excerpt: true,
+  coverImageUrl: true,
+  contentHtml: true,
+  contentText: true,
+  contentToc: true,
+  status: true,
+  publishedAt: true,
+  createdAt: true,
+  updatedAt: true,
+  readingTimeMinutes: true,
+  wordCount: true,
+  seoTitle: true,
+  seoDescription: true,
+  canonicalUrl: true,
+  isFeatured: true,
+  categoryId: true,
+  folderId: true,
+  createdBy: true,
+  category: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  },
+  tags: {
+    select: {
+      tag: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          color: true,
+        },
+      },
+    },
+  },
+  author: {
+    select: {
+      name: true,
     },
   },
 } satisfies Prisma.postSelect;
@@ -270,11 +325,7 @@ export async function findPublishedPostBySlug(slug: string) {
       slug,
       status: "published",
     },
-    include: {
-      category: true,
-      tags: { include: { tag: true } },
-      author: { select: { name: true } },
-    },
+    select: publishedPostDetailSelect,
   });
 }
 
@@ -369,6 +420,7 @@ export async function createPost(data: {
   contentJson: unknown;
   contentHtml: string;
   contentText: string;
+  previewText: string | null;
   contentToc: unknown;
   excerpt: string | null;
   coverImageUrl: string | null;
@@ -432,6 +484,7 @@ export async function updatePost(
     contentJson: unknown;
     contentHtml: string;
     contentText: string;
+  previewText: string | null;
     contentToc: unknown;
     excerpt: string | null;
     coverImageUrl: string | null;
@@ -525,7 +578,7 @@ export async function findPublishedForFeed(take = 20) {
       title: true,
       slug: true,
       excerpt: true,
-      contentText: true,
+      previewText: true,
       publishedAt: true,
       author: { select: { name: true } },
     },

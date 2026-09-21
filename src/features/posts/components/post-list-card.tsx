@@ -4,6 +4,7 @@ import { Calendar, Clock } from "lucide-react";
 import type { MediaPresentation } from "@/features/media/queries/media.queries";
 import { cardMotifs } from "@/features/posts/components/card-motifs";
 import { getPostDisplayDate } from "@/features/posts/lib/post-status";
+import { resolvePostCardPreview } from "@/features/posts/lib/post-preview";
 import { resolveMotifIndex } from "@/features/posts/lib/card-motif-assignment";
 import { TagBadge } from "@/features/taxonomy/components/tag-badge";
 import { formatDate } from "@/shared/lib/date";
@@ -14,7 +15,7 @@ type PostListCardProps = {
     slug: string;
     title: string;
     excerpt: string | null;
-    contentText: string;
+    previewText: string | null;
     coverImageUrl: string | null;
     coverImage?: MediaPresentation;
     publishedAt: Date | null;
@@ -36,23 +37,12 @@ type PostListCardProps = {
   motifIndex?: number;
 };
 
-function getPostPreview(excerpt: string | null, contentText: string) {
-  if (excerpt?.trim()) {
-    return excerpt.trim();
-  }
-
-  const preview = contentText.trim().slice(0, 120);
-  return preview
-    ? `${preview}${contentText.trim().length > 120 ? "..." : ""}`
-    : "";
-}
-
 export function PostListCard({
   post,
   showCategory = true,
   motifIndex,
 }: PostListCardProps) {
-  const preview = getPostPreview(post.excerpt, post.contentText);
+  const preview = resolvePostCardPreview(post);
   const displayDate = getPostDisplayDate(post);
   const coverImage = post.coverImage;
   const cardImage = coverImage?.variants?.card ?? coverImage;

@@ -11,7 +11,9 @@ export async function GET() {
 
   const items = posts
     .map((post) => {
-      const description = post.excerpt ?? post.contentText.slice(0, 200);
+      // previewText 是服务端物化的正文前缀（200 字），等价于旧的 contentText.slice(0, 200)，
+      // 但不必为每条 feed 条目拉取整篇正文。
+      const description = post.excerpt ?? post.previewText ?? "";
       const pubDate = post.publishedAt
         ? new Date(post.publishedAt).toUTCString()
         : new Date().toUTCString();

@@ -88,6 +88,9 @@ model post {
   contentJson         Json
   contentHtml         String    @db.Text
   contentText         String    @db.Text
+  /// contentText 的有界前缀，供列表卡片和 RSS 摘要使用。
+  /// 让公开列表不必为了 120 字预览把整篇正文拉出来。
+  previewText         String?
   contentToc          Json
   /// 技术值仅使用 draft（内部）和 published（已发布）
   status              String    @default("draft")
@@ -123,6 +126,9 @@ model post {
   @@index([status, publishedAt, createdAt])
   @@index([status, categoryId, publishedAt])
   @@index([status, folderId, updatedAt])
+  /// 公开列表的排序是 isFeatured DESC, publishedAt DESC, createdAt DESC，
+  /// 缺少包含 isFeatured 的索引时 Postgres 只能每次重排全部已发布行。
+  @@index([status, isFeatured, publishedAt, createdAt])
 }
 
 model folder {
@@ -221,6 +227,8 @@ model media {
   @@index([createdAt])
   @@index([storageProvider])
   @@index([storageProvider, storageKey])
+  /// 封面图按 url 批量回查媒体元数据（url IN (...)），缺索引会全表扫描。
+  @@index([url])
 }
 
 model postMediaReference {

@@ -79,6 +79,7 @@ test("materializePostContent derives text and reading metadata from the same jso
   });
 
   assert.equal(result.contentText, "标题\n\nAlpha beta gamma.");
+  assert.equal(result.previewText, "标题\n\nAlpha beta gamma.");
   assert.equal(result.wordCount, 5);
   assert.equal(result.readingTimeMinutes, 1);
 });
