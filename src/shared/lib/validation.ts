@@ -1,4 +1,5 @@
 import { NotFoundError, ValidationError } from "@/shared/lib/app-error";
+import { isRenderableImageUrl } from "@/shared/config/image-hosts";
 
 export function requireTrimmedString(value: unknown, message: string): string {
   const normalized = typeof value === "string" ? value.trim() : "";
@@ -83,6 +84,27 @@ export function validateOptionalSiteResourceUrl(
   }
 
   if (!isSiteResourceUrl(normalized)) {
+    throw new ValidationError(message);
+  }
+}
+
+/**
+ * 校验会交给 next/image 渲染的地址。
+ *
+ * 与 `validateOptionalSiteResourceUrl` 的区别：后者接受任意 http(s) 地址，但
+ * next/image 只认得本站路径和 `images.remotePatterns` 里的主机，未配置的主机会在
+ * 渲染时抛错、让整页 500。所以这类字段在写入时就要按可渲染范围收窄。
+ */
+export function validateOptionalRenderableImageUrl(
+  value: string | null | undefined,
+  message: string,
+) {
+  const normalized = value?.trim() ?? "";
+  if (!normalized) {
+    return;
+  }
+
+  if (!isRenderableImageUrl(normalized)) {
     throw new ValidationError(message);
   }
 }

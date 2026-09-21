@@ -25,16 +25,35 @@ test("parseSiteSettingsFormData normalizes optional fields and site url", () => 
   });
 });
 
-test("parseSiteSettingsFormData accepts absolute external logo urls", () => {
+test("parseSiteSettingsFormData 接受已配置对象存储的 Logo 地址", () => {
   const formData = new FormData();
   formData.set("siteTitle", "Blog");
-  formData.set("logoUrl", "https://cdn.example.com/logo.png");
-  formData.set("faviconUrl", "https://cdn.example.com/favicon.png");
+  formData.set(
+    "logoUrl",
+    "https://store.public.blob.vercel-storage.com/logo.png",
+  );
 
   assert.equal(
     parseSiteSettingsFormData(formData).logoUrl,
-    "https://cdn.example.com/logo.png",
+    "https://store.public.blob.vercel-storage.com/logo.png",
   );
+});
+
+test("parseSiteSettingsFormData 拒绝 next/image 渲染不了的外部 Logo", () => {
+  // Logo 走 next/image，未配置的主机会在渲染时抛错并让页头整块 500，
+  // 所以这类地址必须在写入时就被拦住，而不是等页面崩掉。
+  const formData = new FormData();
+  formData.set("siteTitle", "Blog");
+  formData.set("logoUrl", "https://cdn.example.com/logo.png");
+
+  assert.throws(() => parseSiteSettingsFormData(formData), ValidationError);
+});
+
+test("parseSiteSettingsFormData 仍接受外部 favicon（由浏览器直接请求）", () => {
+  const formData = new FormData();
+  formData.set("siteTitle", "Blog");
+  formData.set("faviconUrl", "https://cdn.example.com/favicon.png");
+
   assert.equal(
     parseSiteSettingsFormData(formData).faviconUrl,
     "https://cdn.example.com/favicon.png",

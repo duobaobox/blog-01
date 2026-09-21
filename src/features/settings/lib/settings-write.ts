@@ -4,6 +4,7 @@ import {
   normalizeOptionalString,
   requireTrimmedString,
   validateOptionalHttpUrl,
+  validateOptionalRenderableImageUrl,
   validateOptionalSiteResourceUrl,
 } from "@/shared/lib/validation";
 
@@ -42,9 +43,12 @@ export function parseSiteSettingsFormData(
     siteUrl,
     "站点 URL 格式不正确，请填写完整的 http/https 地址",
   );
-  validateOptionalSiteResourceUrl(
+  // Logo 和封面一样交给 next/image 渲染，next/image 未配置的主机会在渲染时抛错
+  // 并让页头整块 500，所以按“可渲染”范围收窄。favicon 由浏览器直接请求，
+  // 不经过图片优化器，仍按普通站点资源地址校验。
+  validateOptionalRenderableImageUrl(
     logoUrl,
-    "Logo 地址格式不正确，请填写以 / 开头的站内路径，或完整的 http/https 地址",
+    "Logo 地址不可用，请填写本站 /media 路径或已配置的对象存储地址",
   );
   validateOptionalSiteResourceUrl(
     faviconUrl,

@@ -5,6 +5,7 @@ import {
   requireOneOf,
   requireTrimmedString,
   validateOptionalHttpUrl,
+  validateOptionalRenderableImageUrl,
 } from "@/shared/lib/validation";
 
 export const POST_STATUSES = ["draft", "published"] as const;
@@ -80,12 +81,20 @@ export function parsePostWriteFormData(formData: FormData): PostWriteInput {
     "Canonical URL 格式不正确，请填写完整的 http/https 地址",
   );
 
+  // 封面会交给 next/image 渲染。若放过 next/image 未配置的主机，文章页会在渲染时
+  // 抛错并整页 500，所以这里按“可渲染”范围收窄，而不是只校验 http/https。
+  const coverImageUrl = normalizeOptionalString(formData.get("coverImageUrl"));
+  validateOptionalRenderableImageUrl(
+    coverImageUrl,
+    "封面图地址不可用，请从媒体库选择，或填写本站 /media 路径与已配置的对象存储地址",
+  );
+
   return {
     title: normalizeOptionalString(formData.get("title")) ?? "",
     slug: normalizeOptionalString(formData.get("slug")) ?? undefined,
     contentJson: parseContentJson(formData),
     excerpt: normalizeOptionalString(formData.get("excerpt")),
-    coverImageUrl: normalizeOptionalString(formData.get("coverImageUrl")),
+    coverImageUrl,
     categoryId: normalizeOptionalString(formData.get("categoryId")),
     folderId: requirePostFolderId(formData.get("folderId")),
     status: requireOneOf(formData.get("status"), POST_STATUSES, "文章状态无效"),
