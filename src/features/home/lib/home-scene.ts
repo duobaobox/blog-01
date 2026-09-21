@@ -3,25 +3,34 @@ export type HomeScene = {
   imageAlt: string;
 };
 
-export function createHomeSceneSeed(source: string): number {
-  let hash = 2166136261;
-
-  for (let index = 0; index < source.length; index += 1) {
-    hash ^= source.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0) / 0x100000000;
-}
-
-export function pickHomeScene<T extends HomeScene>(
-  scenes: readonly T[],
-  seed: number,
-): T {
-  if (scenes.length === 0) {
+function assertSceneList(length: number): void {
+  if (length === 0) {
     throw new Error("主页场景列表不能为空");
   }
+}
 
-  const normalizedSeed = Math.min(Math.max(seed, 0), 0.9999999999999999);
-  return scenes[Math.floor(normalizedSeed * scenes.length)];
+/** 从当前主题分组里随机挑一个下标。 */
+export function pickRandomSceneIndex(length: number): number {
+  assertSceneList(length);
+  return Math.floor(Math.random() * length);
+}
+
+/**
+ * 在当前主题分组里随机挑一个不同于 currentIndex 的下标。
+ *
+ * 保证「切换主题后场景一定变化」：分组只有两个场景时，二选一的随机会有一半概率
+ * 挑回原图，用户看到的就是没反应。
+ */
+export function pickNextSceneIndex(
+  length: number,
+  currentIndex: number,
+): number {
+  assertSceneList(length);
+
+  if (length === 1) {
+    return 0;
+  }
+
+  const offset = 1 + Math.floor(Math.random() * (length - 1));
+  return (currentIndex + offset) % length;
 }
