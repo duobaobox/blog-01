@@ -128,7 +128,7 @@ page / route
 
 - Tiptap 节点样式通过 `src/app/tiptap-content.scss` 聚合。
 - 本地 Sass 模块使用 `@use`，不要重新引入已弃用的 Sass `@import`。
-- 全局字体入口放在 `src/app/globals.css`，不要混入 Sass 模块声明之前。
+- 全局字体入口保留在 `src/app/globals.css`；`src/styles` 下的全局样式（Tiptap 变量、关键帧）作为独立入口由 `src/app/layout.tsx` 直接 import，不要在 CSS 中跨目录相对 `@import`——Turbopack 按项目根解析，启动会报 `Can't resolve`。
 - 编辑器内容样式与编辑器外壳样式分离；前台文章和后台编辑正文应复用相同内容根样式。
 - 优先沿用 Tailwind 和现有 UI 组件，不创建重复的设计系统。
 - 前台 Header、main、Footer 统一复用 `PublicShell`；页面独立背景通过路由组布局显式传入 `surface`，不要使用 `:has()` 或改变公共 `main` 的布局模式。

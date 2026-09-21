@@ -1,5 +1,7 @@
-@import "../styles/_variables.scss";
-@import "../styles/_keyframe-animations.scss";
+/*
+ * Tiptap 变量与关键帧样式由 src/app/layout.tsx 直接引入：Turbopack 下 PostCSS
+ * 按项目根解析相对 @import，跨目录引用会直接导致启动报 Can't resolve。
+ */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

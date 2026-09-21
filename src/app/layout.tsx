@@ -3,6 +3,10 @@ export const revalidate = 300;
 import type { Metadata } from "next";
 import { getResolvedSiteConfig } from "@/features/settings/queries/site-config.query";
 import { ThemeProvider } from "@/shared/ui/theme-provider";
+// Tiptap 变量与关键帧作为独立全局入口在此引入（Sass 编译），不要写回 globals.css
+// 的跨目录相对 @import：Turbopack 按项目根解析，会启动报 Can't resolve。
+import "@/styles/_variables.scss";
+import "@/styles/_keyframe-animations.scss";
 import "./globals.css";
 import "./public-theme.css";
 import "./public-home.css";
