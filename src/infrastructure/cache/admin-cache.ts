@@ -11,17 +11,12 @@ export const ADMIN_CACHE_TAGS = {
 
 export const ADMIN_CACHE_REVALIDATE_SECONDS = 60;
 
-export type AdminTagRevalidation = {
-  tag: string;
-  profile: "max";
-};
-
 export type AdminPathRevalidation = {
   path: string;
 };
 
 export type AdminRevalidationPlan = {
-  tags: AdminTagRevalidation[];
+  tags: string[];
   paths: AdminPathRevalidation[];
 };
 
@@ -69,9 +64,18 @@ function inferAdminTagsFromPaths(paths: Array<string | null | undefined>) {
   return uniqueAdminTags(tags);
 }
 
+/**
+ * 标签失效必须显式传 `{ expire: 0 }`，不能用 `"max"`。
+ *
+ * `revalidateTag(tag, "max")` 只把条目记为 stale：过期时间被写成 now + max.expire
+ * （一年后），而缓存读取处的 areTagsExpired 要求 expiredAt <= now，于是本次读取仍返回
+ * 旧值，只在后台再验证。实测表现是改完内容后第一次打开后台概览仍显示旧计数，刷新一次才对。
+ *
+ * 传 `{ expire: 0 }` 写入 expired = now，下一次读取即拿到新数据。
+ */
 function applyAdminRevalidationPlan(plan: AdminRevalidationPlan) {
-  for (const entry of plan.tags) {
-    revalidateTag(entry.tag, entry.profile);
+  for (const tag of plan.tags) {
+    revalidateTag(tag, { expire: 0 });
   }
 
   for (const entry of plan.paths) {
@@ -90,10 +94,7 @@ export function buildAdminRevalidationPlan(input: {
   ]);
 
   return {
-    tags: normalizedTags.map((tag) => ({
-      tag,
-      profile: "max" as const,
-    })),
+    tags: normalizedTags,
     paths: normalizedPaths.map((path) => ({ path })),
   };
 }

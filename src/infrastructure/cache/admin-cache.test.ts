@@ -14,9 +14,9 @@ test("buildAdminRevalidationPlan deduplicates admin paths and drops empty entrie
     }),
     {
       tags: [
-        { tag: ADMIN_CACHE_TAGS.media, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.posts, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.dashboard, profile: "max" },
+        ADMIN_CACHE_TAGS.media,
+        ADMIN_CACHE_TAGS.posts,
+        ADMIN_CACHE_TAGS.dashboard,
       ],
       paths: [{ path: "/admin/posts" }, { path: "/admin/media" }],
     },
@@ -36,12 +36,12 @@ test("buildAdminRevalidationPlan infers admin tags from known admin read surface
     }),
     {
       tags: [
-        { tag: ADMIN_CACHE_TAGS.posts, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.dashboard, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.media, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.categories, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.tags, profile: "max" },
-        { tag: ADMIN_CACHE_TAGS.settings, profile: "max" },
+        ADMIN_CACHE_TAGS.posts,
+        ADMIN_CACHE_TAGS.dashboard,
+        ADMIN_CACHE_TAGS.media,
+        ADMIN_CACHE_TAGS.categories,
+        ADMIN_CACHE_TAGS.tags,
+        ADMIN_CACHE_TAGS.settings,
       ],
       paths: [
         { path: "/admin/posts" },
