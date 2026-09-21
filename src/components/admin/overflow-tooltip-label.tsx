@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useHasHydrated } from "@/shared/hooks/use-has-hydrated";
 import { cn } from "@/shared/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
@@ -8,16 +8,6 @@ type OverflowTooltipLabelProps = {
   label: string;
   className?: string;
 };
-
-const subscribeToHydration = () => () => {};
-
-function useHasHydrated() {
-  return useSyncExternalStore(
-    subscribeToHydration,
-    () => true,
-    () => false,
-  );
-}
 
 export function OverflowTooltipLabel({
   label,

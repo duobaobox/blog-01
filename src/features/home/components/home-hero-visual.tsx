@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import type { HomeHeroConfig } from "@/features/home/config/home.config";
 import {
@@ -9,6 +9,7 @@ import {
   pickRandomSceneIndex,
   type HomeScene,
 } from "@/features/home/lib/home-scene";
+import { useHasHydrated } from "@/shared/hooks/use-has-hydrated";
 
 type HomeHeroVisualProps = {
   visual: HomeHeroConfig["visual"];
@@ -23,16 +24,6 @@ const HERO_IMAGE_SIZES =
 
 const HERO_IMAGE_CLASS =
   "pointer-events-none relative block h-auto w-full max-w-none select-none object-contain object-bottom drop-shadow-[0_24px_36px_rgba(53,63,82,0.14)]";
-
-const subscribeToHydration = () => () => {};
-
-function useHasHydrated() {
-  return useSyncExternalStore(
-    subscribeToHydration,
-    () => true,
-    () => false,
-  );
-}
 
 function HeroSceneImage({
   scene,

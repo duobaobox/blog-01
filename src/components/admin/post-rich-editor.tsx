@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Editor } from "@tiptap/core";
 import { Sparkles } from "lucide-react";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/tiptap/templates/simple/simple-editor";
 import { MediaPickerDialog } from "@/features/media/components/media-picker-dialog";
 import type { MediaItem } from "@/features/media/types/storage.types";
+import { useHasHydrated } from "@/shared/hooks/use-has-hydrated";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -62,16 +63,6 @@ const AI_EDIT_OPERATIONS: Array<{
   { value: "conversational", label: "更口语" },
   { value: "custom", label: "自定义" },
 ];
-
-const subscribeToHydration = () => () => {};
-
-function useHasHydrated() {
-  return useSyncExternalStore(
-    subscribeToHydration,
-    () => true,
-    () => false,
-  );
-}
 
 export function PostRichEditor({
   initialJson,
