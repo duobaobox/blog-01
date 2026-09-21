@@ -9,13 +9,17 @@ import { revalidatePostsContent } from "@/infrastructure/cache/content-cache";
 import { createPostActionRunner } from "@/features/posts/actions/post-action-runner";
 import { parsePostBulkActionFormData } from "@/features/posts/lib/post-bulk-action";
 import {
+  POST_STATUSES,
   parsePostWriteFormData,
   requirePostFolderId,
   type PostStatus,
 } from "@/features/posts/lib/post-write";
 import { updatePostIncrementally } from "@/features/posts/services/post-save.service";
 import * as postService from "@/features/posts/services/post.service";
-import { normalizeOptionalString } from "@/shared/lib/validation";
+import {
+  normalizeOptionalString,
+  requireOneOf,
+} from "@/shared/lib/validation";
 
 const postActionRunner = createPostActionRunner({
   postService: {
@@ -49,7 +53,11 @@ export async function createEmptyPost(input: {
   return postActionRunner.createEmptyPost({
     createdBy: session.user.id,
     folderId: requirePostFolderId(normalizeOptionalString(input.folderId)),
-    status: input.status ?? "draft",
+    // server action 是可被直接调用的 HTTP 入口，TypeScript 的联合类型在运行时
+    // 并不存在，所以这里必须显式校验，避免写入 POST_STATUSES 之外的状态值。
+    status: input.status
+      ? requireOneOf(input.status, POST_STATUSES, "文章状态无效")
+      : "draft",
   });
 }
 

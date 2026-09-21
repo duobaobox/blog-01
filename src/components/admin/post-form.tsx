@@ -18,6 +18,11 @@ import {
 } from "@/features/editor/content-types";
 import { createPost, updatePost } from "@/features/posts/actions/post.actions";
 import {
+  arePostFormSignaturesEqual,
+  createPostFormSignature,
+  isPostFormDirty,
+} from "@/features/posts/lib/post-form-signature";
+import {
   getPostAutosaveDelay,
   POST_AUTOSAVE_MAX_WAIT_MS,
 } from "@/features/posts/lib/post-autosave";
@@ -177,22 +182,6 @@ function createFormState(
   };
 }
 
-function createSnapshot(form: FormState) {
-  return JSON.stringify({
-    title: form.title,
-    excerpt: form.excerpt,
-    coverImageUrl: form.coverImageUrl,
-    contentJson: form.contentJson,
-    categoryId: form.categoryId,
-    folderId: form.folderId,
-    selectedTagIds: [...form.selectedTagIds].sort(),
-    isFeatured: form.isFeatured,
-    seoTitle: form.seoTitle,
-    seoDescription: form.seoDescription,
-    canonicalUrl: form.canonicalUrl,
-    status: form.status,
-  });
-}
 
 function hasMeaningfulDraft(form: FormState) {
   return Boolean(
@@ -281,7 +270,7 @@ export function PostForm({
     handleConfirm: handleLeaveConfirm,
   } = useConfirm();
   const baselineRef = useRef(
-    createSnapshot(createFormState(post, { defaultFolderId })),
+    createPostFormSignature(createFormState(post, { defaultFolderId })),
   );
   const formRef = useRef(form);
   const postIdRef = useRef<string | null>(post?.id ?? null);
@@ -296,7 +285,7 @@ export function PostForm({
   const titleBeforeEditRef = useRef("");
   const displayTitle = getPostDisplayTitle(form.title);
   const isDirty = useMemo(
-    () => createSnapshot(form) !== baselineRef.current,
+    () => isPostFormDirty(form, baselineRef.current),
     [form],
   );
 
@@ -345,10 +334,16 @@ export function PostForm({
     patchForm({ contentJson: json, contentText: text });
   }
 
-  const readingStats = readingTime(form.contentText);
-  const wordCount = readingStats.words;
-  const readingMinutes =
-    wordCount > 0 ? Math.max(1, Math.ceil(readingStats.minutes)) : 0;
+  // 与下面的 publishability 一样做记忆化：正文每次按键都会变化，
+  // 而 readingTime 是 O(正文长度) 的扫描，不该在每次渲染里重算。
+  const { wordCount, readingMinutes } = useMemo(() => {
+    const stats = readingTime(form.contentText);
+    return {
+      wordCount: stats.words,
+      readingMinutes:
+        stats.words > 0 ? Math.max(1, Math.ceil(stats.minutes)) : 0,
+    };
+  }, [form.contentText]);
   const publishability = useMemo(
     () =>
       getPostPublishability({
@@ -361,7 +356,12 @@ export function PostForm({
     setSaveError(null);
     setForm((current) => {
       const updated = { ...current, ...next };
-      if (createSnapshot(updated) !== createSnapshot(current)) {
+      if (
+        !arePostFormSignaturesEqual(
+          createPostFormSignature(updated),
+          createPostFormSignature(current),
+        )
+      ) {
         changeVersionRef.current += 1;
         formRef.current = updated;
       }
@@ -440,8 +440,10 @@ export function PostForm({
       const currentForm = formRef.current;
       const currentPostId = postIdRef.current;
       const nextStatus = targetStatus ?? currentForm.status;
-      const currentSnapshot = createSnapshot(currentForm);
-      const hasPendingChanges = currentSnapshot !== baselineRef.current;
+      const hasPendingChanges = isPostFormDirty(
+        currentForm,
+        baselineRef.current,
+      );
       const hasDraftContent = hasMeaningfulDraft(currentForm);
 
       if (!currentPostId && !hasDraftContent) {
@@ -483,7 +485,7 @@ export function PostForm({
             title: savedPost.title ?? persistedForm.title,
             status: savedPost.status,
           };
-          const savedSnapshot = createSnapshot(acknowledgedForm);
+          const savedSnapshot = createPostFormSignature(acknowledgedForm);
 
           baselineRef.current = savedSnapshot;
           autosaveMaxWaitDeadlineRef.current = null;

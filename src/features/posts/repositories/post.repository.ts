@@ -628,15 +628,22 @@ export async function updatePostsStatus(
   }
 
   return db.$transaction(async (tx) => {
-    for (const id of ids) {
-      await tx.post.update({
-        where: { id },
-        data: {
-          status,
-          publishedAt: publishedAtById[id] ?? null,
-        },
-      });
-    }
+    // 每条 id 的 publishedAt 不同，所以用 VALUES 连接一次性更新，
+    // 而不是在事务里逐条 UPDATE（批量发布时是 N 次往返）。
+    const rows = Prisma.join(
+      ids.map(
+        (id) =>
+          Prisma.sql`(${id}::text, ${publishedAtById[id] ?? null}::timestamp)`,
+      ),
+    );
+
+    await tx.$executeRaw`
+      UPDATE "post" AS p
+      SET "status" = ${status},
+          "publishedAt" = v."publishedAt"
+      FROM (VALUES ${rows}) AS v("id", "publishedAt")
+      WHERE p."id" = v."id"
+    `;
 
     return tx.post.findMany({
       where: {
