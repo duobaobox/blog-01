@@ -4,6 +4,10 @@ import {
   ADMIN_CACHE_TAGS,
 } from "@/infrastructure/cache/admin-cache";
 import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+} from "@/infrastructure/cache/public-cache";
+import {
   resolveMediaPresentationMap,
   type MediaPresentation,
 } from "@/features/media/queries/media.queries";
@@ -15,6 +19,10 @@ import {
   PUBLIC_POSTS_PER_PAGE,
 } from "@/features/posts/lib/pagination";
 import type { AdminPostMetricsSnapshot } from "@/features/posts/repositories/post.repository";
+import {
+  memoizeQuery,
+  type QueryMemoizer,
+} from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 
@@ -145,9 +153,10 @@ type PublicPostRepository = Pick<
 export function createPublicPostQueries(
   repo: PublicPostRepository = postRepo,
   resolveCoverMediaPresentationMap: ResolveMediaPresentationMap = resolveMediaPresentationMap,
+  memoize: QueryMemoizer = memoizeQuery,
 ) {
   return {
-    async getPostBySlug(slug: string) {
+    getPostBySlug: memoize(async (slug: string) => {
       return withPublicQueryFallback(
         async () =>
           attachCoverImageToPublishedPost(
@@ -156,13 +165,13 @@ export function createPublicPostQueries(
           ),
         null,
       );
-    },
-    async getPublishedForFeed(take?: number) {
+    }),
+    getPublishedForFeed: memoize(async (take?: number) => {
       return withPublicQueryFallback(() => repo.findPublishedForFeed(take), []);
-    },
-    async getPublishedSlugs() {
+    }),
+    getPublishedSlugs: memoize(async () => {
       return withPublicQueryFallback(() => repo.findPublishedSlugs(), []);
-    },
+    }),
   };
 }
 
@@ -399,12 +408,39 @@ type PublicPostsPageDataDependencies = {
   resolveMediaPresentationMap: ResolveMediaPresentationMap;
 };
 
-export function createPublicPostsPageDataQuery(
-  dependencies: PublicPostsPageDataDependencies = {
-    getPostCount,
-    findPublicPostCards: postRepo.findPublicPostCards,
+/**
+ * 公开列表的读操作接入数据缓存，并挂上公开内容标签，让发布/删除时的
+ * `revalidateTag` 真正作用到这些查询上。
+ *
+ * 缓存刻意放在仓储调用这一层，而不是包住整个 page-data 查询：
+ * `withPublicQueryFallback` 留在缓存边界之外，数据库不可用时的空列表兜底结果
+ * 不会被写进缓存，否则一次数据库抖动会让公开列表空掉整整一个 TTL。
+ */
+function createCachedPublicPostsPageDataDependencies(): PublicPostsPageDataDependencies {
+  return {
+    getPostCount: unstable_cache(
+      (filters?: string | postRepo.PostFilters) => postRepo.countPosts(filters),
+      ["public-post-count"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.posts, PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
+    findPublicPostCards: unstable_cache(
+      (options?: postRepo.FindPostsOptions) =>
+        postRepo.findPublicPostCards(options),
+      ["public-post-cards"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.posts, PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
     resolveMediaPresentationMap,
-  },
+  };
+}
+
+export function createPublicPostsPageDataQuery(
+  dependencies: PublicPostsPageDataDependencies = createCachedPublicPostsPageDataDependencies(),
 ) {
   return async function getPublicPostsPageData(input: {
     page: number;

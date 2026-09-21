@@ -5,6 +5,14 @@ import {
 } from "@/infrastructure/cache/admin-cache";
 import * as tagRepo from "@/features/taxonomy/repositories/tag.repository";
 import type { TaxonomyScope } from "@/features/taxonomy/repositories/category.repository";
+import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+} from "@/infrastructure/cache/public-cache";
+import {
+  memoizeQuery,
+  type QueryMemoizer,
+} from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 
@@ -37,17 +45,44 @@ type PublicTagRepository = Pick<
   "findTags" | "findPublicTagBySlug"
 >;
 
-export function createPublicTagQueries(repo: PublicTagRepository = tagRepo) {
+/**
+ * 公开标签读操作接入数据缓存并挂上 taxonomy 标签（理由同分类查询）。
+ */
+function createCachedPublicTagRepository(): PublicTagRepository {
   return {
-    async getTags() {
+    findTags: unstable_cache(
+      (scope?: TaxonomyScope) => tagRepo.findTags(scope),
+      ["public-tags"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
+    findPublicTagBySlug: unstable_cache(
+      (slug: string) => tagRepo.findPublicTagBySlug(slug),
+      ["public-tag-by-slug"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
+  };
+}
+
+export function createPublicTagQueries(
+  repo: PublicTagRepository = createCachedPublicTagRepository(),
+  memoize: QueryMemoizer = memoizeQuery,
+) {
+  return {
+    getTags: memoize(async () => {
       return withPublicQueryFallback(() => repo.findTags("public"), []);
-    },
-    async getTagBySlug(slug: string) {
+    }),
+    getTagBySlug: memoize(async (slug: string) => {
       return withPublicQueryFallback(
         () => repo.findPublicTagBySlug(slug),
         null,
       );
-    },
+    }),
   };
 }
 

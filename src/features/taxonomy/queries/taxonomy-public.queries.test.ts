@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { QueryMemoizer } from "@/shared/lib/request-memo";
 import {
   createAdminCategoriesPageDataQuery,
   createPublicCategoryQueries,
@@ -129,4 +130,64 @@ test("createAdminTagsPageDataQuery returns admin taxonomy lists outside producti
   assert.deepEqual(result, {
     tags: [{ id: "tag-1" }, { id: "tag-2" }],
   });
+});
+
+function createRecordingMemoizer(): QueryMemoizer {
+  const store = new Map<string, unknown>();
+
+  const record = (fn: (...args: never[]) => unknown) =>
+    function (...args: never[]) {
+      const key = JSON.stringify(args);
+
+      if (!store.has(key)) {
+        store.set(key, fn(...args));
+      }
+
+      return store.get(key);
+    };
+
+  return record as unknown as QueryMemoizer;
+}
+
+test("public tag slug query is memoized so generateMetadata and the page share one read", async () => {
+  const slugs: string[] = [];
+  const queries = createPublicTagQueries(
+    {
+      async findTags() {
+        return [] as never;
+      },
+      async findPublicTagBySlug(slug) {
+        slugs.push(slug);
+        return { slug } as never;
+      },
+    },
+    createRecordingMemoizer(),
+  );
+
+  await queries.getTagBySlug("react");
+  await queries.getTagBySlug("react");
+  await queries.getTagBySlug("nextjs");
+
+  assert.deepEqual(slugs, ["react", "nextjs"]);
+});
+
+test("public category slug query is memoized so generateMetadata and the page share one read", async () => {
+  const slugs: string[] = [];
+  const queries = createPublicCategoryQueries(
+    {
+      async findCategories() {
+        return [] as never;
+      },
+      async findPublicCategoryBySlug(slug) {
+        slugs.push(slug);
+        return { slug } as never;
+      },
+    },
+    createRecordingMemoizer(),
+  );
+
+  await queries.getCategoryBySlug("engineering");
+  await queries.getCategoryBySlug("engineering");
+
+  assert.deepEqual(slugs, ["engineering"]);
 });

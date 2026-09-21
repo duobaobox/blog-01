@@ -4,6 +4,14 @@ import {
   ADMIN_CACHE_TAGS,
 } from "@/infrastructure/cache/admin-cache";
 import * as categoryRepo from "@/features/taxonomy/repositories/category.repository";
+import {
+  PUBLIC_CACHE_REVALIDATE_SECONDS,
+  PUBLIC_CACHE_TAGS,
+} from "@/infrastructure/cache/public-cache";
+import {
+  memoizeQuery,
+  type QueryMemoizer,
+} from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 
@@ -38,19 +46,47 @@ type PublicCategoryRepository = Pick<
   "findCategories" | "findPublicCategoryBySlug"
 >;
 
+/**
+ * 公开分类读操作接入数据缓存并挂上 taxonomy 标签。
+ *
+ * 缓存放在仓储调用这一层：`withPublicQueryFallback` 留在缓存边界之外，
+ * 数据库不可用时的空列表兜底不会被写进缓存。
+ */
+function createCachedPublicCategoryRepository(): PublicCategoryRepository {
+  return {
+    findCategories: unstable_cache(
+      (scope?: categoryRepo.TaxonomyScope) => categoryRepo.findCategories(scope),
+      ["public-categories"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
+    findPublicCategoryBySlug: unstable_cache(
+      (slug: string) => categoryRepo.findPublicCategoryBySlug(slug),
+      ["public-category-by-slug"],
+      {
+        revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
+        tags: [PUBLIC_CACHE_TAGS.taxonomy],
+      },
+    ),
+  };
+}
+
 export function createPublicCategoryQueries(
-  repo: PublicCategoryRepository = categoryRepo,
+  repo: PublicCategoryRepository = createCachedPublicCategoryRepository(),
+  memoize: QueryMemoizer = memoizeQuery,
 ) {
   return {
-    async getCategories() {
+    getCategories: memoize(async () => {
       return withPublicQueryFallback(() => repo.findCategories("public"), []);
-    },
-    async getCategoryBySlug(slug: string) {
+    }),
+    getCategoryBySlug: memoize(async (slug: string) => {
       return withPublicQueryFallback(
         () => repo.findPublicCategoryBySlug(slug),
         null,
       );
-    },
+    }),
   };
 }
 

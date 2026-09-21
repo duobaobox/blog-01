@@ -8,7 +8,7 @@ import {
 
 test("buildPublicSiteRevalidationPlan refreshes site-wide public surfaces", () => {
   assert.deepEqual(buildPublicSiteRevalidationPlan(), {
-    tags: [{ tag: PUBLIC_CACHE_TAGS.site, profile: "max" }],
+    tags: [PUBLIC_CACHE_TAGS.site],
     paths: [
       { path: "/", type: "layout" },
       { path: "/feed.xml" },
@@ -26,8 +26,8 @@ test("buildPublicContentRevalidationPlan includes canonical public routes and un
   });
 
   assert.deepEqual(plan.tags, [
-    { tag: PUBLIC_CACHE_TAGS.posts, profile: "max" },
-    { tag: PUBLIC_CACHE_TAGS.taxonomy, profile: "max" },
+    PUBLIC_CACHE_TAGS.posts,
+    PUBLIC_CACHE_TAGS.taxonomy,
   ]);
   assert.deepEqual(plan.paths, [
     { path: "/" },

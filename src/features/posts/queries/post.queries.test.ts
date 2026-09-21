@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { QueryMemoizer } from "@/shared/lib/request-memo";
 import {
   createAdminDashboardPageDataQuery,
   createAdminPostCountsQuery,
@@ -362,7 +363,7 @@ test("public posts page query resolves cover media metadata for card lists", asy
           slug: "with-cover",
           title: "With cover",
           excerpt: null,
-          contentText: "Body",
+          previewText: "Body",
           coverImageUrl: "/media/cover.png",
           publishedAt: null,
           createdAt: new Date("2026-06-15T00:00:00.000Z"),
@@ -467,4 +468,72 @@ test("public posts page query falls back to an empty page when the database is u
     totalPosts: 0,
     totalPages: 1,
   });
+});
+
+function createRecordingMemoizer(): QueryMemoizer {
+  const store = new Map<string, unknown>();
+
+  const record = (fn: (...args: never[]) => unknown) =>
+    function (...args: never[]) {
+      const key = JSON.stringify(args);
+
+      if (!store.has(key)) {
+        store.set(key, fn(...args));
+      }
+
+      return store.get(key);
+    };
+
+  return record as unknown as QueryMemoizer;
+}
+
+test("public post slug query is memoized so generateMetadata and the page share one read", async () => {
+  const slugs: string[] = [];
+  const queries = createPublicPostQueries(
+    {
+      async findPublishedPostBySlug(slug) {
+        slugs.push(slug);
+        return null as never;
+      },
+      async findPublishedForFeed() {
+        return [] as never;
+      },
+      async findPublishedSlugs() {
+        return [] as never;
+      },
+    },
+    undefined,
+    createRecordingMemoizer(),
+  );
+
+  await queries.getPostBySlug("hello");
+  await queries.getPostBySlug("hello");
+  await queries.getPostBySlug("other");
+
+  assert.deepEqual(slugs, ["hello", "other"]);
+});
+
+test("public post queries disable memoization explicitly when no request scope exists", async () => {
+  let calls = 0;
+  const queries = createPublicPostQueries(
+    {
+      async findPublishedPostBySlug(slug) {
+        calls += 1;
+        return { slug, coverImageUrl: null } as never;
+      },
+      async findPublishedForFeed() {
+        return [] as never;
+      },
+      async findPublishedSlugs() {
+        return [] as never;
+      },
+    },
+    undefined,
+    (fn) => fn,
+  );
+
+  await queries.getPostBySlug("hello");
+  await queries.getPostBySlug("hello");
+
+  assert.equal(calls, 2);
 });
