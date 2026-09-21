@@ -300,7 +300,23 @@ SITE_URL=https://blog.example.com
 ```nginx
 proxy_set_header Host $host;
 proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Real-IP $remote_addr;
 ```
+
+`X-Real-IP` 不是可选项：登录限流按客户端 IP 分桶，应用优先读取由代理用
+`$remote_addr` 覆写的 `X-Real-IP`。缺少它时会退回到 `X-Forwarded-For`，而
+`X-Forwarded-For` 的开头部分由客户端提供，可以被伪造，等于给暴力破解留了后门。
+
+代理不在本机时（容器网络里另有网关等），需要把代理地址加入可信列表：
+
+```env
+BETTER_AUTH_TRUSTED_PROXIES=172.17.0.1,127.0.0.1
+```
+
+默认值为 `127.0.0.1,::1`，对应“Nginx 与容器同机”的部署。
+
+安全响应头（CSP、X-Frame-Options、nosniff、Referrer-Policy、Permissions-Policy，以及
+在 HTTPS 下自动附加的 HSTS）由应用本身下发，Nginx 侧不必重复添加，避免出现两份不一致的策略。
 
 ### 图片 404
 

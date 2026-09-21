@@ -37,6 +37,21 @@ npm run db:preflight:release -- --schema --posts --media
 - [ ] 历史 `db push` 环境已评估 baseline
 - [ ] `migration-blocked` 环境已经停止发布并完成排查
 - [ ] 包含破坏性 schema 变更时已提供专门恢复说明
+- [ ] `db:diff` 的输出已人工核对为空
+
+> 注意：`db:diff` 用的 `prisma migrate diff` 只是**预览**命令，即使存在差异也返回 0，
+> 因此它不会让上面的门禁失败。历史上 `aiSetting` 表曾只进 schema、没有配套 migration，
+> 漂移一路通过发布预检（已由 `20260917140000_add_ai_setting` 修复）。这一项必须靠人读输出。
+
+如果本次包含 `20260917130000_add_post_preview_text` 或之后的版本（或任何新增物化列），
+migration 只建列不填值，必须在发布后补一次回填，否则公开列表卡片会缺少摘要：
+
+```bash
+npm run db:backfill:post-content          # 先看计划
+npm run db:backfill:post-content -- --apply
+```
+
+该脚本会重新物化 `previewText` / `contentText` / `contentHtml` / `contentToc` 等派生列，幂等可重复执行。
 
 环境处理原则：
 

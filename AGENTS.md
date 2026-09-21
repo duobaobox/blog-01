@@ -95,6 +95,7 @@ page / route
 - Repository 封装 Prisma 细节，上层不要直接依赖 Prisma 查询语法。
 - 业务异常进入 `AppError` 体系，API 使用统一错误映射。
 - 缓存刷新复用 `src/infrastructure/cache` 中的 helper，不散落新的 `revalidatePath` 集合。
+- 标签失效必须传 `{ expire: 0 }`，不要用 `revalidateTag(tag, "max")`。`"max"` 只把条目记为 stale（过期时间被写成一年后），首次读取仍返回旧值——发布后公开列表和后台计数都会先显示旧的。
 
 ## 5. 编辑器与保存行为
 
@@ -102,6 +103,7 @@ page / route
 
 - Tiptap JSON 是正文唯一事实源。
 - HTML、纯文本、TOC、阅读时间和字数由服务端物化，不在客户端维护第二份真相。
+- 列表与 RSS 只读物化的 `previewText`（`contentText` 的前 200 字），不要为了预览把整篇正文拉出来。
 - 编辑器组件生命周期只能跟文章 ID 关联，不能把 `updatedAt`、保存时间或保存响应放进 React `key`。
 - 自动保存必须是后台持久化：不得触发页面刷新、路由替换、编辑器重建、选区丢失或滚动位置变化。
 - 保存意图使用现有的 `autosave / navigation / manual / publish` 语义，不新增含糊的布尔状态。
