@@ -1,6 +1,6 @@
 # 首页风格 DIY
 
-首页采用“数据查询与视觉组件分离”的结构，默认只启用主视觉和精选文章两个已有数据支撑的模块。
+首页采用“数据查询与视觉组件分离”的结构，默认只启用主视觉模块；精选文章区默认关闭，可通过配置开关启用。
 
 ## 文件结构
 
@@ -69,13 +69,13 @@ visual: {
 ```ts
 sections: {
   hero: { enabled: true },
-  featuredPosts: { enabled: true },
+  featuredPosts: { enabled: false },
   categories: { enabled: false },
   stats: { enabled: false },
 }
 ```
 
-`categories` 和 `stats` 目前只预留开关，不会渲染空白占位。后续实现对应组件后，可以在 `page.tsx` 中按相同方式组合。
+把 `featuredPosts.enabled` 改为 `true` 可以恢复首页的精选/最新文章区块。关闭的模块不会渲染空白占位；`categories` 和 `stats` 目前只预留开关，后续实现对应组件后，可以在 `page.tsx` 中按相同方式组合。
 
 ## 替换整套视觉
 

@@ -42,7 +42,8 @@ export const homeConfig = {
       },
     },
     featuredPosts: {
-      enabled: true,
+      // 首页默认不展示精选/最新文章区块，改为 true 可恢复。
+      enabled: false,
       limit: 3,
       featuredTitle: "精选文章",
       latestTitle: "最新文章",
