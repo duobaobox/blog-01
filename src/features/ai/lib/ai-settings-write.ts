@@ -1,4 +1,5 @@
 import { getAiProviderPreset } from "@/features/ai/lib/ai-provider-presets";
+import { isCloudMetadataHost } from "@/features/ai/lib/ai-base-url-guard";
 import {
   normalizeOptionalString,
   validateOptionalHttpUrl,
@@ -34,6 +35,21 @@ export function parseAiSettingsFormData(
     baseUrl,
     "AI Base URL 格式不正确，请填写完整的 http/https 地址",
   );
+
+  // 云元数据地址不可能是合法的模型端点，而请求会由服务端携带 API Key 发出。
+  const hostname = (() => {
+    try {
+      return new URL(baseUrl).hostname;
+    } catch {
+      return "";
+    }
+  })();
+
+  if (hostname && isCloudMetadataHost(hostname)) {
+    throw new ValidationError(
+      "AI Base URL 不能指向云元数据地址，请填写模型服务的实际地址",
+    );
+  }
 
   if (!model) {
     throw new ValidationError("请填写模型名称");
