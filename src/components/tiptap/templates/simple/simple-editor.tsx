@@ -17,6 +17,8 @@ import {
 } from "@/components/tiptap/ui-primitive/toolbar";
 
 // --- Tiptap Node Styles ---
+import "@/app/tiptap-content.scss";
+import "@/app/editor.css";
 import "@/components/tiptap/nodes/blockquote-node/blockquote-node.scss";
 import "@/components/tiptap/nodes/code-block-node/code-block-node.scss";
 import "@/components/tiptap/nodes/horizontal-rule-node/horizontal-rule-node.scss";

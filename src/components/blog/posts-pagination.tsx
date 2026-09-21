@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Ellipsis } from "lucide-react";
 import {
@@ -7,7 +5,7 @@ import {
   getPaginationPages,
 } from "@/features/posts/lib/pagination";
 import { cn } from "@/shared/lib/utils";
-import { buttonVariants } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button-variants";
 
 interface PostsPaginationProps {
   pathname: string;

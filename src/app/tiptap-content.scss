@@ -10,7 +10,7 @@
 /*
  * Both the editable document and the published article use the same Tiptap
  * content root classes. Only editor chrome/layout lives outside this file.
+ *
+ * 这里刻意不声明 font-family：站点从未加载过 DM Sans，写明只会让它静默回退，
+ * 反而让“正文用的是哪套字体”变得难以判断。字体由全局 --font-sans 决定。
  */
-.tiptap.ProseMirror {
-  font-family: "DM Sans", sans-serif;
-}

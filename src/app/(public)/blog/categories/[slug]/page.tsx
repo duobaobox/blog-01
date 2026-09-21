@@ -86,6 +86,7 @@ export default async function CategoryPage({
                 post={post}
                 showCategory={false}
                 motifIndex={motifIndices[index]}
+                priority={index === 0}
               />
             ))}
             <PostsPagination

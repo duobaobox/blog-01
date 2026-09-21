@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,38 +8,33 @@ import { useState } from "react";
 import { Menu } from "lucide-react";
 import type { MediaPresentation } from "@/features/media/queries/media.queries";
 import { useNavigationGlass } from "@/shared/hooks/use-navigation-glass";
-import { cn } from "@/shared/lib/utils";
-import { buttonVariants } from "@/shared/ui/button";
-import { NavigationGlassDefs } from "@/shared/ui/navigation-glass-defs";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/shared/ui/sheet";
+  isNavigationItemActive,
+  type NavigationItem,
+} from "@/shared/lib/navigation";
+import { cn } from "@/shared/lib/utils";
+import { buttonVariants } from "@/shared/ui/button-variants";
+import { NavigationGlassDefs } from "@/shared/ui/navigation-glass-defs";
 import { ThemeToggle } from "@/shared/ui/theme-toggle";
 
 const MOBILE_NAVIGATION_TRIGGER_ID = "public-mobile-navigation-trigger";
 
-type NavigationItem = {
-  label: string;
-  href: string;
-};
+/**
+ * 抽屉内容按需加载：base-ui 的 dialog 运行时只有移动端访客第一次点开菜单时才会下载，
+ * 桌面访客完全不加载。
+ */
+const MobileNavigationSheet = dynamic(
+  () =>
+    import("@/shared/ui/mobile-navigation-sheet").then(
+      (module) => module.MobileNavigationSheet,
+    ),
+  { ssr: false },
+);
 
 interface HeaderProps {
   siteName: string;
   logo?: MediaPresentation;
   nav: ReadonlyArray<NavigationItem>;
-}
-
-function isNavigationItemActive(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === "/";
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function DesktopNavigation({
@@ -85,14 +81,19 @@ function MobileNavigation({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [sheetMounted, setSheetMounted] = useState(false);
+
   return (
-    <Sheet
-      open={open}
-      onOpenChange={onOpenChange}
-      triggerId={open ? MOBILE_NAVIGATION_TRIGGER_ID : null}
-    >
-      <SheetTrigger
+    <>
+      <button
+        type="button"
         id={MOBILE_NAVIGATION_TRIGGER_ID}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => {
+          setSheetMounted(true);
+          onOpenChange(true);
+        }}
         className={cn(
           buttonVariants({ variant: "ghost", size: "icon" }),
           "public-menu-button md:hidden",
@@ -100,40 +101,17 @@ function MobileNavigation({
       >
         <Menu aria-hidden="true" />
         <span className="sr-only">菜单</span>
-      </SheetTrigger>
-      <SheetContent
-        side="right"
-        className="w-[min(20rem,calc(100vw-1rem))] gap-0 px-0"
-      >
-        <SheetHeader className="border-b px-4 py-3">
-          <SheetTitle>导航菜单</SheetTitle>
-          <SheetDescription>快速跳转到站点的主要页面。</SheetDescription>
-        </SheetHeader>
-        <nav
-          aria-label="移动端主要导航"
-          className="flex flex-col gap-2 px-4 py-4"
-        >
-          {nav.map((item) => {
-            const isActive = isNavigationItemActive(pathname, item.href);
+      </button>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                onClick={() => onOpenChange(false)}
-                className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent",
-                  isActive ? "bg-accent text-foreground" : "text-foreground/60",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </SheetContent>
-    </Sheet>
+      {sheetMounted ? (
+        <MobileNavigationSheet
+          pathname={pathname}
+          nav={nav}
+          open={open}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
+    </>
   );
 }
 

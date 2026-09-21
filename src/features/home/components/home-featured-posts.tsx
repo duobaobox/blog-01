@@ -37,11 +37,9 @@ const placeholderStyles = [
 
 function HomePostCard({
   post,
-  priority,
   index,
 }: {
   post: PublicPostCard;
-  priority: boolean;
   index: number;
 }) {
   const displayDate = getPostDisplayDate(post);
@@ -64,7 +62,6 @@ function HomePostCard({
               src={coverImageUrl}
               alt={post.coverImage?.alt ?? post.title}
               fill
-              priority={priority}
               sizes="(min-width: 1024px) 300px, (min-width: 768px) 50vw, 100vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.035]"
             />
@@ -152,12 +149,7 @@ export function HomeFeaturedPosts({
       <div className="pointer-events-none absolute -right-24 -top-28 size-72 rounded-full bg-site-accent-soft blur-3xl dark:bg-site-accent/10" />
       <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => (
-          <HomePostCard
-            key={post.id}
-            post={post}
-            index={index}
-            priority={index === 0}
-          />
+          <HomePostCard key={post.id} post={post} index={index} />
         ))}
       </div>
     </HomeSectionShell>

@@ -7,6 +7,10 @@ import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { formatDate } from "@/shared/lib/date";
 import { TableOfContents } from "@/components/blog/table-of-contents";
+// 正文节点样式与正文渲染放在一起：只有文章页和后台预览需要它们，
+// 不再从根 layout 全局下发给列表、关于、项目等页面。
+import "@/app/tiptap-content.scss";
+import "@/app/editor.css";
 
 export type PostArticleCategory = {
   id?: string;
@@ -69,6 +73,7 @@ export function PostArticleView({
                 alt={coverImageAlt || title}
                 width={coverImageWidth ?? 1600}
                 height={coverImageHeight ?? 900}
+                priority
                 sizes="(min-width: 1024px) 896px, 100vw"
                 className="h-auto w-full object-cover"
               />

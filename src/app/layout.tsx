@@ -8,8 +8,6 @@ import "./public-theme.css";
 import "./public-home.css";
 import "./public-header.css";
 import "./public-footer.css";
-import "./tiptap-content.scss";
-import "./editor.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getResolvedSiteConfig();

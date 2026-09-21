@@ -86,6 +86,7 @@ export default async function TagPage({
                 key={post.slug}
                 post={post}
                 motifIndex={motifIndices[index]}
+                priority={index === 0}
               />
             ))}
             <PostsPagination

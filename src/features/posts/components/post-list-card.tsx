@@ -35,12 +35,15 @@ type PostListCardProps = {
   };
   showCategory?: boolean;
   motifIndex?: number;
+  /** 列表首图是 LCP 候选，交给调用方决定是否预加载。 */
+  priority?: boolean;
 };
 
 export function PostListCard({
   post,
   showCategory = true,
   motifIndex,
+  priority = false,
 }: PostListCardProps) {
   const preview = resolvePostCardPreview(post);
   const displayDate = getPostDisplayDate(post);
@@ -59,6 +62,7 @@ export function PostListCard({
               alt={coverImage?.alt ?? post.title}
               width={cardImage?.width ?? 1200}
               height={cardImage?.height ?? 630}
+              priority={priority}
               sizes="(min-width: 1280px) 352px, (min-width: 768px) 50vw, 100vw"
               className="h-52 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
