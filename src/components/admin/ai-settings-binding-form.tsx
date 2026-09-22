@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plug } from "lucide-react";
 import { updateAiSettings } from "@/features/ai/actions/ai-settings.actions";
 import {
   AI_PROVIDER_PRESETS,
@@ -24,9 +25,11 @@ export function AiSettingsBindingForm({
 }: AiSettingsBindingFormProps) {
   const router = useRouter();
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialProvider = settings?.aiProvider || "openai-compatible";
-  const initialPreset = getAiProviderPreset(initialProvider);
-  const [provider, setProvider] = useState(initialProvider);
+  // 用预设 id 归一化：未知的历史值会落到自定义预设，保证卡片始终有选中项。
+  const initialPreset = getAiProviderPreset(
+    settings?.aiProvider || "openai-compatible",
+  );
+  const [provider, setProvider] = useState(initialPreset.id);
   const [baseUrl, setBaseUrl] = useState(
     settings?.aiBaseUrl ?? initialPreset.baseUrl,
   );
@@ -95,27 +98,46 @@ export function AiSettingsBindingForm({
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="aiProvider">服务商</Label>
-          <select
-            id="aiProvider"
-            name="aiProvider"
-            value={provider}
-            onChange={(event) => handleProviderChange(event.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
-          >
-            {AI_PROVIDER_PRESETS.map((providerPreset) => (
-              <option key={providerPreset.id} value={providerPreset.id}>
-                {providerPreset.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-muted-foreground">
-            {selectedPreset.description}
-          </p>
+      <fieldset className="space-y-2">
+        <legend className="text-sm leading-none font-medium">服务商</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {AI_PROVIDER_PRESETS.map((providerPreset) => (
+            <label key={providerPreset.id} className="cursor-pointer">
+              <input
+                type="radio"
+                name="aiProvider"
+                value={providerPreset.id}
+                checked={provider === providerPreset.id}
+                onChange={() => handleProviderChange(providerPreset.id)}
+                className="peer sr-only"
+              />
+              <span className="flex h-full min-w-0 items-center gap-2.5 rounded-lg border border-border/70 p-2.5 text-sm transition-colors hover:border-foreground/20 hover:bg-muted/40 peer-checked:border-foreground/35 peer-checked:bg-muted/60 peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50">
+                {providerPreset.brand ? (
+                  <span
+                    aria-hidden="true"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-md text-[10px] font-bold tracking-wide text-white ring-1 ring-black/10 dark:ring-white/15"
+                    style={{ backgroundColor: providerPreset.brand.color }}
+                  >
+                    {providerPreset.brand.initial}
+                  </span>
+                ) : (
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <Plug className="size-3.5" aria-hidden="true" />
+                  </span>
+                )}
+                <span className="line-clamp-2 min-w-0 leading-snug">
+                  {providerPreset.name}
+                </span>
+              </span>
+            </label>
+          ))}
         </div>
+        <p className="text-xs text-muted-foreground">
+          {selectedPreset.description}
+        </p>
+      </fieldset>
 
+      <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="aiModel">模型名称</Label>
           <Input
@@ -127,32 +149,32 @@ export function AiSettingsBindingForm({
             required
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="aiBaseUrl">Base URL</Label>
-        <Input
-          id="aiBaseUrl"
-          name="aiBaseUrl"
-          value={baseUrl}
-          onChange={(event) => setBaseUrl(event.target.value)}
-          placeholder="https://api.example.com/v1"
-          inputMode="url"
-          required
-        />
-        {selectedPreset.docsUrl ? (
-          <p className="text-xs text-muted-foreground">
-            请以服务商官方文档为准，必要时可以直接修改 Base URL。
-            <a
-              href={selectedPreset.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1 text-foreground underline underline-offset-4"
-            >
-              查看官方文档
-            </a>
-          </p>
-        ) : null}
+        <div className="space-y-2">
+          <Label htmlFor="aiBaseUrl">Base URL</Label>
+          <Input
+            id="aiBaseUrl"
+            name="aiBaseUrl"
+            value={baseUrl}
+            onChange={(event) => setBaseUrl(event.target.value)}
+            placeholder="https://api.example.com/v1"
+            inputMode="url"
+            required
+          />
+          {selectedPreset.docsUrl ? (
+            <p className="text-xs text-muted-foreground">
+              请以服务商官方文档为准，必要时可以直接修改 Base URL。
+              <a
+                href={selectedPreset.docsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 text-foreground underline underline-offset-4"
+              >
+                查看官方文档
+              </a>
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div className="space-y-2">
