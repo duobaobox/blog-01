@@ -9,7 +9,11 @@ git clone https://github.com/duobaobox/blog-01.git
 cd blog-01
 npm ci
 cp .env.example .env
+
+# 启动开发数据库（127.0.0.1:5432，账号密码已与 .env.example 对齐）
+# 已有本机 PostgreSQL 时可跳过，直接把 DATABASE_URL 指向现有实例
 docker compose up -d db
+
 npm run db:generate
 DB_SCHEMA_SYNC_MODE=auto npm run db:sync
 npm run dev

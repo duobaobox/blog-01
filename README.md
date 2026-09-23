@@ -180,11 +180,15 @@ npm ci
 cp .env.example .env
 ```
 
-启动 PostgreSQL：
+`.env.example` 中的 `DATABASE_URL` 已与 Docker 开发数据库的账号密码对齐，复制后即可使用。
+
+启动开发数据库（映射到本机 `127.0.0.1:5432`）：
 
 ```bash
 docker compose up -d db
 ```
+
+如果本机已经有 PostgreSQL，可以跳过这一步，直接把 `DATABASE_URL` 指向现有实例；端口冲突时修改 `.env` 里的 `POSTGRES_PORT`，并同步修改 `DATABASE_URL` 的端口。
 
 生成 Prisma Client 并同步开发数据库：
 

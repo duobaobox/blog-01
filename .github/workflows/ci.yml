@@ -52,6 +52,7 @@ jobs:
           bash -n delivery/release/blogctl
           bash -n scripts/release/build-release-bundle.sh
           bash -n scripts/release/refresh-app-delivery.sh
+          docker compose --env-file .env.example config >/dev/null
           docker compose --env-file .env.release.example -f docker-compose.release.yml config >/dev/null
 
       - name: 配置 Node.js
