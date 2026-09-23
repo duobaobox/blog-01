@@ -18,8 +18,8 @@
     "test": "tsx --tsconfig tsconfig.test.json --test && npm run test:backup",
     "test:backup": "sh scripts/backup-docker.test.sh",
     "lint": "eslint",
-    "format": "npx --yes prettier@3.9.6 --write .",
-    "format:check": "npx --yes prettier@3.9.6 --check .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "db:sync": "sh scripts/schema-sync.sh",
     "db:push": "prisma db push",
     "db:diff": "sh scripts/check-schema-diff.sh",
@@ -86,8 +86,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/lodash.throttle": "^4.1.9",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/lodash.throttle": "^4.1.9",
     "@types/node": "^20",
     "@types/pg": "^8.18.0",
     "@types/react": "^19",
@@ -95,6 +95,7 @@
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prettier": "3.9.6",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
