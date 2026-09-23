@@ -65,6 +65,8 @@ sudo env BLOG_VERSION=0.1.0 bash /tmp/blog-01-install.sh
 
 当前官方镜像只发布 `linux/amd64`。ARM64 暂不在首个公开版本的支持范围内。
 
+不想自己维护服务器的话，可以看[云平台（PaaS）部署](./docs/deploy-paas.md)或[宝塔 / 1Panel 面板部署](./docs/deploy-with-panel.md)。
+
 ## 日常管理
 
 进入安装目录：
@@ -293,6 +295,8 @@ docs/                   架构、部署、备份和维护文档
 - [文档索引](./docs/README.md)
 - [Docker 构建与发版指导](./docs/docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./docs/alicloud-docker-nginx-https-guide.md)
+- [云平台（PaaS）部署](./docs/deploy-paas.md)
+- [宝塔 / 1Panel 面板部署](./docs/deploy-with-panel.md)
 - [备份与恢复](./docs/backup-and-restore.md)
 - [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
 - [当前架构基线](./docs/architecture-baseline.md)

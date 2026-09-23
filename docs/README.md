@@ -14,6 +14,8 @@
 - [Blog-01 部署 Skill](./skills/blog-01-deployment/SKILL.md)
 - [Docker 构建与发版指导](./docker-build-and-release-guide.md)
 - [阿里云 Docker + Nginx + HTTPS 上线手册](./alicloud-docker-nginx-https-guide.md)
+- [云平台（PaaS）部署](./deploy-paas.md)
+- [宝塔 / 1Panel 面板部署](./deploy-with-panel.md)
 - [发版与回滚 Checklist](./release-and-rollback-checklist.md)
 - [数据库与媒体备份恢复](./backup-and-restore.md)
 
