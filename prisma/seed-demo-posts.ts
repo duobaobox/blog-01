@@ -745,7 +745,7 @@ async function ensureSiteSettings() {
     update: {},
     create: {
       scopeKey: "default",
-      siteTitle: "duobao",
+      siteTitle: "示例博客",
       siteSubtitle: "内容工作台演示站",
       siteDescription: "用于验证后台内容工作台和前台博客体验的演示数据。",
       siteUrl: process.env.SITE_URL || "http://localhost:3000",
