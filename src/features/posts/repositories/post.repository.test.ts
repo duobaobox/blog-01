@@ -64,7 +64,9 @@ test("published post detail投影保留公开文章页渲染所需的字段", ()
     select: { id: true, name: true, slug: true },
   });
   assert.deepEqual(select.tags, {
-    select: { tag: { select: { id: true, name: true, slug: true, color: true } } },
+    select: {
+      tag: { select: { id: true, name: true, slug: true, color: true } },
+    },
   });
   assert.deepEqual(select.author, { select: { name: true } });
 });

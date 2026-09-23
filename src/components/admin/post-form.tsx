@@ -182,7 +182,6 @@ function createFormState(
   };
 }
 
-
 function hasMeaningfulDraft(form: FormState) {
   return Boolean(
     form.title.trim() ||

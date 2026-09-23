@@ -9,10 +9,7 @@ import {
   PUBLIC_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CACHE_TAGS,
 } from "@/infrastructure/cache/public-cache";
-import {
-  memoizeQuery,
-  type QueryMemoizer,
-} from "@/shared/lib/request-memo";
+import { memoizeQuery, type QueryMemoizer } from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 

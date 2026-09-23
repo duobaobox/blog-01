@@ -8,10 +8,7 @@ import {
   PUBLIC_CACHE_REVALIDATE_SECONDS,
   PUBLIC_CACHE_TAGS,
 } from "@/infrastructure/cache/public-cache";
-import {
-  memoizeQuery,
-  type QueryMemoizer,
-} from "@/shared/lib/request-memo";
+import { memoizeQuery, type QueryMemoizer } from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 
@@ -55,7 +52,8 @@ type PublicCategoryRepository = Pick<
 function createCachedPublicCategoryRepository(): PublicCategoryRepository {
   return {
     findCategories: unstable_cache(
-      (scope?: categoryRepo.TaxonomyScope) => categoryRepo.findCategories(scope),
+      (scope?: categoryRepo.TaxonomyScope) =>
+        categoryRepo.findCategories(scope),
       ["public-categories"],
       {
         revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,

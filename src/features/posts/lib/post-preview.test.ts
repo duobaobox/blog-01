@@ -10,10 +10,7 @@ import {
 test("buildPostPreviewText keeps a bounded prefix of the materialized text", () => {
   const longText = "字".repeat(POST_PREVIEW_MAX_LENGTH + 50);
 
-  assert.equal(
-    buildPostPreviewText(longText)?.length,
-    POST_PREVIEW_MAX_LENGTH,
-  );
+  assert.equal(buildPostPreviewText(longText)?.length, POST_PREVIEW_MAX_LENGTH);
 });
 
 test("buildPostPreviewText returns null when there is no text", () => {
@@ -54,5 +51,8 @@ test("resolvePostCardPreview does not mark a short preview as truncated", () => 
 });
 
 test("resolvePostCardPreview returns an empty string when nothing is available", () => {
-  assert.equal(resolvePostCardPreview({ excerpt: null, previewText: null }), "");
+  assert.equal(
+    resolvePostCardPreview({ excerpt: null, previewText: null }),
+    "",
+  );
 });

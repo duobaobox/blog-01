@@ -13,9 +13,7 @@ async function readSchema() {
 }
 
 function readModelBlock(schema: string, model: string) {
-  const match = schema.match(
-    new RegExp(`model ${model} \\{[\\s\\S]*?\\n\\}`),
-  );
+  const match = schema.match(new RegExp(`model ${model} \\{[\\s\\S]*?\\n\\}`));
 
   assert.ok(match, `schema.prisma 中找不到 model ${model}`);
   return match[0];

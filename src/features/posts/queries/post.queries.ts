@@ -19,10 +19,7 @@ import {
   PUBLIC_POSTS_PER_PAGE,
 } from "@/features/posts/lib/pagination";
 import type { AdminPostMetricsSnapshot } from "@/features/posts/repositories/post.repository";
-import {
-  memoizeQuery,
-  type QueryMemoizer,
-} from "@/shared/lib/request-memo";
+import { memoizeQuery, type QueryMemoizer } from "@/shared/lib/request-memo";
 import { withPublicQueryFallback } from "@/shared/lib/public-query-fallback";
 import { isProductionBuildPhase } from "@/shared/lib/runtime-phase";
 

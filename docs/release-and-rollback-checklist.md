@@ -55,13 +55,13 @@ npm run db:backfill:post-content -- --apply
 
 环境处理原则：
 
-| 环境类型 | 默认策略 |
-| --- | --- |
-| `empty` | 使用 `migrate deploy` |
+| 环境类型                 | 默认策略                                            |
+| ------------------------ | --------------------------------------------------- |
+| `empty`                  | 使用 `migrate deploy`                               |
 | `legacy-without-history` | 保持 `auto` 或 `push`，完成 baseline 后再切 migrate |
-| `baseline-ready` | 检查 migration coverage 后使用 migrate |
-| `migration-ready` | 使用 `migrate deploy` |
-| `migration-blocked` | 暂停发布 |
+| `baseline-ready`         | 检查 migration coverage 后使用 migrate              |
+| `migration-ready`        | 使用 `migrate deploy`                               |
+| `migration-blocked`      | 暂停发布                                            |
 
 ## 三、创建版本
 

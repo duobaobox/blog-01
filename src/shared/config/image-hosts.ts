@@ -13,10 +13,7 @@ export const ALLOWED_IMAGE_REMOTE_PATTERNS = [
  * 主机是否匹配某个白名单模式。支持 `**.example.com` 这种前缀通配，
  * 也表示匹配裸域 `example.com`。
  */
-export function matchesAllowedImageHostname(
-  hostname: string,
-  pattern: string,
-) {
+export function matchesAllowedImageHostname(hostname: string, pattern: string) {
   const normalizedHost = hostname.toLowerCase();
   const normalizedPattern = pattern.toLowerCase();
 

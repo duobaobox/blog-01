@@ -16,10 +16,7 @@ import {
 } from "@/features/posts/lib/post-write";
 import { updatePostIncrementally } from "@/features/posts/services/post-save.service";
 import * as postService from "@/features/posts/services/post.service";
-import {
-  normalizeOptionalString,
-  requireOneOf,
-} from "@/shared/lib/validation";
+import { normalizeOptionalString, requireOneOf } from "@/shared/lib/validation";
 
 const postActionRunner = createPostActionRunner({
   postService: {

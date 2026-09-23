@@ -43,7 +43,10 @@ test("标签顺序不同不算改动（与排序快照的语义一致）", () =>
   );
 
   assert.equal(
-    isPostFormDirty(createForm({ selectedTagIds: ["tag-a", "tag-b"] }), baseline),
+    isPostFormDirty(
+      createForm({ selectedTagIds: ["tag-a", "tag-b"] }),
+      baseline,
+    ),
     false,
   );
 });
@@ -119,7 +122,10 @@ test("签名是快照：基线不随后续表单对象变化而变化", () => {
     false,
   );
   assert.equal(
-    isPostFormDirty(createForm({ selectedTagIds: ["tag-a", "tag-b"] }), baseline),
+    isPostFormDirty(
+      createForm({ selectedTagIds: ["tag-a", "tag-b"] }),
+      baseline,
+    ),
     true,
   );
 });

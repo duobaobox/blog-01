@@ -6,7 +6,9 @@ import {
 } from "./trusted-proxies";
 
 test("未配置时回落本机代理默认值", () => {
-  assert.deepEqual(resolveTrustedProxies(undefined), [...DEFAULT_TRUSTED_PROXIES]);
+  assert.deepEqual(resolveTrustedProxies(undefined), [
+    ...DEFAULT_TRUSTED_PROXIES,
+  ]);
   assert.deepEqual(resolveTrustedProxies(null), [...DEFAULT_TRUSTED_PROXIES]);
   assert.deepEqual(resolveTrustedProxies(""), [...DEFAULT_TRUSTED_PROXIES]);
   assert.deepEqual(resolveTrustedProxies("   "), [...DEFAULT_TRUSTED_PROXIES]);
@@ -23,7 +25,9 @@ test("逗号分隔的代理列表会被去空白", () => {
 test("只剩分隔符的配置回落到默认值而不是空列表", () => {
   // 空的可信代理列表会让 better-auth 退回“只信任单值 X-Forwarded-For”，
   // 等于悄悄把伪造漏洞放回来。
-  assert.deepEqual(resolveTrustedProxies(",,  ,"), [...DEFAULT_TRUSTED_PROXIES]);
+  assert.deepEqual(resolveTrustedProxies(",,  ,"), [
+    ...DEFAULT_TRUSTED_PROXIES,
+  ]);
 });
 
 test("默认值不会被调用方就地修改", () => {

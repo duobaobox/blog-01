@@ -20,7 +20,11 @@ test("云元数据地址一律拒绝，各家云与其 IPv6/映射写法都覆�
     "[::a9fe:a9fe]",
     "[fe80::1]",
   ]) {
-    assert.equal(isCloudMetadataHost(host), true, `${host} 应被判定为元数据地址`);
+    assert.equal(
+      isCloudMetadataHost(host),
+      true,
+      `${host} 应被判定为元数据地址`,
+    );
   }
 });
 
@@ -47,9 +51,18 @@ test("普通主机与私有地址不受影响", () => {
 });
 
 test("解析源站时把端口与路径区分开", () => {
-  assert.equal(resolveAiBaseUrlOrigin("https://api.deepseek.com/v1"), "https://api.deepseek.com");
-  assert.equal(resolveAiBaseUrlOrigin("https://api.deepseek.com/other"), "https://api.deepseek.com");
-  assert.equal(resolveAiBaseUrlOrigin("https://api.deepseek.com:8443/v1"), "https://api.deepseek.com:8443");
+  assert.equal(
+    resolveAiBaseUrlOrigin("https://api.deepseek.com/v1"),
+    "https://api.deepseek.com",
+  );
+  assert.equal(
+    resolveAiBaseUrlOrigin("https://api.deepseek.com/other"),
+    "https://api.deepseek.com",
+  );
+  assert.equal(
+    resolveAiBaseUrlOrigin("https://api.deepseek.com:8443/v1"),
+    "https://api.deepseek.com:8443",
+  );
   assert.equal(resolveAiBaseUrlOrigin(""), null);
   assert.equal(resolveAiBaseUrlOrigin("not a url"), null);
   assert.equal(resolveAiBaseUrlOrigin(null), null);
@@ -92,11 +105,17 @@ test("更换主机、端口或协议都必须重新填写密钥", () => {
 
 test("缺少任一侧地址时不复用密钥", () => {
   assert.equal(
-    canReuseStoredAiApiKey({ existingBaseUrl: null, nextBaseUrl: "https://a.example" }),
+    canReuseStoredAiApiKey({
+      existingBaseUrl: null,
+      nextBaseUrl: "https://a.example",
+    }),
     false,
   );
   assert.equal(
-    canReuseStoredAiApiKey({ existingBaseUrl: "https://a.example", nextBaseUrl: null }),
+    canReuseStoredAiApiKey({
+      existingBaseUrl: "https://a.example",
+      nextBaseUrl: null,
+    }),
     false,
   );
 });

@@ -484,7 +484,7 @@ export async function updatePost(
     contentJson: unknown;
     contentHtml: string;
     contentText: string;
-  previewText: string | null;
+    previewText: string | null;
     contentToc: unknown;
     excerpt: string | null;
     coverImageUrl: string | null;

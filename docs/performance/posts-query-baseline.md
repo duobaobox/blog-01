@@ -21,10 +21,10 @@ npm run db:explain:posts:analyze
 而原有索引里没有任何一个包含 `isFeatured`，因此排序无法由索引满足。
 在 3000 篇已发布文章的样本上（`npm run db:seed:demo-posts -- --scale=5` 补齐规模后手工灌入）实测：
 
-| 方案 | 计划 | Buffers | 执行时间 |
-| --- | --- | --- | --- |
-| 无 `[status, isFeatured, publishedAt, createdAt]` 索引 | Seq Scan + top-N heapsort | 76 | 1.173 ms |
-| 有该索引 | Index Scan Backward | 13 | 0.045 ms |
+| 方案                                                   | 计划                      | Buffers | 执行时间 |
+| ------------------------------------------------------ | ------------------------- | ------- | -------- |
+| 无 `[status, isFeatured, publishedAt, createdAt]` 索引 | Seq Scan + top-N heapsort | 76      | 1.173 ms |
+| 有该索引                                               | Index Scan Backward       | 13      | 0.045 ms |
 
 差距随已发布文章数线性扩大（无索引时必须扫描并排序全部匹配行），因此该索引由
 migration `20260917120000_add_public_read_indexes` 引入。同一 migration 还给

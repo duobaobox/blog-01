@@ -51,7 +51,10 @@ test("每个公开缓存标签都有查询在消费", async () => {
 
     for (const [key, tag] of Object.entries(PUBLIC_CACHE_TAGS)) {
       // 只有出现在缓存条目的 tags 选项里才算真正被消费。
-      if (source.includes(`PUBLIC_CACHE_TAGS.${key}`) && source.includes("tags:")) {
+      if (
+        source.includes(`PUBLIC_CACHE_TAGS.${key}`) &&
+        source.includes("tags:")
+      ) {
         consumersByTag.get(tag)?.push(file);
       }
     }
