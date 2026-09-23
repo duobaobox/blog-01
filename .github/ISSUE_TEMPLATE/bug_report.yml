@@ -1,0 +1,59 @@
+name: Bug 反馈
+description: 报告一个可以复现的问题
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        安全问题请不要公开提交，处理方式见 [SECURITY.md](https://github.com/duobaobox/blog-01/blob/main/SECURITY.md)。
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 在哪个版本上出现？可在 GitHub Release 或镜像标签中查看。
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: 部署方式
+      options:
+        - 官方安装脚本（install.sh）
+        - 手动 Docker Compose
+        - 本地开发（npm run dev）
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开 ...
+        2. 点击 ...
+        3. 出现 ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志、截图或报错信息
+      description: 容器部署可执行 `sudo ./blogctl logs`；本地开发请附终端输出。
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 操作系统、Node.js 版本；前端问题请注明浏览器。
+      placeholder: "Ubuntu 24.04 / Node.js 22 / Chrome 130"
+    validations:
+      required: false
