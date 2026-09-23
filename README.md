@@ -296,6 +296,7 @@ docs/                   架构、部署、备份和维护文档
 - [备份与恢复](./docs/backup-and-restore.md)
 - [发版与回滚 Checklist](./docs/release-and-rollback-checklist.md)
 - [当前架构基线](./docs/architecture-baseline.md)
+- [站点自定义](./docs/site-customization.md)
 
 ## License
 

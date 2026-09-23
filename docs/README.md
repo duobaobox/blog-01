@@ -5,6 +5,7 @@
 ## 架构与界面扩展
 
 - [当前架构基线](./architecture-baseline.md)
+- [站点自定义（后台与代码边界）](./site-customization.md)
 - [首页风格 DIY](./homepage-diy.md)
 - [SEO 与 AI 编辑助手 PRD](./ai-seo-prd.md)
 
