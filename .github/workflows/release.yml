@@ -126,6 +126,7 @@ jobs:
           (
             cd dist
             sha256sum -c blog-01-linux-amd64.tar.gz.sha256
+            sha256sum -c blog-01-installer.sh.sha256
           )
 
   publish:
@@ -199,6 +200,8 @@ jobs:
           subject-path: |
             dist/blog-01-linux-amd64.tar.gz
             dist/blog-01-linux-amd64.tar.gz.sha256
+            dist/blog-01-installer.sh
+            dist/blog-01-installer.sh.sha256
 
       - name: 创建 GitHub Release
         env:
@@ -221,4 +224,6 @@ jobs:
           gh release create "$RELEASE_TAG" \
             dist/blog-01-linux-amd64.tar.gz \
             dist/blog-01-linux-amd64.tar.gz.sha256 \
+            dist/blog-01-installer.sh \
+            dist/blog-01-installer.sh.sha256 \
             "${RELEASE_FLAGS[@]}"

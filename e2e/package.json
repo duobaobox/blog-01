@@ -1,0 +1,11 @@
+{
+  "name": "blog-01-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "playwright test --config=playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0"
+  }
+}

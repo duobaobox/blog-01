@@ -22,6 +22,8 @@
 # production
 /build
 /dist
+/e2e/playwright-report
+/e2e/test-results
 /delivery/out
 /delivery/offline/deploy
 /delivery/*.tar

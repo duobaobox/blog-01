@@ -18,7 +18,9 @@ check_root() {
   if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
     echo "This installer writes to $INSTALL_DIR and installs Docker when needed." >&2
     echo "Run it with sudo:" >&2
-    echo "  curl -fsSL https://raw.githubusercontent.com/$REPOSITORY/main/install.sh | sudo bash" >&2
+    echo "  Download blog-01-installer.sh and its .sha256 file from:" >&2
+    echo "  https://github.com/$REPOSITORY/releases" >&2
+    echo "  Then verify the checksum and run: sudo bash ./blog-01-installer.sh" >&2
     exit 1
   fi
 }
